@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  
+}
+
+/* Puedes agregar estas clases globales o específicas */
+body {
+    background-color: #f4f4f4; /* Un color de fondo suave */
+  }
+  
+  .carrusel-container img:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .carrusel-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+  }

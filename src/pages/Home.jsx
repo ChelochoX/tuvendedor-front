@@ -33,7 +33,7 @@ function Home() {
       <div className="relative my-8 text-center">
         <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-blue-500 to-purple-500 opacity-50 blur-xl transform scale-90 animate-gradient-shift"></div>
         <h2 className="relative text-4xl font-bold text-gray-900 z-10">
-          ¡Descubre nuestras promociones de temporada!
+          ¡No dejes pasar estas <span className="promociones">PROMOCIONES</span>!
         </h2>
         <p className="relative text-lg text-gray-700 mt-2 z-10">
           Ofertas irresistibles que no puedes dejar pasar. ¡Haz tu compra ahora y disfruta de descuentos exclusivos!
@@ -56,6 +56,24 @@ function Home() {
         .animate-gradient-shift {
           background-size: 200% 200%;
           animation: gradientShift 5s ease infinite;
+        }
+
+        .promociones {
+          color: #ff5733; /* Color llamativo */
+          font-weight: bold;
+          font-size: 1.2em;
+          display: inline-block;
+          position: relative;
+          animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-10px);
+          }
         }
       `}</style>
 

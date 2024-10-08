@@ -4,15 +4,16 @@ import CardsCategorias from '../components/CardsCategorias'; // Importa CardsCat
 import axios from 'axios'; // Usaremos Axios para hacer la petición
 
 function Motos() {
-  // Lista de categorías
+  // Lista de categorías (agregamos "PROMOCIONES")
   const categories = [
     'ATV/CUACI',
     'CUB/Motonetas',
-    'Eléctricas',
+    'Electricas',
     'Motocargas',
     'Scooter',
     'Trail',
     'Utilitaria',
+    'PROMOCIONES' // Nueva categoría agregada
   ];
 
   // Estado para la categoría seleccionada (por defecto es la primera categoría)

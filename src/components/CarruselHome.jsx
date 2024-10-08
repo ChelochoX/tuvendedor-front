@@ -47,7 +47,7 @@ const CarruselHome = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       nextSlide();  // Cambia la imagen automáticamente cada 3 segundos
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(interval);  // Limpia el intervalo cuando el componente se desmonta
   }, []);

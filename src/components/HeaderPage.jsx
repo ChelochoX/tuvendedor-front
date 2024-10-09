@@ -1,10 +1,11 @@
 import React from 'react';
-import KentonLogo from '../assets/images/kentonlogo.png';  // Logo de Kenton
-import YamahaLogo from '../assets/images/yamahalogo.png';  // Logo de Yamaha
+import { Link } from 'react-router-dom';
+import KentonLogo from '../assets/images/kentonlogo.png';
+import YamahaLogo from '../assets/images/yamahalogo.png';
 
 function HeaderPage({ category }) {
   return (
-    <header className="sticky top-0 z-50">
+    <header className="sticky top-0 z-50 bg-yellow-200"> {/* Fondo amarillo claro en todo el encabezado */}
       {/* Barra superior negra con texto en movimiento */}
       <div className="bg-black text-white text-sm py-2 overflow-hidden relative">
         <div className="marquee-container">
@@ -35,27 +36,56 @@ function HeaderPage({ category }) {
       </div>
 
       {/* Encabezado principal con logo y navegación */}
-      <div className="bg-white shadow-md">
-        <div className="container mx-auto flex justify-between items-center py-4 px-4">
-          {/* Logo */}
+      <div className="bg-yellow-200 shadow-md">
+        <div className="container mx-auto flex justify-between items-center py-1 px-4">  {/* Reducir el padding superior/inferior */}
+          {/* Texto animado que simula el logo */}
           <div className="flex items-center">
-            <img src="https://via.placeholder.com/100x50" alt="Logo Kenton" className="mr-4" />
+            <div className="animated-logo">
+              <span className="logo-text">TU VENDEDOR</span>
+            </div>
           </div>
 
           {/* Menú de navegación */}
           <nav className="flex space-x-6">
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">INICIO</a>
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">NOSOTROS</a>
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">MOTOS</a>
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">INMUEBLES</a>
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">VEHICULOS</a>
-            <a href="#" className="text-gray-700 font-semibold hover:text-orange-500">CONTACTO</a>
+            <Link to="/" className="text-gray-700 font-semibold hover:text-orange-500">INICIO</Link>
+            <Link to="/nosotros" className="text-gray-700 font-semibold hover:text-orange-500">NOSOTROS</Link>
+            <Link to="/motos" className="text-gray-700 font-semibold hover:text-orange-500">MOTOS</Link>
+            <Link to="/inmuebles" className="text-gray-700 font-semibold hover:text-orange-500">INMUEBLES</Link>
+            <Link to="/vehiculos" className="text-gray-700 font-semibold hover:text-orange-500">VEHICULOS</Link>
+            <Link to="/contacto" className="text-gray-700 font-semibold hover:text-orange-500">CONTACTO</Link>
           </nav>
         </div>
       </div>
 
-      {/* Estilos para el efecto marquee */}
+      {/* Estilos para el efecto de estiramiento constante */}
       <style>{`
+        /* Fuente Bungee importada desde Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&display=swap');
+
+        .animated-logo {
+          display: inline-block;
+          padding: 0px 10px; /* Reducir el padding alrededor del texto */
+          text-align: center;
+        }
+
+        .logo-text {
+          font-size: 44px;
+          font-weight: bold;
+          color: black;
+          font-family: 'Bungee', sans-serif;
+          text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8); /* Sombra */
+          animation: stretchEffect 4s ease-in-out infinite; /* Animación constante de 4 segundos */
+        }
+
+        @keyframes stretchEffect {
+          0%, 100% {
+            transform: scale(1, 1); /* Estado normal */
+          }
+          50% {
+            transform: scale(1.5, 1); /* Estiramiento horizontal más pronunciado */
+          }
+        }
+
         .marquee-container {
           overflow: hidden;
           position: relative;
@@ -73,7 +103,6 @@ function HeaderPage({ category }) {
           visibility: visible;
         }
 
-        /* Cambia la dirección para mover de izquierda a derecha */
         @keyframes scroll {
           0% {
             transform: translateX(-100%);

@@ -22,7 +22,7 @@ function Sidebar({ categories, setCategory }) {
       <div
         className={`bg-white shadow-lg p-4 rounded-lg transition-transform 
           ${isOpen ? 'block' : 'hidden'} 
-          fixed top-36 left-0 w-3/4 h-auto z-40 md:w-64 md:h-auto md:fixed md:top-40`}
+          fixed top-36 left-16 w-3/4 h-auto z-40 md:w-64 md:h-auto md:fixed md:top-40`}
       >
         <h2 className="text-lg font-bold mb-2 underline decoration-2 decoration-gray-300">
           CATEGORÍAS

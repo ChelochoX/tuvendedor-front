@@ -1,25 +1,38 @@
 // src/components/Header.jsx
 import React from 'react';
-import video from '../assets/videos/video-tuvendedor.mp4'
+import video from '../assets/videos/tuvendedorvideo.mp4';
+import leftImage from '../assets/images/motosheader.png';
+import rightImage from '../assets/images/motosheader.png';
 
 function Header() {
   return (
-    <header className="relative bg-black text-yellow-500 h-96 flex flex-col justify-center items-center">
-      <div className="w-full h-full flex justify-center items-center relative">
-        {/* Video como banner */}
-        <video
-          src={video}  // Cambia la ruta por la correcta
-          className="w-full h-full object-cover"  // Asegura que el video cubra todo el contenedor
-          autoPlay
-          loop
-          muted
+    <header className="relative bg-black text-yellow-500 w-full h-96 flex justify-center items-center">
+      <div className="flex items-center justify-between w-full h-full">
+        {/* Imagen izquierda: Oculta en pantallas pequeñas */}
+        <img
+          src={leftImage}
+          alt="Imagen izquierda"
+          className="hidden md:block flex-1 h-full object-cover"
         />
 
-        {/* Contenido encima del video */}
-        <div className="absolute inset-0 flex flex-col justify-center items-center bg-black bg-opacity-50">
-          <h1 className="text-5xl font-bold">0982 121269</h1>
-          <p className="text-xl font-semibold">@motosTuVendedor</p>
+        {/* Video en el centro */}
+        <div className="flex-1 h-full flex justify-center items-center">
+          <video
+            src={video}
+            className="w-full h-full object-cover"
+            autoPlay
+            loop
+            muted
+            playsInline
+          />
         </div>
+
+        {/* Imagen derecha: Oculta en pantallas pequeñas */}
+        <img
+          src={rightImage}
+          alt="Imagen derecha"
+          className="hidden md:block flex-1 h-full object-cover"
+        />
       </div>
     </header>
   );

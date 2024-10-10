@@ -47,11 +47,16 @@ function Motos() {
     <div>    
       <div className="container mx-auto px-4 py-8">
         <div className="flex">
+          {/* Contenedor para crear espacio a la izquierda */}
+          <div className="w-64"></div>
+
           {/* Sidebar que actualizará la categoría seleccionada */}
           <Sidebar categories={categories} setCategory={setSelectedCategory} />
 
           {/* Grid de Motos */}
-          <CardsCategorias modelos={modelos} />
+          <div className="flex-1">
+            <CardsCategorias modelos={modelos} />
+          </div>
         </div>
       </div>
     </div>

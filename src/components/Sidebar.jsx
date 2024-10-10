@@ -1,50 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function Sidebar({ categories, setCategory }) {
   const [activeCategory, setActiveCategory] = useState(categories[0]);
+  const [isOpen, setIsOpen] = useState(false); // Por defecto cerrado en todos los tamaños de pantalla
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
 
   return (
-    <div 
-     className="w-1/5 h-96 border p-2 transition-transform transform hover:scale-105 shadow-lg rounded-lg hover:shadow-xl sticky top-40 overflow-y-auto"
-    >
-      <h2 className="text-lg font-bold mb-2 underline decoration-2 decoration-gray-300">CATEGORIAS</h2>
-      <ul className="space-y-1">
-        {categories.map((category, index) => (
-          <li
-            key={index}
-            className={`py-1 px-3 cursor-pointer transition-colors 
-              ${activeCategory === category ? 'font-semibold text-orange-500' : 'text-gray-700'}
-              hover:bg-yellow-100 hover:text-orange-500 hover:underline rounded transition-transform transform hover:scale-105
-              ${category === 'PROMOCIONES' ? 'text-red-500 font-bold animate-shake-pause' : ''}`}  // Efecto de sacudida con pausas para PROMOCIONES
-            onClick={() => {
-              setActiveCategory(category);
-              setCategory(category);
-            }}
-          >
-            {category}
-          </li>
-        ))}
-      </ul>
+    <>
+      {/* Botón para abrir/cerrar el Sidebar en todos los tamaños de pantalla */}
+      <button
+        className="fixed top-28 left-4 z-50 p-2 bg-yellow-500 text-black font-bold rounded-lg shadow-md"
+        onClick={toggleSidebar}
+      >
+        Categorías
+      </button>
 
-      {/* Estilos personalizados para el efecto de sacudida con pausas */}
-      <style jsx>{`
-        @keyframes shake {
-          0%, 100% {
-            transform: translateX(0);
-          }
-          10%, 30%, 50%, 70%, 90% {
-            transform: translateX(-5px);
-          }
-          20%, 40%, 60%, 80% {
-            transform: translateX(5px);
-          }
-        }
+      {/* Contenedor del Sidebar */}
+      <div
+        className={`bg-white shadow-lg p-4 rounded-lg transition-transform 
+          ${isOpen ? 'block' : 'hidden'} 
+          fixed top-36 left-0 w-3/4 h-auto z-40 md:w-64 md:h-auto md:fixed md:top-40`}
+      >
+        <h2 className="text-lg font-bold mb-2 underline decoration-2 decoration-gray-300">
+          CATEGORÍAS
+        </h2>
+        <ul className="space-y-1">
+          {categories.map((category, index) => (
+            <li
+              key={index}
+              className={`py-1 px-3 cursor-pointer transition-colors 
+                ${activeCategory === category ? 'font-semibold text-orange-500' : 'text-gray-700'}
+                hover:bg-yellow-100 hover:text-orange-500 hover:underline rounded
+                ${category === 'PROMOCIONES' ? 'text-red-500 font-bold animate-shake-pause' : ''}`}
+              onClick={() => {
+                setActiveCategory(category);
+                setCategory(category);
+                setIsOpen(false); // Cerrar el sidebar después de seleccionar una categoría
+              }}
+            >
+              {category}
+            </li>
+          ))}
+        </ul>
+      </div>
 
-        .animate-shake-pause {
-          animation: shake 3s ease 5s infinite; /* 3 segundos de sacudida, 5 segundos de pausa */
-        }
-      `}</style>
-    </div>
+      {/* Fondo oscuro para cerrar el Sidebar al hacer clic fuera en cualquier tamaño de pantalla */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black opacity-50 z-30"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+    </>
   );
 }
 

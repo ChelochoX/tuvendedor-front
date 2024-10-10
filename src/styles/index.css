@@ -3,22 +3,34 @@
 @tailwind utilities;
 
 :root {
-  
+  /* Puedes definir colores o variables globales si es necesario */
 }
 
-/* Puedes agregar estas clases globales o específicas */
+/* Estilos globales */
 body {
-    background-color: #f4f4f4; /* Un color de fondo suave */
-  }
-  
-  .carrusel-container img:hover {
-    transform: scale(1.1);
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .carrusel-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-  }
+  background-color: #f4f4f4; /* Un color de fondo suave */
+}
+
+/* Estilos para el carrusel */
+.carrusel-container img:hover {
+  @apply transform scale-110 transition-transform duration-300 ease-in-out;
+}
+
+.carrusel-container {
+  @apply flex justify-center items-center overflow-hidden;
+}
+
+/* Estilo para el sidebar */
+.sidebar {
+  @apply bg-gray-100 p-5 rounded-lg; /* Fondo, padding y bordes redondeados */
+  position: fixed; /* Fija el sidebar para que flote */
+  top: 20px; /* Espaciado desde la parte superior */
+  left: 20px; /* Espaciado desde el lado izquierdo */
+  max-height: calc(100vh - 40px); /* Para asegurarse de que no sea más alto que la ventana */
+  overflow-y: auto; /* Permite desplazamiento si hay muchos elementos */
+}
+
+/* Sombra opcional para darle un efecto flotante */
+.sidebar {
+  @apply shadow-lg;
+}

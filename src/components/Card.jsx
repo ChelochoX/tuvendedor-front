@@ -43,7 +43,7 @@ function Card({ images, title, link }) {
   };
 
   // Generar la URL de la imagen actual
-  const currentImage = images && images.length > 0 ? `https://localhost:7040${images[currentImageIndex]}` : 'https://via.placeholder.com/600x400';
+  const currentImage = images && images.length > 0 ? `http://192.168.100.14:5138${images[currentImageIndex]}` : 'https://via.placeholder.com/600x400';
 
   return (
     <div

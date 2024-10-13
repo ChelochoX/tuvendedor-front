@@ -34,7 +34,7 @@ function Sidebar({ categories, setCategory }) {
               className={`py-1 px-3 cursor-pointer transition-colors 
                 ${activeCategory === category ? 'font-semibold text-orange-500' : 'text-gray-700'}
                 hover:bg-yellow-100 hover:text-orange-500 hover:underline rounded
-                ${category === 'PROMOCIONES' ? 'text-red-500 font-bold animate-shake-pause' : ''}`}
+                ${category === 'PROMOCIONES' ? 'text-red-500 font-bold animate-confetti' : ''}`} // Efecto "confetti" para PROMOCIONES
               onClick={() => {
                 setActiveCategory(category);
                 setCategory(category);

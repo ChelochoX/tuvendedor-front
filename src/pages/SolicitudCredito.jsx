@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom'; // Importar useLocation para recibir el estado
 
 function SolicitudCredito() {
@@ -16,6 +16,11 @@ function SolicitudCredito() {
   const [barrio, setBarrio] = useState('');
   const [ciudad, setCiudad] = useState('');
   const [documentos, setDocumentos] = useState([]);
+
+  // Desplazar al inicio de la página cuando se cargue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Validación para cédula y teléfono
   const handleCedulaChange = (e) => {

@@ -24,6 +24,9 @@ function SolicitudCredito() {
     { nombre: '', telefono: '' }
   ]);
 
+  // Agregar el estado de errorMessage
+  const [errorMessage, setErrorMessage] = useState('');
+
   // Desplazar al inicio de la página cuando se cargue
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -61,11 +64,56 @@ function SolicitudCredito() {
     setDocumentos(Array.from(e.target.files)); // Convierte los archivos en un array
   };
 
-  // Envío del formulario
-  const handleSubmit = (e) => {
+  const handleReferenciaChange = (index, field, value) => {
+    const nuevasReferencias = [...referencias];
+    nuevasReferencias[index][field] = value;
+    setReferencias(nuevasReferencias);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormEnviado(true);
-    console.log('Formulario enviado:', { cedula, telefonoMovil, telefonoLaboral, antiguedad, aportaIps, cantidadAportes, documentos });
+
+    const solicitudData = {
+      modelo,
+      entregaInicial,
+      cantidadCuotas,
+      montoCuota,
+      cedula,
+      telefonoMovil,
+      telefonoLaboral,
+      antiguedad,
+      aportaIps,
+      cantidadAportes,
+      fechaNacimiento,
+      barrio,
+      ciudad,
+      referencia1Nombre: referencias[0].nombre,
+      referencia1Telefono: referencias[0].telefono,
+      referencia2Nombre: referencias[1].nombre,
+      referencia2Telefono: referencias[1].telefono,
+      referencia3Nombre: referencias[2].nombre,
+      referencia3Telefono: referencias[2].telefono,
+    };
+
+    try {
+      const response = await fetch('http://192.168.100.14:5138/api/Motos/solicitudcredito', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(solicitudData),
+      });
+
+      if (response.ok) {
+        setFormEnviado(true);
+        setErrorMessage('');
+      } else {
+        setErrorMessage('Ocurrió un error al enviar la solicitud');
+      }
+    } catch (error) {
+      setErrorMessage('Error de conexión con el servidor');
+      console.error('Error:', error);
+    }
   };
 
   return (
@@ -337,6 +385,7 @@ function SolicitudCredito() {
         </button>
 
         {formEnviado && <p className="text-green-500 mt-4">Formulario enviado exitosamente.</p>}
+        {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
       </form>
     </div>
   );

@@ -17,6 +17,13 @@ function SolicitudCredito() {
   const [ciudad, setCiudad] = useState('');
   const [documentos, setDocumentos] = useState([]);
 
+  // Estado para referencias personales
+  const [referencias, setReferencias] = useState([
+    { nombre: '', telefono: '' },
+    { nombre: '', telefono: '' },
+    { nombre: '', telefono: '' }
+  ]);
+
   // Desplazar al inicio de la página cuando se cargue
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -66,8 +73,8 @@ function SolicitudCredito() {
       <h1 className="text-2xl font-bold mb-4">Solicitud de Crédito</h1>
 
       <form onSubmit={handleSubmit}>
-       {/* Modelo Solicitado */}
-       <div className="mb-0">
+        {/* Modelo Solicitado */}
+        <div className="mb-0">
           <label className="block font-bold mb-1 inline">Modelo Solicitado: </label>
           <p className="text-gray-700 inline">{modelo}</p> {/* Mostrar en una sola línea */}
         </div>
@@ -281,6 +288,40 @@ function SolicitudCredito() {
                   type="text"
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder="Teléfono"
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Referencias Personales */}
+        <h2 className="text-xl font-bold mb-2">Referencias Personales</h2>
+        <p className="text-red-500 mb-4">
+          2 referencias deben ser de parientes y 1 puede ser compañero laboral o amistad. Es válido número de celular o móvil.
+        </p>
+
+        {referencias.map((referencia, index) => (
+          <div key={index} className="mb-4">
+            <h3 className="text-lg font-semibold mb-1">Referencia Personal {index + 1}</h3>
+            <div className="flex space-x-4 mb-2">
+              <div className="w-1/2">
+                <label className="block font-semibold">Nombre</label>
+                <input
+                  type="text"
+                  value={referencia.nombre}
+                  onChange={(e) => handleReferenciaChange(index, 'nombre', e.target.value)}
+                  className="border border-gray-300 px-2 py-1 w-full rounded"
+                  placeholder={`Nombre de la referencia ${index + 1}`}
+                />
+              </div>
+              <div className="w-1/2">
+                <label className="block font-semibold">Teléfono</label>
+                <input
+                  type="text"
+                  value={referencia.telefono}
+                  onChange={(e) => handleReferenciaChange(index, 'telefono', e.target.value)}
+                  className="border border-gray-300 px-2 py-1 w-full rounded"
+                  placeholder={`Teléfono de la referencia ${index + 1}`}
                 />
               </div>
             </div>

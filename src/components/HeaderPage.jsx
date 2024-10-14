@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import KentonLogo from '../assets/images/kentonlogo.png';
-import YamahaLogo from '../assets/images/yamahalogo.png';
 
 function HeaderPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const messages = [
+    <span><span className="text-yellow-500">Comunícate con </span><span className="text-green-400">Nosotros</span><span className="text-yellow-500"> y elige el modelo que más te guste!!</span></span>,
+    <span><span className="text-yellow-500">WhatsApp </span><span className="text-green-400">0982 12 12 69</span> - <span className="text-green-400">0991 64 58 06</span></span>,
+    <span>¿Quieres que tu <span className="text-yellow-500">Marca</span> sea conocida? <span className="text-green-400">Llamanos!!</span> <span className="text-green-400">0994 60 60 48</span></span>,
+  ];
+
+  // Control del índice actual del mensaje
+  const [currentMessage, setCurrentMessage] = useState(0);
+
+  // Cambiar de mensaje cada 5 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessage((prevMessage) => (prevMessage + 1) % messages.length);
+    }, 5000); // Cambia cada 5 segundos
+    return () => clearInterval(interval); // Limpiar el intervalo al desmontar
+  }, [messages.length]);
 
   const handleLinkClick = () => {
     setIsMenuOpen(false); // Cierra el menú al hacer clic en un enlace
@@ -15,16 +29,8 @@ function HeaderPage() {
       {/* Barra superior negra con texto en movimiento */}
       <div className="bg-black text-white text-sm py-2 overflow-hidden relative">
         <div className="marquee-container">
-          <div className="marquee">
-            <span className="marquee-item mx-16 text-yellow-500 font-bold">
-              Comunícate con <span className="text-green-400">Nosotros</span> y elige el modelo que más te guste!!
-            </span>
-            <span className="marquee-item mx-16">
-              <span className="text-yellow-500">WhatsApp</span> <span className="text-green-400">0982 12 12 69</span> - <span className="text-green-400">0991 64 58 06</span>
-            </span>
-            <span className="marquee-item mx-16">
-              ¿Quieres que tu <span className="text-yellow-500">Marca</span> sea conocida? <span className="text-green-400">Llamanos!!</span> <span className="text-green-400">0994 60 60 48</span>
-            </span>
+          <div className="marquee-item mx-16 text-center">
+            {messages[currentMessage]}
           </div>
         </div>
       </div>
@@ -89,23 +95,26 @@ function HeaderPage() {
         }
 
         .marquee-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 30px;
           overflow: hidden;
           position: relative;
-          height: 30px;
         }
 
-        .marquee {
-          display: flex;
-          white-space: nowrap;
-          animation: scroll 60s linear infinite;
+        .marquee-item {
+          animation: fadeInOut 5s infinite;
         }
 
-        @keyframes scroll {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(100%);
+        @keyframes fadeInOut {
+          0%, 100% { opacity: 0; }
+          10%, 90% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+          .marquee-item {
+            font-size: 12px; /* Ajustar el tamaño en móvil */
           }
         }
       `}</style>

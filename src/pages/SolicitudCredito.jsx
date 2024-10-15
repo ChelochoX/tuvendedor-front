@@ -1,24 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom'; // Importar useLocation para recibir el estado
+import Swal from 'sweetalert2';
 
 function SolicitudCredito() {
   const location = useLocation();
-  const { modelo, plan, entregaInicial, cantidadCuotas, montoCuota } = location.state || {}; // Recibimos los datos enviados desde MotosDetalle
+  const { modeloSolicitado, plan, entregaInicial, cantidadCuotas, montoPorCuota } = location.state || {}; // Recibimos los datos enviados desde MotosDetalle
 
-  const [cedula, setCedula] = useState('');
+  const [cedulaIdentidad, setcedulaIdentidad] = useState('');
   const [telefonoMovil, setTelefonoMovil] = useState('');
   const [telefonoLaboral, setTelefonoLaboral] = useState('');
-  const [antiguedad, setAntiguedad] = useState('');
+  const [antiguedadAnios, setantiguedadAnios] = useState('');
   const [aportaIps, setAportaIps] = useState(false); // Checkbox para si aporta IPS
   const [cantidadAportes, setCantidadAportes] = useState(''); // Cantidad de aportes IPS
   const [formEnviado, setFormEnviado] = useState(false);
   const [fechaNacimiento, setFechaNacimiento] = useState('');
   const [barrio, setBarrio] = useState('');
   const [ciudad, setCiudad] = useState('');
+  const [direccionParticular, setDireccionParticular] = useState(''); // Dirección particular agregada
+  const [empresa, setEmpresa] = useState(''); // Empresa agregada
+  const [direccionLaboral, setDireccionLaboral] = useState(''); // Dirección laboral agregada
+  const [salario, setSalario] = useState(''); // Salario agregado
   const [documentos, setDocumentos] = useState([]);
 
+  // Estado para referencias comerciales
+  const [referenciasComerciales, setReferenciasComerciales] = useState([
+    { nombreLocal: '', telefono: '' },
+    { nombreLocal: '', telefono: '' }
+  ]);
+
   // Estado para referencias personales
-  const [referencias, setReferencias] = useState([
+  const [referenciasPersonales, setReferenciasPersonales] = useState([
     { nombre: '', telefono: '' },
     { nombre: '', telefono: '' },
     { nombre: '', telefono: '' }
@@ -33,10 +44,10 @@ function SolicitudCredito() {
   }, []);
 
   // Validación para cédula y teléfono
-  const handleCedulaChange = (e) => {
+  const handlecedulaIdentidadChange = (e) => {
     const value = e.target.value.replace(/\D/g, ''); // Solo números
     if (value.length <= 10) {
-      setCedula(value);
+      setcedulaIdentidad(value);
     }
   };
 
@@ -64,35 +75,47 @@ function SolicitudCredito() {
     setDocumentos(Array.from(e.target.files)); // Convierte los archivos en un array
   };
 
-  const handleReferenciaChange = (index, field, value) => {
-    const nuevasReferencias = [...referencias];
+  const handleReferenciaComercialChange = (index, field, value) => {
+    const nuevasReferencias = [...referenciasComerciales];
     nuevasReferencias[index][field] = value;
-    setReferencias(nuevasReferencias);
+    setReferenciasComerciales(nuevasReferencias);
+  };
+
+  const handleReferenciaPersonalChange = (index, field, value) => {
+    const nuevasReferencias = [...referenciasPersonales];
+    nuevasReferencias[index][field] = value;
+    setReferenciasPersonales(nuevasReferencias);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const solicitudData = {
-      modelo,
+      ModeloSolicitado: modeloSolicitado,
       entregaInicial,
       cantidadCuotas,
-      montoCuota,
-      cedula,
+      montoPorCuota,
+      cedulaIdentidad,
       telefonoMovil,
       telefonoLaboral,
-      antiguedad,
-      aportaIps,
-      cantidadAportes,
+      antiguedadAnios,
+      aportaIPS: aportaIps,
+      cantidadAportes: cantidadAportes ? parseInt(cantidadAportes) : 0,
       fechaNacimiento,
       barrio,
       ciudad,
-      referencia1Nombre: referencias[0].nombre,
-      referencia1Telefono: referencias[0].telefono,
-      referencia2Nombre: referencias[1].nombre,
-      referencia2Telefono: referencias[1].telefono,
-      referencia3Nombre: referencias[2].nombre,
-      referencia3Telefono: referencias[2].telefono,
+      direccionParticular,
+      empresa,
+      direccionLaboral,
+      salario,
+      referenciasComerciales: referenciasComerciales.map((ref) => ({
+        nombreLocal: ref.nombreLocal,
+        telefono: ref.telefono,
+      })),
+      referenciasPersonales: referenciasPersonales.map((ref) => ({
+        nombre: ref.nombre,
+        telefono: ref.telefono,
+      })),
     };
 
     try {
@@ -101,14 +124,34 @@ function SolicitudCredito() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(solicitudData),
+        body: JSON.stringify(solicitudData), // Enviar los datos correctamente
       });
 
       if (response.ok) {
+        const result = await response.json();
         setFormEnviado(true);
         setErrorMessage('');
+
+        // Mostrar mensaje popup de éxito usando SweetAlert2
+        Swal.fire({
+          icon: 'success',
+          title: 'Solicitud enviada',
+          text: `Solicitud creada exitosamente`,
+          showConfirmButton: true,
+          confirmButtonColor: '#3085d6',
+        });
       } else {
+        const result = await response.json();
         setErrorMessage('Ocurrió un error al enviar la solicitud');
+
+        // Mostrar error usando SweetAlert2
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: result.errors ? result.errors.join(', ') : 'Ocurrió un error al enviar la solicitud',
+          showConfirmButton: true,
+          confirmButtonColor: '#d33',
+        });
       }
     } catch (error) {
       setErrorMessage('Error de conexión con el servidor');
@@ -124,7 +167,7 @@ function SolicitudCredito() {
         {/* Modelo Solicitado */}
         <div className="mb-0">
           <label className="block font-bold mb-1 inline">Modelo Solicitado: </label>
-          <p className="text-gray-700 inline">{modelo}</p> {/* Mostrar en una sola línea */}
+          <p className="text-gray-700 inline">{modeloSolicitado}</p> {/* Mostrar en una sola línea */}
         </div>
 
         {/* Plan de Cuotas */}
@@ -137,7 +180,7 @@ function SolicitudCredito() {
             <strong>Cantidad de Cuotas:</strong> {cantidadCuotas ? cantidadCuotas : '0'}
           </p>
           <p className="text-gray-700">
-            <strong>Monto por Cuota:</strong> G {montoCuota ? montoCuota.toLocaleString('es-ES') : '0'}
+            <strong>Monto por Cuota:</strong> G {montoPorCuota ? montoPorCuota.toLocaleString('es-ES') : '0'}
           </p>
         </div>
 
@@ -149,8 +192,8 @@ function SolicitudCredito() {
             <label className="block font-semibold mb-1">Cédula</label>
             <input
               type="text"
-              value={cedula}
-              onChange={handleCedulaChange}
+              value={cedulaIdentidad}
+              onChange={handlecedulaIdentidadChange}
               className="border border-gray-300 px-2 py-1 w-full rounded"
               placeholder="Número de Cédula"
               required
@@ -212,6 +255,8 @@ function SolicitudCredito() {
           <label className="block font-semibold mb-1">Dirección Particular</label>
           <input
             type="text"
+            value={direccionParticular} // Asegúrate de vincular el estado al input
+            onChange={(e) => setDireccionParticular(e.target.value)} // Captura el valor del input
             className="border border-gray-300 px-2 py-1 w-full rounded"
             placeholder="Dirección Particular"
             required
@@ -236,6 +281,8 @@ function SolicitudCredito() {
           <label className="block font-semibold mb-1">Empresa</label>
           <input
             type="text"
+            value={empresa}
+            onChange={(e) => setEmpresa(e.target.value)}
             className="border border-gray-300 px-2 py-1 w-full rounded"
             placeholder="Empresa"
             required
@@ -246,6 +293,8 @@ function SolicitudCredito() {
           <label className="block font-semibold mb-1">Dirección Laboral</label>
           <input
             type="text"
+            value={direccionLaboral}
+            onChange={(e) => setDireccionLaboral(e.target.value)}
             className="border border-gray-300 px-2 py-1 w-full rounded"
             placeholder="Dirección Laboral"
             required
@@ -269,8 +318,8 @@ function SolicitudCredito() {
             <label className="block font-semibold mb-1">Antigüedad</label>
             <input
               type="number"
-              value={antiguedad}
-              onChange={(e) => setAntiguedad(e.target.value)}
+              value={antiguedadAnios}
+              onChange={(e) => setantiguedadAnios(e.target.value)}
               className="border border-gray-300 px-2 py-1 w-full rounded"
               placeholder="Antigüedad (años)"
               required
@@ -308,6 +357,8 @@ function SolicitudCredito() {
             <label className="block font-semibold mb-1">Salario</label>
             <input
               type="number"
+              value={salario}
+              onChange={(e) => setSalario(e.target.value)}
               className="border border-gray-300 px-2 py-1 w-full rounded"
               placeholder="Salario"
               required
@@ -318,22 +369,26 @@ function SolicitudCredito() {
         {/* Referencias Comerciales */}
         <h2 className="text-xl font-bold mb-2">Referencias Comerciales</h2>
 
-        {[1, 2].map((index) => (
+        {referenciasComerciales.map((referencia, index) => (
           <div key={index} className="mb-4">
-            <h3 className="text-lg font-semibold mb-1">Referencia Comercial {index}</h3>
+            <h3 className="text-lg font-semibold mb-1">Referencia Comercial {index + 1}</h3>
             <div className="flex space-x-4 mb-2">
               <div className="w-1/2">
                 <label className="block font-semibold">Nombre Local</label>
                 <input
                   type="text"
+                  value={referencia.nombreLocal}
+                  onChange={(e) => handleReferenciaComercialChange(index, 'nombreLocal', e.target.value)}
                   className="border border-gray-300 px-2 py-1 w-full rounded"
-                  placeholder={`Nombre Local ${index}`}
+                  placeholder={`Nombre Local ${index + 1}`}
                 />
               </div>
               <div className="w-1/2">
                 <label className="block font-semibold">Teléfono</label>
                 <input
                   type="text"
+                  value={referencia.telefono}
+                  onChange={(e) => handleReferenciaComercialChange(index, 'telefono', e.target.value)}
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder="Teléfono"
                 />
@@ -348,7 +403,7 @@ function SolicitudCredito() {
           2 referencias deben ser de parientes y 1 puede ser compañero laboral o amistad. Es válido número de celular o móvil.
         </p>
 
-        {referencias.map((referencia, index) => (
+        {referenciasPersonales.map((referencia, index) => (
           <div key={index} className="mb-4">
             <h3 className="text-lg font-semibold mb-1">Referencia Personal {index + 1}</h3>
             <div className="flex space-x-4 mb-2">
@@ -357,7 +412,7 @@ function SolicitudCredito() {
                 <input
                   type="text"
                   value={referencia.nombre}
-                  onChange={(e) => handleReferenciaChange(index, 'nombre', e.target.value)}
+                  onChange={(e) => handleReferenciaPersonalChange(index, 'nombre', e.target.value)}
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder={`Nombre de la referencia ${index + 1}`}
                 />
@@ -367,7 +422,7 @@ function SolicitudCredito() {
                 <input
                   type="text"
                   value={referencia.telefono}
-                  onChange={(e) => handleReferenciaChange(index, 'telefono', e.target.value)}
+                  onChange={(e) => handleReferenciaPersonalChange(index, 'telefono', e.target.value)}
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder={`Teléfono de la referencia ${index + 1}`}
                 />

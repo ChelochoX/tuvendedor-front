@@ -15,7 +15,7 @@ function MotosDetalle() {
   const [cantidadCuotas, setCantidadCuotas] = useState(12);
   const [incluyeEntrega, setIncluyeEntrega] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
-  const [montoCuota, setMontoCuota] = useState(0);
+  const [montoPorCuota, setmontoPorCuota] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
@@ -49,7 +49,15 @@ function MotosDetalle() {
 
   const handleCheckboxChange = () => {
     setIncluyeEntrega(!incluyeEntrega);
-    setMontoCuota(0);
+    setmontoPorCuota(0);
+  
+    // Si se desmarca el checkbox, selecciona el primer plan por defecto
+    if (incluyeEntrega) {
+      const primerPlan = producto.planes[0];
+      setSelectedPlan(primerPlan);
+      setCuotaMasBaja(primerPlan.importe);
+      setCantidadCuotas(primerPlan.cuotas);
+    }
   };
 
   const handleCuotasChange = (e) => {
@@ -65,15 +73,15 @@ function MotosDetalle() {
     if (incluyeEntrega) {
       try {
         const response = await axios.post('http://192.168.100.14:5138/api/Motos/producto/calcularcuota', {
-          modelo: title,
+          modeloSolicitado: title,
           entregaInicial: entregaInicial.replace(/\./g, ''), // Remover puntos antes de enviar el valor
           cantidadCuotas: cantidadCuotas
         });
 
         if (typeof response.data === 'number') {
-          setMontoCuota(response.data);
-        } else if (response.data.montoCuota) {
-          setMontoCuota(response.data.montoCuota);
+          setmontoPorCuota(response.data);
+        } else if (response.data.montoPorCuota) {
+          setmontoPorCuota(response.data.montoPorCuota);
         }
 
       } catch (error) {
@@ -89,8 +97,8 @@ function MotosDetalle() {
     setCuotaMasBaja(planSeleccionado.importe);
   };
 
-  const mostrarMontoCuotaCalculada = () => {
-    return montoCuota > 0 ? montoCuota.toLocaleString('es-ES') : '0';
+  const mostrarmontoPorCuotaCalculada = () => {
+    return montoPorCuota > 0 ? montoPorCuota.toLocaleString('es-ES') : '0';
   };
 
   const handleSolicitarCredito = () => {
@@ -98,19 +106,19 @@ function MotosDetalle() {
 
     if (incluyeEntrega) {
       datosPlan = {
-        modelo: title,
+        modeloSolicitado: title,
         plan: 'Plan personalizado con entrega mayor',
         entregaInicial: entregaInicial.replace(/\./g, ''), // Enviar sin puntos
         cantidadCuotas: cantidadCuotas,
-        montoCuota: montoCuota,
+        montoPorCuota: montoPorCuota,
       };
     } else {
       datosPlan = {
-        modelo: title,
+        modeloSolicitado: title,
         plan: selectedPlan.nombrePlan,
         entregaInicial: selectedPlan.entrega,
         cantidadCuotas: selectedPlan.cuotas,
-        montoCuota: cuotaMasBaja
+        montoPorCuota: cuotaMasBaja
       };
     }
 
@@ -157,17 +165,21 @@ function MotosDetalle() {
           </p>
 
           <div className="mt-6">
-            <h3 className="text-md md:text-lg font-semibold mb-2">Planes de financiamiento:</h3>
-            <select
-              className="border border-gray-300 px-2 py-1 rounded w-full"
-              onChange={handlePlanChange}
-            >
-              {producto?.planes.map(plan => (
-                <option key={plan.idPlan} value={plan.idPlan}>
-                  {plan.nombrePlan}
-                </option>
-              ))}
-            </select>
+            {!incluyeEntrega && ( // Solo mostrar el selector si no está chequeado el checkbox
+              <>
+                <h3 className="text-md md:text-lg font-semibold mb-2">Planes de financiamiento:</h3>
+                <select
+                  className="border border-gray-300 px-2 py-1 rounded w-full"
+                  onChange={handlePlanChange}
+                >
+                  {producto?.planes.map(plan => (
+                    <option key={plan.idPlan} value={plan.idPlan}>
+                      {plan.nombrePlan}
+                    </option>
+                  ))}
+                </select>
+              </>
+            )}
           </div>
 
           {/* Ocultar esta sección si incluyeEntrega está activado */}
@@ -255,11 +267,11 @@ function MotosDetalle() {
                 Calcular Cuota
               </button>
 
-              {incluyeEntrega && montoCuota > 0 && (
+              {incluyeEntrega && montoPorCuota > 0 && (
                 <div className="mt-4 md:mt-0 flex flex-col md:flex-row items-center text-sm md:text-base">
                   <p className="font-semibold mr-2">Cuota Calculada:</p>
                   <p className="text-lg md:text-xl font-bold text-orange-600">
-                    G {mostrarMontoCuotaCalculada()}
+                    G {mostrarmontoPorCuotaCalculada()}
                   </p>
                 </div>
               )}

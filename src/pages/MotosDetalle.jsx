@@ -19,7 +19,7 @@ function MotosDetalle() {
   const [errorMessage, setErrorMessage] = useState('');
 
   // Obtener la URL base y el path desde las variables de entorno
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
 
   useEffect(() => {

@@ -9,7 +9,7 @@ function Card({ images, title, link }) {
   const [intervalId, setIntervalId] = useState(null);
 
     // Obtener la URL base desde las variables de entorno
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138';  
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';  
 
   // Función para iniciar la rotación de imágenes
   const startImageRotation = () => {

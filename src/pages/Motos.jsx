@@ -28,6 +28,10 @@ function Motos() {
   // Estado para controlar si el sidebar está abierto o no
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Obtener la URL base desde la variable de entorno
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138'; 
+  const basePath = import.meta.env.BASE_PATH || '/api/Motos/'; 
+
   // Función para obtener los modelos de la categoría seleccionada
   const fetchModelos = async (categoria) => {
     try {
@@ -35,7 +39,7 @@ function Motos() {
       const formattedCategory = categoria.replace(/\//g, '-');
       
       // Llama a la API del backend para obtener los modelos con la categoría formateada
-      const response = await axios.get(`http://192.168.100.14:5138/api/motos/modelo/${formattedCategory}`);
+      const response = await axios.get(`${apiUrl}${basePath}modelo/${formattedCategory}`);
       
       // Actualiza el estado con los modelos obtenidos
       setModelos(response.data);

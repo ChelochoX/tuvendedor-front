@@ -18,11 +18,15 @@ function MotosDetalle() {
   const [montoPorCuota, setmontoPorCuota] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Obtener la URL base y el path desde las variables de entorno
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138';
+  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
+
   useEffect(() => {
     const obtenerDatosProducto = async () => {
       try {
         const modeloFormateado = encodeURIComponent(title.replace('×', 'x').trim());
-        const response = await axios.get(`http://192.168.100.14:5138/api/Motos/producto/${modeloFormateado}`);
+        const response = await axios.get(`${apiUrl}${basePath}producto/${modeloFormateado}`);
         const data = response.data;
         setProducto(data);
         setPrecioContado(data.precioPublico);
@@ -50,7 +54,7 @@ function MotosDetalle() {
   const handleCheckboxChange = () => {
     setIncluyeEntrega(!incluyeEntrega);
     setmontoPorCuota(0);
-  
+
     // Si se desmarca el checkbox, selecciona el primer plan por defecto
     if (incluyeEntrega) {
       const primerPlan = producto.planes[0];
@@ -72,7 +76,7 @@ function MotosDetalle() {
     setErrorMessage('');
     if (incluyeEntrega) {
       try {
-        const response = await axios.post('http://192.168.100.14:5138/api/Motos/producto/calcularcuota', {
+        const response = await axios.post(`${apiUrl}${basePath}producto/calcularcuota`, {
           modeloSolicitado: title,
           entregaInicial: entregaInicial.replace(/\./g, ''), // Remover puntos antes de enviar el valor
           cantidadCuotas: cantidadCuotas
@@ -136,7 +140,7 @@ function MotosDetalle() {
         <div className="w-full md:w-1/2 flex flex-col items-center">
           <div className="w-full h-auto max-h-96">
             <img
-              src={`http://192.168.100.14:5138${mainImage}`}
+              src={`${apiUrl}${mainImage}`}
               alt={title}
               className="w-full h-full object-contain max-h-96"
             />
@@ -145,7 +149,7 @@ function MotosDetalle() {
             {images.map((image, index) => (
               <img
                 key={index}
-                src={`http://192.168.100.14:5138${image}`}
+                src={`${apiUrl}${image}`}
                 alt={`${title} vista ${index + 1}`}
                 className={`w-12 h-12 object-contain cursor-pointer border ${mainImage === image ? 'border-orange-500' : 'border-gray-300'}`}
                 onClick={() => setMainImage(image)}

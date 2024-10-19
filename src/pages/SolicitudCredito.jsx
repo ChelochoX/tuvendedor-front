@@ -22,6 +22,10 @@ function SolicitudCredito() {
   const [salario, setSalario] = useState(''); // Salario agregado
   const [documentos, setDocumentos] = useState([]);
 
+  // Obtener la URL base y el path base desde las variables de entorno
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138';
+  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
+
   // Estado para referencias comerciales
   const [referenciasComerciales, setReferenciasComerciales] = useState([
     { nombreLocal: '', telefono: '' },
@@ -119,7 +123,7 @@ function SolicitudCredito() {
     };
 
     try {
-      const response = await fetch('http://192.168.100.14:5138/api/Motos/solicitudcredito', {
+      const response = await fetch(`${apiUrl}${basePath}solicitudcredito`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

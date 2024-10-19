@@ -8,6 +8,9 @@ function Card({ images, title, link }) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
+    // Obtener la URL base desde las variables de entorno
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5138';  
+
   // Función para iniciar la rotación de imágenes
   const startImageRotation = () => {
     if (images.length > 1) {
@@ -43,7 +46,7 @@ function Card({ images, title, link }) {
   };
 
   // Generar la URL de la imagen actual
-  const currentImage = images && images.length > 0 ? `http://192.168.100.14:5138${images[currentImageIndex]}` : 'https://via.placeholder.com/600x400';
+  const currentImage = images && images.length > 0 ? `${apiUrl}${images[currentImageIndex]}` : 'https://via.placeholder.com/600x400';
 
   return (
     <div

@@ -30,8 +30,8 @@ function Motos() {
 
   // Obtener la URL base desde la variable de entorno
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'; 
-  const basePath = import.meta.env.BASE_PATH || '/api/Motos/'; 
-
+  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/'; 
+ 
   // Función para obtener los modelos de la categoría seleccionada
   const fetchModelos = async (categoria) => {
     try {

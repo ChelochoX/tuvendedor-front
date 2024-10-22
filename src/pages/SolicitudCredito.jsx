@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom'; // Importar useLocation para recibir el estado
+import { useLocation, useNavigate } from 'react-router-dom'; // Importar useLocation para recibir el estado
 import Swal from 'sweetalert2';
 
 function SolicitudCredito() {
   const location = useLocation();
+  const navigate = useNavigate(); // Usar para redirigir después del modal
   const { modeloSolicitado, plan, entregaInicial, cantidadCuotas, montoPorCuota } = location.state || {}; // Recibimos los datos enviados desde MotosDetalle
 
   const [cedulaIdentidad, setcedulaIdentidad] = useState('');
@@ -21,6 +22,7 @@ function SolicitudCredito() {
   const [direccionLaboral, setDireccionLaboral] = useState(''); // Dirección laboral agregada
   const [salario, setSalario] = useState(''); // Salario agregado
   const [documentos, setDocumentos] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Estado para manejar el modal adicional
 
   // Obtener la URL base y el path base desde las variables de entorno
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
@@ -143,6 +145,9 @@ function SolicitudCredito() {
           text: `Solicitud creada exitosamente`,
           showConfirmButton: true,
           confirmButtonColor: '#3085d6',
+        }).then(() => {
+          // Al cerrar SweetAlert, mostrar el modal con más información
+          setIsModalOpen(true);
         });
       } else {
         const result = await response.json();
@@ -161,6 +166,11 @@ function SolicitudCredito() {
       setErrorMessage('Error de conexión con el servidor');
       console.error('Error:', error);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    navigate('/motos'); // Redirigir a la página de motos
   };
 
   return (
@@ -446,6 +456,29 @@ function SolicitudCredito() {
         {formEnviado && <p className="text-green-500 mt-4">Formulario enviado exitosamente.</p>}
         {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
       </form>
+
+      {/* Modal de información adicional */}
+      {isModalOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+           <div className="bg-yellow-100 p-8 rounded-lg shadow-lg max-w-md mx-auto">
+            <h2 className="text-xl font-bold mb-4 text-center">¡Información importante!</h2>
+            <p className="text-gray-800 mb-4">
+              Se ha enviado un mensaje a tu WhatsApp con el detalle del proceso de tu crédito.
+              El tiempo estimado de procesamiento es de 48 horas. Por favor, revisa tus mensajes.
+            </p>
+            <p className="text-gray-800 mb-4">Te mantendremos informado sobre el estado de tu crédito.</p>
+            <div className="flex justify-center"> {/* Centrar el botón */}
+              <button
+                onClick={handleCloseModal}
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none"
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

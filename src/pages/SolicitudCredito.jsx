@@ -460,13 +460,12 @@ function SolicitudCredito() {
       {/* Modal de información adicional */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-           <div className="bg-yellow-100 p-8 rounded-lg shadow-lg max-w-md mx-auto">
+          <div className="bg-yellow-100 p-8 rounded-lg shadow-lg max-w-md mx-auto">
             <h2 className="text-xl font-bold mb-4 text-center">¡Información importante!</h2>
             <p className="text-gray-800 mb-4">
-              Se ha enviado un mensaje a tu WhatsApp con el detalle del proceso de tu crédito.
-              El tiempo estimado de procesamiento es de 48 horas. Por favor, revisa tus mensajes.
+              El equipo de ventas se pondrá en contacto con usted para confirmar sus datos para el proceso.
             </p>
-            <p className="text-gray-800 mb-4">Te mantendremos informado sobre el estado de tu crédito.</p>
+            <p className="text-gray-800 mb-4">Muchas gracias por tu interés.</p>
             <div className="flex justify-center"> {/* Centrar el botón */}
               <button
                 onClick={handleCloseModal}

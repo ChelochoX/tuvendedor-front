@@ -31,15 +31,21 @@ function Motos() {
   // Obtener la URL base desde la variable de entorno
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'; 
   const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/'; 
+  const promoPath = 'productoPromo';
  
   // Función para obtener los modelos de la categoría seleccionada
   const fetchModelos = async (categoria) => {
     try {
-      // Convertimos '/' en '-' para la categoría 'ATV/CUACI'
-      const formattedCategory = categoria.replace(/\//g, '-');
-      
-      // Llama a la API del backend para obtener los modelos con la categoría formateada
-      const response = await axios.get(`${apiUrl}${basePath}modelo/${formattedCategory}`);
+      let response;
+      if (categoria === 'PROMOCIONES') {
+        // Llama al endpoint específico de promociones
+        response = await axios.get(`${apiUrl}${basePath}${promoPath}`);
+      } else {
+        // Convertimos '/' en '-' para la categoría 'ATV/CUACI'
+        const formattedCategory = categoria.replace(/\//g, '-');
+        // Llama a la API del backend para obtener los modelos con la categoría formateada
+        response = await axios.get(`${apiUrl}${basePath}modelo/${formattedCategory}`);
+      }
       
       // Actualiza el estado con los modelos obtenidos
       setModelos(response.data);

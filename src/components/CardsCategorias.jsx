@@ -2,7 +2,7 @@ import React from 'react';
 import Card from './Card'; // Importamos el componente Card
 import { useNavigate } from 'react-router-dom';
 
-function CardsCategorias({ modelos }) {
+function CardsCategorias({ modelos, isPromo }) {
   const navigate = useNavigate();
 
   // Validamos si 'modelos' está definido y es un array para evitar errores
@@ -30,6 +30,7 @@ function CardsCategorias({ modelos }) {
               images={modelo.imagenes || []} // Pasamos todas las imágenes o un array vacío si no tiene
               title={modelo.nombre} // Solo el nombre del modelo
               link={`/motos/detalle/${modelo.nombre}`} // Redirige a la página de detalles del modelo
+              isPromo={isPromo}
             />
           );
         })}

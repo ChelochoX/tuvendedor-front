@@ -12,7 +12,7 @@ function Motos() {
     'Scooter',
     'Trail',
     'Utilitaria',
-    'PROMOCIONES' 
+    'PROMOCIONES'
   ];
 
   // Estado para la categoría seleccionada (por defecto es la primera categoría)
@@ -28,13 +28,17 @@ function Motos() {
   // Estado para controlar si el sidebar está abierto o no
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+  // Estado para controlar si estamos cargando datos
+  const [isLoading, setIsLoading] = useState(false);
+
   // Obtener la URL base desde la variable de entorno
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'; 
-  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/'; 
-  const promoPath = 'productoPromo';
- 
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
+  const promoPath = 'listarproductoPromo';
+
   // Función para obtener los modelos de la categoría seleccionada
   const fetchModelos = async (categoria) => {
+    setIsLoading(true); //
     try {
       let response;
       if (categoria === 'PROMOCIONES') {
@@ -46,11 +50,13 @@ function Motos() {
         // Llama a la API del backend para obtener los modelos con la categoría formateada
         response = await axios.get(`${apiUrl}${basePath}modelo/${formattedCategory}`);
       }
-      
+
       // Actualiza el estado con los modelos obtenidos
       setModelos(response.data);
     } catch (error) {
       console.error("Error al obtener los modelos:", error);
+    } finally {
+      setIsLoading(false); // Finaliza la carga
     }
   };
 
@@ -71,7 +77,7 @@ function Motos() {
 
         // Después de 3 segundos, desactivar la sacudida y el pop-up
         setTimeout(() => {
-          setShowShake(false); 
+          setShowShake(false);
           setShowPromo(false);
         }, 3000);
       }, 5000); // Cada 5 segundos
@@ -85,8 +91,11 @@ function Motos() {
     setIsSidebarOpen(prev => !prev); // Alterna el estado correctamente
   };
 
+  // Definir isPromo para saber si la categoría seleccionada es 'PROMOCIONES'
+  const isPromo = selectedCategory === 'PROMOCIONES';
+
   return (
-    <div>    
+    <div>
       <div className="container mx-auto px-4 py-8">
         <div className="flex">
           {/* Botón de Categorías con efecto de sacudida y promo */}
@@ -116,7 +125,18 @@ function Motos() {
 
           {/* Grid de Motos con margen izquierdo en modo web */}
           <div className="flex-1 md:ml-64">
-            <CardsCategorias modelos={modelos} />
+            {/* Mostrar mensaje si está cargando */}
+            {isLoading && <p>Cargando modelos...</p>}
+
+            {/* Mostrar mensaje si no hay promociones y se seleccionó "PROMOCIONES" */}
+            {!isLoading && isPromo && modelos.length === 0 && (
+              <p>No hay promociones disponibles en este momento.</p>
+            )}
+
+            {/* Mostrar los modelos si hay datos */}
+            {!isLoading && modelos.length > 0 && (
+              <CardsCategorias modelos={modelos} isPromo={isPromo} /> 
+            )}
           </div>
         </div>
       </div>

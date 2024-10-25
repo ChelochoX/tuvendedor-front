@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Card({ images, title, link }) {
+function Card({ images, title, link, isPromo }) {
   const navigate = useNavigate();
 
   // Estado para manejar el índice de la imagen actual
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
-    // Obtener la URL base desde las variables de entorno
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';  
+  // Obtener la URL base desde las variables de entorno
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
   // Función para iniciar la rotación de imágenes
   const startImageRotation = () => {
@@ -41,7 +41,7 @@ function Card({ images, title, link }) {
   const handleClick = () => {
     // Navegamos y pasamos imágenes y título como estado
     navigate(link, {
-      state: { images, title }
+      state: { images, title, isPromo }
     });
   };
 

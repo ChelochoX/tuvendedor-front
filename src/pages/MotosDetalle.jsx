@@ -5,7 +5,7 @@ import axios from 'axios';
 function MotosDetalle() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { images, title } = location.state || {};
+  const { images, title , isPromo} = location.state || {};
 
   const [mainImage, setMainImage] = useState(images ? images[0] : '');
   const [producto, setProducto] = useState(null);
@@ -26,18 +26,26 @@ function MotosDetalle() {
     const obtenerDatosProducto = async () => {
       try {
         const modeloFormateado = encodeURIComponent(title.replace('×', 'x').trim());
-        const response = await axios.get(`${apiUrl}${basePath}producto/${modeloFormateado}`);
+        // Configura el endpoint según si `isPromo` es true o false
+        const endpoint = isPromo
+          ? `${apiUrl}${basePath}productopromo/${modeloFormateado}`
+          : `${apiUrl}${basePath}producto/${modeloFormateado}`;
+  
+        const response = await axios.get(endpoint);
         const data = response.data;
+  
+        // Asigna los precios y planes según la existencia de promociones
         setProducto(data);
-        setPrecioContado(data.precioPublico);
-        setSelectedPlan(data.planes[0]);
-        setCuotaMasBaja(data.planes[0].importe);
+        setPrecioContado(isPromo ? data.precioPublicoPromo : data.precioPublico);
+        setSelectedPlan(isPromo ? data.planesPromo[0] : data.planes[0]);
+        setCuotaMasBaja(isPromo ? data.planesPromo[0].importePromo : data.planes[0].importe);
       } catch (error) {
         console.error("Error al obtener los datos del producto:", error);
       }
     };
+  
     obtenerDatosProducto();
-  }, [title]);
+  }, [title, isPromo]); 
 
   // Función para formatear el valor con puntos de miles
   const formatNumber = (value) => {

@@ -18,17 +18,12 @@ const CarruselHome = () => {
     const fetchImages = async () => {
       try {
         const response = await fetch(`${apiUrl}${basePath}${promoPath}`);
-
-        // Verificar si la respuesta es correcta
         if (!response.ok) {
           throw new Error(
             `Error al cargar las imágenes: ${response.status} ${response.statusText}`
           );
         }
-
         const data = await response.json();
-
-        // Verificar si `data` es un array antes de establecer el estado
         if (Array.isArray(data)) {
           setImages(data); // Guardar las imágenes en el estado
         } else {
@@ -39,7 +34,6 @@ const CarruselHome = () => {
         setError(error.message); // Guardar el error en el estado
       }
     };
-
     fetchImages();
   }, []);
 
@@ -58,18 +52,36 @@ const CarruselHome = () => {
   };
 
   // Función para manejar el clic en una imagen y redirigir a la página de detalles
-  const handleImageClick = (nombre, url, isPromo = true) => {
+  const handleImageClick = async (nombre, url, isPromo = true) => {
     // Quita la extensión de la imagen (por ejemplo, ".jpeg")
     const nombreSinExtension = nombre.replace(/\.[^/.]+$/, "");
     console.log("Nombre del modelo (sin extensión):", nombreSinExtension);
 
-    navigate(`/motos/detalle/${nombreSinExtension}`, {
-      state: {
-        title: nombreSinExtension,
-        images: [url],
-        isPromo: isPromo,
-      },
-    });
+    try {
+      // Llamar al endpoint para obtener todas las imágenes del modelo seleccionado
+      const response = await fetch(
+        `${apiUrl}${basePath}modelo/${encodeURIComponent(
+          nombreSinExtension
+        )}/imagenes`
+      );
+      if (!response.ok) {
+        throw new Error(
+          `Error al cargar las imágenes del modelo: ${response.status} ${response.statusText}`
+        );
+      }
+      const imagenesModelo = await response.json();
+
+      // Navegar a la página de detalles con las imágenes del modelo
+      navigate(`/motos/detalle/${nombreSinExtension}`, {
+        state: {
+          title: nombreSinExtension,
+          images: imagenesModelo, // Enviar todas las imágenes del modelo
+          isPromo: isPromo,
+        },
+      });
+    } catch (error) {
+      console.error("Error al cargar las imágenes del modelo:", error);
+    }
   };
 
   // Efecto para el desplazamiento automático
@@ -77,9 +89,8 @@ const CarruselHome = () => {
     const interval = setInterval(() => {
       nextSlide(); // Cambia la imagen automáticamente cada 4 segundos
     }, 4000);
-
     return () => clearInterval(interval); // Limpia el intervalo cuando el componente se desmonta
-  }, [images]); // Depende de `images` para reiniciar el intervalo cuando se carguen las imágenes
+  }, [images]);
 
   return (
     <div className="relative w-full h-96 overflow-hidden mt-8">

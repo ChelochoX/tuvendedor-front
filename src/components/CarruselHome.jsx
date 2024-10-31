@@ -1,33 +1,47 @@
-import React, { useState, useEffect } from 'react';
-
-// Importar las imágenes
-import img1 from '../assets/images/MotosCarrusel/1.jpeg';
-import img2 from '../assets/images/MotosCarrusel/2.jpeg';
-import img3 from '../assets/images/MotosCarrusel/3.jpeg';
-import img4 from '../assets/images/MotosCarrusel/4.jpeg';
-import img5 from '../assets/images/MotosCarrusel/5.jpeg';
-import img6 from '../assets/images/MotosCarrusel/6.jpeg';
-import img7 from '../assets/images/MotosCarrusel/7.jpeg';
-import img8 from '../assets/images/MotosCarrusel/8.jpeg';
-import img9 from '../assets/images/MotosCarrusel/9.jpeg';
-import img10 from '../assets/images/MotosCarrusel/10.jpeg';
-import img11 from '../assets/images/MotosCarrusel/11.jpeg';
-import img12 from '../assets/images/MotosCarrusel/12.jpeg';
-import img13 from '../assets/images/MotosCarrusel/13.jpeg';
-import img14 from '../assets/images/MotosCarrusel/14.jpeg';
-import img15 from '../assets/images/MotosCarrusel/15.jpeg';
-import img16 from '../assets/images/MotosCarrusel/16.jpeg';
-import img17 from '../assets/images/MotosCarrusel/17.jpeg';
-import img18 from '../assets/images/MotosCarrusel/18.jpeg';
-import img19 from '../assets/images/MotosCarrusel/19.jpeg';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const CarruselHome = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [images, setImages] = useState([]); // Estado para almacenar las imágenes desde el backend
+  const [error, setError] = useState(null); // Estado para almacenar cualquier error
 
-  const images = [
-    img1, img2, img3, img4, img5, img6, img7, img8, img9, img10,
-    img11, img12, img13, img14, img15, img16, img17, img18, img19
-  ];
+  const navigate = useNavigate(); // Hook para la navegación
+
+  // Variables de entorno
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
+  const promoPath = "homecarrusel/imagenes"; // Ruta específica para obtener las imágenes en promoción
+
+  // Función para cargar las imágenes desde el backend
+  useEffect(() => {
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(`${apiUrl}${basePath}${promoPath}`);
+
+        // Verificar si la respuesta es correcta
+        if (!response.ok) {
+          throw new Error(
+            `Error al cargar las imágenes: ${response.status} ${response.statusText}`
+          );
+        }
+
+        const data = await response.json();
+
+        // Verificar si `data` es un array antes de establecer el estado
+        if (Array.isArray(data)) {
+          setImages(data); // Guardar las imágenes en el estado
+        } else {
+          throw new Error("La respuesta no es un array");
+        }
+      } catch (error) {
+        console.error("Error al cargar las imágenes:", error);
+        setError(error.message); // Guardar el error en el estado
+      }
+    };
+
+    fetchImages();
+  }, []);
 
   // Función para avanzar al siguiente slide
   const nextSlide = () => {
@@ -43,31 +57,56 @@ const CarruselHome = () => {
     );
   };
 
+  // Función para manejar el clic en una imagen y redirigir a la página de detalles
+  const handleImageClick = (nombre, url, isPromo = true) => {
+    // Quita la extensión de la imagen (por ejemplo, ".jpeg")
+    const nombreSinExtension = nombre.replace(/\.[^/.]+$/, "");
+    console.log("Nombre del modelo (sin extensión):", nombreSinExtension);
+
+    navigate(`/motos/detalle/${nombreSinExtension}`, {
+      state: {
+        title: nombreSinExtension,
+        images: [url],
+        isPromo: isPromo,
+      },
+    });
+  };
+
   // Efecto para el desplazamiento automático
   useEffect(() => {
     const interval = setInterval(() => {
-      nextSlide();  // Cambia la imagen automáticamente cada 3 segundos
+      nextSlide(); // Cambia la imagen automáticamente cada 4 segundos
     }, 4000);
 
-    return () => clearInterval(interval);  // Limpia el intervalo cuando el componente se desmonta
-  }, []);
+    return () => clearInterval(interval); // Limpia el intervalo cuando el componente se desmonta
+  }, [images]); // Depende de `images` para reiniciar el intervalo cuando se carguen las imágenes
 
   return (
     <div className="relative w-full h-96 overflow-hidden mt-8">
-      <div
-        className="absolute top-0 left-0 w-full h-full flex transition-transform ease-in-out duration-500"
-        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
-      >
-        {images.map((image, index) => (
-          <div key={index} className="w-full h-full flex-shrink-0">
-            <img
-              src={image}
-              alt={`Slide ${index}`}
-              className="w-full h-full object-contain transform hover:scale-110 hover:shadow-lg transition-transform duration-300 ease-in-out"
-            />
-          </div>
-        ))}
-      </div>
+      {error ? (
+        <div className="text-red-500 text-center">Error: {error}</div>
+      ) : (
+        <div
+          className="absolute top-0 left-0 w-full h-full flex transition-transform ease-in-out duration-500"
+          style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+        >
+          {images.length > 0 ? (
+            images.map((image, index) => (
+              <div key={index} className="w-full h-full flex-shrink-0">
+                <img
+                  src={`${apiUrl}${image.url}`} // Construir la URL completa de la imagen usando `image.url`
+                  alt={image.nombre}
+                  className="w-full h-full object-contain transform hover:scale-110 hover:shadow-lg transition-transform duration-300 ease-in-out"
+                  onClick={() => handleImageClick(image.nombre)} // Manejar clic en la imagen
+                  style={{ cursor: "pointer" }} // Cambiar el cursor para indicar que es clickeable
+                />
+              </div>
+            ))
+          ) : (
+            <p className="text-center">Cargando imágenes...</p>
+          )}
+        </div>
+      )}
       <button
         onClick={prevSlide}
         className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-black text-white px-4 py-2"

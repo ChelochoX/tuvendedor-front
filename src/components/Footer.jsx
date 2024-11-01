@@ -54,7 +54,7 @@ const Footer = () => {
         <div className="text-center md:text-left">
           <h3 className="text-yellow-500 font-semibold mb-2">Contáctanos</h3>
           <p>
-            Dirección: Feliciano Baez No 33 c/ Gobernador Irala, Aregua,
+            Dirección: Feliciano Baez No 33 c/ Gobernador Irala, Areguá,
             Paraguay
           </p>
           <p>
@@ -80,7 +80,7 @@ const Footer = () => {
         <p className="text-yellow-500">
           Desarrollado por{" "}
           <a href="https://tuvendedor.com.py" className="hover:underline">
-            TuVendedor.com.py
+            TuVendedor
           </a>
         </p>
         <div className="space-x-4 mt-2">

@@ -1,48 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom'; // Importar useLocation para recibir el estado
-import Swal from 'sweetalert2';
+import React, { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom"; // Importar useLocation para recibir el estado
+import Swal from "sweetalert2";
 
 function SolicitudCredito() {
   const location = useLocation();
   const navigate = useNavigate(); // Usar para redirigir después del modal
-  const { modeloSolicitado, plan, entregaInicial, cantidadCuotas, montoPorCuota } = location.state || {}; // Recibimos los datos enviados desde MotosDetalle
+  const {
+    modeloSolicitado,
+    plan,
+    entregaInicial,
+    cantidadCuotas,
+    montoPorCuota,
+  } = location.state || {}; // Recibimos los datos enviados desde MotosDetalle
 
-  const [cedulaIdentidad, setcedulaIdentidad] = useState('');
-  const [telefonoMovil, setTelefonoMovil] = useState('');
-  const [telefonoLaboral, setTelefonoLaboral] = useState('');
-  const [antiguedadAnios, setantiguedadAnios] = useState('');
+  const [cedulaIdentidad, setcedulaIdentidad] = useState("");
+  const [telefonoMovil, setTelefonoMovil] = useState("");
+  const [telefonoLaboral, setTelefonoLaboral] = useState("");
+  const [antiguedadAnios, setantiguedadAnios] = useState("");
   const [aportaIps, setAportaIps] = useState(false); // Checkbox para si aporta IPS
-  const [cantidadAportes, setCantidadAportes] = useState(''); // Cantidad de aportes IPS
+  const [cantidadAportes, setCantidadAportes] = useState(""); // Cantidad de aportes IPS
   const [formEnviado, setFormEnviado] = useState(false);
-  const [fechaNacimiento, setFechaNacimiento] = useState('');
-  const [barrio, setBarrio] = useState('');
-  const [ciudad, setCiudad] = useState('');
-  const [direccionParticular, setDireccionParticular] = useState(''); // Dirección particular agregada
-  const [empresa, setEmpresa] = useState(''); // Empresa agregada
-  const [direccionLaboral, setDireccionLaboral] = useState(''); // Dirección laboral agregada
-  const [salario, setSalario] = useState(''); // Salario agregado
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
+  const [barrio, setBarrio] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [direccionParticular, setDireccionParticular] = useState(""); // Dirección particular agregada
+  const [empresa, setEmpresa] = useState(""); // Empresa agregada
+  const [direccionLaboral, setDireccionLaboral] = useState(""); // Dirección laboral agregada
+  const [salario, setSalario] = useState(""); // Salario agregado
   const [documentos, setDocumentos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false); // Estado para manejar el modal adicional
+  const [nombresApellidos, setNombresApellidos] = useState("");
 
   // Obtener la URL base y el path base desde las variables de entorno
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
 
   // Estado para referencias comerciales
   const [referenciasComerciales, setReferenciasComerciales] = useState([
-    { nombreLocal: '', telefono: '' },
-    { nombreLocal: '', telefono: '' }
+    { nombreLocal: "", telefono: "" },
+    { nombreLocal: "", telefono: "" },
   ]);
 
   // Estado para referencias personales
   const [referenciasPersonales, setReferenciasPersonales] = useState([
-    { nombre: '', telefono: '' },
-    { nombre: '', telefono: '' },
-    { nombre: '', telefono: '' }
+    { nombre: "", telefono: "" },
+    { nombre: "", telefono: "" },
+    { nombre: "", telefono: "" },
   ]);
 
   // Agregar el estado de errorMessage
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Desplazar al inicio de la página cuando se cargue
   useEffect(() => {
@@ -51,14 +58,14 @@ function SolicitudCredito() {
 
   // Validación para cédula y teléfono
   const handlecedulaIdentidadChange = (e) => {
-    const value = e.target.value.replace(/\D/g, ''); // Solo números
+    const value = e.target.value.replace(/\D/g, ""); // Solo números
     if (value.length <= 10) {
       setcedulaIdentidad(value);
     }
   };
 
   const handleTelefonoChange = (e, setPhone) => {
-    const value = e.target.value.replace(/\D/g, ''); // Solo números
+    const value = e.target.value.replace(/\D/g, ""); // Solo números
     if (value.length <= 15) {
       setPhone(value);
     }
@@ -67,12 +74,12 @@ function SolicitudCredito() {
   const handleAportaIpsChange = (e) => {
     setAportaIps(e.target.checked);
     if (!e.target.checked) {
-      setCantidadAportes(''); // Si no está marcado, limpiar el campo
+      setCantidadAportes(""); // Si no está marcado, limpiar el campo
     }
   };
 
   const handleCantidadAportesChange = (e) => {
-    const value = e.target.value.replace(/\D/g, '');
+    const value = e.target.value.replace(/\D/g, "");
     setCantidadAportes(value);
   };
 
@@ -101,6 +108,7 @@ function SolicitudCredito() {
       entregaInicial,
       cantidadCuotas,
       montoPorCuota,
+      nombresApellidos,
       cedulaIdentidad,
       telefonoMovil,
       telefonoLaboral,
@@ -126,9 +134,9 @@ function SolicitudCredito() {
 
     try {
       const response = await fetch(`${apiUrl}${basePath}solicitudcredito`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(solicitudData), // Enviar los datos correctamente
       });
@@ -136,41 +144,43 @@ function SolicitudCredito() {
       if (response.ok) {
         const result = await response.json();
         setFormEnviado(true);
-        setErrorMessage('');
+        setErrorMessage("");
 
         // Mostrar mensaje popup de éxito usando SweetAlert2
         Swal.fire({
-          icon: 'success',
-          title: 'Solicitud enviada',
+          icon: "success",
+          title: "Solicitud enviada",
           text: `Solicitud creada exitosamente`,
           showConfirmButton: true,
-          confirmButtonColor: '#3085d6',
+          confirmButtonColor: "#3085d6",
         }).then(() => {
           // Al cerrar SweetAlert, mostrar el modal con más información
           setIsModalOpen(true);
         });
       } else {
         const result = await response.json();
-        setErrorMessage('Ocurrió un error al enviar la solicitud');
+        setErrorMessage("Ocurrió un error al enviar la solicitud");
 
         // Mostrar error usando SweetAlert2
         Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: result.errors ? result.errors.join(', ') : 'Ocurrió un error al enviar la solicitud',
+          icon: "error",
+          title: "Error",
+          text: result.errors
+            ? result.errors.join(", ")
+            : "Ocurrió un error al enviar la solicitud",
           showConfirmButton: true,
-          confirmButtonColor: '#d33',
+          confirmButtonColor: "#d33",
         });
       }
     } catch (error) {
-      setErrorMessage('Error de conexión con el servidor');
-      console.error('Error:', error);
+      setErrorMessage("Error de conexión con el servidor");
+      console.error("Error:", error);
     }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    navigate('/motos'); // Redirigir a la página de motos
+    navigate("/motos"); // Redirigir a la página de motos
   };
 
   return (
@@ -180,21 +190,29 @@ function SolicitudCredito() {
       <form onSubmit={handleSubmit}>
         {/* Modelo Solicitado */}
         <div className="mb-0">
-          <label className="block font-bold mb-1 inline">Modelo Solicitado: </label>
-          <p className="text-gray-700 inline">{modeloSolicitado}</p> {/* Mostrar en una sola línea */}
+          <label className="block font-bold mb-1 inline">
+            Modelo Solicitado:{" "}
+          </label>
+          <p className="text-gray-700 inline">{modeloSolicitado}</p>{" "}
+          {/* Mostrar en una sola línea */}
         </div>
 
         {/* Plan de Cuotas */}
         <div className="mb-4">
           {/* Detalles del plan sin espacio adicional */}
           <p className="text-gray-700">
-            <strong>Entrega Inicial:</strong> G {entregaInicial ? Number(entregaInicial).toLocaleString('es-ES') : '0'}
+            <strong>Entrega Inicial:</strong> G{" "}
+            {entregaInicial
+              ? Number(entregaInicial).toLocaleString("es-ES")
+              : "0"}
           </p>
           <p className="text-gray-700">
-            <strong>Cantidad de Cuotas:</strong> {cantidadCuotas ? cantidadCuotas : '0'}
+            <strong>Cantidad de Cuotas:</strong>{" "}
+            {cantidadCuotas ? cantidadCuotas : "0"}
           </p>
           <p className="text-gray-700">
-            <strong>Monto por Cuota:</strong> G {montoPorCuota ? montoPorCuota.toLocaleString('es-ES') : '0'}
+            <strong>Monto por Cuota:</strong> G{" "}
+            {montoPorCuota ? montoPorCuota.toLocaleString("es-ES") : "0"}
           </p>
         </div>
 
@@ -202,14 +220,44 @@ function SolicitudCredito() {
         <h2 className="text-xl font-bold mb-2">Datos Personales</h2>
 
         <div className="flex space-x-4 mb-4">
-          <div className="w-1/2">
+          <div className="w-min">
             <label className="block font-semibold mb-1">Cédula</label>
             <input
               type="text"
+              maxLength="10" // Limita a 10 caracteres
               value={cedulaIdentidad}
               onChange={handlecedulaIdentidadChange}
-              className="border border-gray-300 px-2 py-1 w-full rounded"
+              className="border border-gray-300 px-2 py-1 rounded"
               placeholder="Número de Cédula"
+              required
+            />
+          </div>
+
+          <div className="flex-grow">
+            <label className="block font-semibold mb-1">
+              Nombres y Apellidos
+            </label>
+            <input
+              type="text"
+              value={nombresApellidos}
+              onChange={(e) => setNombresApellidos(e.target.value)}
+              className="border border-gray-300 px-2 py-1 w-full rounded"
+              placeholder="Ingrese sus nombres y apellidos"
+              required
+            />
+          </div>
+        </div>
+
+        <div className="flex space-x-4 mb-4">
+          <div className="w-1/2">
+            <label className="block font-semibold mb-1">
+              Fecha de Nacimiento
+            </label>
+            <input
+              type="date"
+              value={fechaNacimiento}
+              onChange={(e) => setFechaNacimiento(e.target.value)}
+              className="border border-gray-300 px-2 py-1 w-full rounded"
               required
             />
           </div>
@@ -225,18 +273,6 @@ function SolicitudCredito() {
               required
             />
           </div>
-        </div>
-
-        {/* Fecha de Nacimiento */}
-        <div className="mb-4">
-          <label className="block font-semibold mb-1">Fecha de Nacimiento</label>
-          <input
-            type="date"
-            value={fechaNacimiento}
-            onChange={(e) => setFechaNacimiento(e.target.value)}
-            className="border border-gray-300 px-2 py-1 w-full rounded"
-            required
-          />
         </div>
 
         {/* Barrio y Ciudad */}
@@ -266,7 +302,9 @@ function SolicitudCredito() {
         </div>
 
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Dirección Particular</label>
+          <label className="block font-semibold mb-1">
+            Dirección Particular
+          </label>
           <input
             type="text"
             value={direccionParticular} // Asegúrate de vincular el estado al input
@@ -279,7 +317,9 @@ function SolicitudCredito() {
 
         {/* Documentos */}
         <div className="mb-4">
-          <label className="block font-semibold mb-1">Subir Documentos (Cédula, Ingresos, Boletas)</label>
+          <label className="block font-semibold mb-1">
+            Subir Documentos (Cédula, Ingresos, Boletas)
+          </label>
           <input
             type="file"
             multiple
@@ -355,7 +395,9 @@ function SolicitudCredito() {
         {/* Cantidad de Aportes habilitado o deshabilitado */}
         <div className="flex space-x-4 mb-4">
           <div className="w-1/2">
-            <label className="block font-semibold mb-1">Cantidad de Aportes</label>
+            <label className="block font-semibold mb-1">
+              Cantidad de Aportes
+            </label>
             <input
               type="text"
               value={cantidadAportes}
@@ -385,14 +427,22 @@ function SolicitudCredito() {
 
         {referenciasComerciales.map((referencia, index) => (
           <div key={index} className="mb-4">
-            <h3 className="text-lg font-semibold mb-1">Referencia Comercial {index + 1}</h3>
+            <h3 className="text-lg font-semibold mb-1">
+              Referencia Comercial {index + 1}
+            </h3>
             <div className="flex space-x-4 mb-2">
               <div className="w-1/2">
                 <label className="block font-semibold">Nombre Local</label>
                 <input
                   type="text"
                   value={referencia.nombreLocal}
-                  onChange={(e) => handleReferenciaComercialChange(index, 'nombreLocal', e.target.value)}
+                  onChange={(e) =>
+                    handleReferenciaComercialChange(
+                      index,
+                      "nombreLocal",
+                      e.target.value
+                    )
+                  }
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder={`Nombre Local ${index + 1}`}
                 />
@@ -402,7 +452,13 @@ function SolicitudCredito() {
                 <input
                   type="text"
                   value={referencia.telefono}
-                  onChange={(e) => handleReferenciaComercialChange(index, 'telefono', e.target.value)}
+                  onChange={(e) =>
+                    handleReferenciaComercialChange(
+                      index,
+                      "telefono",
+                      e.target.value
+                    )
+                  }
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder="Teléfono"
                 />
@@ -414,19 +470,28 @@ function SolicitudCredito() {
         {/* Referencias Personales */}
         <h2 className="text-xl font-bold mb-2">Referencias Personales</h2>
         <p className="text-red-500 mb-4">
-          2 referencias deben ser de parientes y 1 puede ser compañero laboral o amistad. Es válido número de celular o móvil.
+          2 referencias deben ser de parientes y 1 puede ser compañero laboral o
+          amistad. Es válido número de celular o móvil.
         </p>
 
         {referenciasPersonales.map((referencia, index) => (
           <div key={index} className="mb-4">
-            <h3 className="text-lg font-semibold mb-1">Referencia Personal {index + 1}</h3>
+            <h3 className="text-lg font-semibold mb-1">
+              Referencia Personal {index + 1}
+            </h3>
             <div className="flex space-x-4 mb-2">
               <div className="w-1/2">
                 <label className="block font-semibold">Nombre</label>
                 <input
                   type="text"
                   value={referencia.nombre}
-                  onChange={(e) => handleReferenciaPersonalChange(index, 'nombre', e.target.value)}
+                  onChange={(e) =>
+                    handleReferenciaPersonalChange(
+                      index,
+                      "nombre",
+                      e.target.value
+                    )
+                  }
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder={`Nombre de la referencia ${index + 1}`}
                 />
@@ -436,7 +501,13 @@ function SolicitudCredito() {
                 <input
                   type="text"
                   value={referencia.telefono}
-                  onChange={(e) => handleReferenciaPersonalChange(index, 'telefono', e.target.value)}
+                  onChange={(e) =>
+                    handleReferenciaPersonalChange(
+                      index,
+                      "telefono",
+                      e.target.value
+                    )
+                  }
                   className="border border-gray-300 px-2 py-1 w-full rounded"
                   placeholder={`Teléfono de la referencia ${index + 1}`}
                 />
@@ -453,7 +524,11 @@ function SolicitudCredito() {
           Enviar Datos
         </button>
 
-        {formEnviado && <p className="text-green-500 mt-4">Formulario enviado exitosamente.</p>}
+        {formEnviado && (
+          <p className="text-green-500 mt-4">
+            Formulario enviado exitosamente.
+          </p>
+        )}
         {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
       </form>
 
@@ -461,12 +536,17 @@ function SolicitudCredito() {
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <div className="bg-yellow-100 p-8 rounded-lg shadow-lg max-w-md mx-auto">
-            <h2 className="text-xl font-bold mb-4 text-center">¡Información importante!</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">
+              ¡Información importante!
+            </h2>
             <p className="text-gray-800 mb-4">
-              El equipo de ventas se pondrá en contacto con usted para confirmar sus datos para el proceso.
+              El equipo de ventas se pondrá en contacto con usted para confirmar
+              sus datos para el proceso.
             </p>
             <p className="text-gray-800 mb-4">Muchas gracias por tu interés.</p>
-            <div className="flex justify-center"> {/* Centrar el botón */}
+            <div className="flex justify-center">
+              {" "}
+              {/* Centrar el botón */}
               <button
                 onClick={handleCloseModal}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 focus:outline-none"
@@ -477,7 +557,6 @@ function SolicitudCredito() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

@@ -1,18 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from '../components/Sidebar'; // Importa Sidebar
-import CardsCategorias from '../components/CardsCategorias'; // Importa CardsCategorias
-import axios from 'axios'; // Usaremos Axios para hacer la petición
+import React, { useState, useEffect } from "react";
+
+import Sidebar from "../components/Sidebar"; // Importa Sidebar
+import CardsCategorias from "../components/CardsCategorias"; // Importa CardsCategorias
+import axios from "axios"; // Usaremos Axios para hacer la petición
 
 function Motos() {
   const categories = [
-    'ATV/CUACI',
-    'CUB/Motonetas',
-    'Electricas',
-    'Motocargas',
-    'Scooter',
-    'Trail',
-    'Utilitaria',
-    'PROMOCIONES'
+    "ATV/CUACI",
+    "CUB/Motonetas",
+    "Electricas",
+    "Motocargas",
+    "Scooter",
+    "Trail",
+    "Utilitaria",
+    "PROMOCIONES",
   ];
 
   // Estado para la categoría seleccionada (por defecto es la primera categoría)
@@ -32,23 +33,25 @@ function Motos() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Obtener la URL base desde la variable de entorno
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-  const basePath = import.meta.env.VITE_BASE_PATH || '/api/Motos/';
-  const promoPath = 'listarproductoPromo';
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
+  const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
+  const promoPath = "listarproductoPromo";
 
   // Función para obtener los modelos de la categoría seleccionada
   const fetchModelos = async (categoria) => {
     setIsLoading(true); //
     try {
       let response;
-      if (categoria === 'PROMOCIONES') {
+      if (categoria === "PROMOCIONES") {
         // Llama al endpoint específico de promociones
         response = await axios.get(`${apiUrl}${basePath}${promoPath}`);
       } else {
         // Convertimos '/' en '-' para la categoría 'ATV/CUACI'
-        const formattedCategory = categoria.replace(/\//g, '-');
+        const formattedCategory = categoria.replace(/\//g, "-");
         // Llama a la API del backend para obtener los modelos con la categoría formateada
-        response = await axios.get(`${apiUrl}${basePath}modelo/${formattedCategory}`);
+        response = await axios.get(
+          `${apiUrl}${basePath}modelo/${formattedCategory}`
+        );
       }
 
       // Actualiza el estado con los modelos obtenidos
@@ -72,8 +75,8 @@ function Motos() {
     if (!isSidebarOpen) {
       // Configura un intervalo para la sacudida cada 5 segundos
       interval = setInterval(() => {
-        setShowShake(true);  // Activar sacudida
-        setShowPromo(true);  // Mostrar promoción
+        setShowShake(true); // Activar sacudida
+        setShowPromo(true); // Mostrar promoción
 
         // Después de 3 segundos, desactivar la sacudida y el pop-up
         setTimeout(() => {
@@ -88,11 +91,16 @@ function Motos() {
 
   // Cambia el estado del sidebar con un solo clic
   const handleSidebarToggle = () => {
-    setIsSidebarOpen(prev => !prev); // Alterna el estado correctamente
+    setIsSidebarOpen((prev) => !prev); // Alterna el estado correctamente
   };
 
   // Definir isPromo para saber si la categoría seleccionada es 'PROMOCIONES'
-  const isPromo = selectedCategory === 'PROMOCIONES';
+  const isPromo = selectedCategory === "PROMOCIONES";
+
+  // Añadimos solo este efecto para el desplazamiento hacia arriba
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [selectedCategory]);
 
   return (
     <div>
@@ -102,25 +110,29 @@ function Motos() {
           <div className="relative">
             <button
               className={`fixed top-28 left-4 z-50 p-2 bg-yellow-500 text-black font-bold rounded-lg shadow-md
-              ${showShake ? 'animate-shake' : ''} 
+              ${showShake ? "animate-shake" : ""} 
               p-2 text-base`} // Evitamos el crecimiento en móvil
               onClick={handleSidebarToggle} // Cambia el estado del sidebar con un solo clic
-              style={{ transition: 'none' }} // Evitar cualquier cambio de tamaño
+              style={{ transition: "none" }} // Evitar cualquier cambio de tamaño
             >
               Categorías
             </button>
 
             {/* Mensaje emergente de promo ajustado para estar justo al lado derecho en móvil y web */}
-            {showPromo && !isSidebarOpen && ( // Solo mostrar promo si el sidebar está cerrado
-              <span className="absolute top-0 left-full ml-16 bg-red-500 text-white text-xs px-2 py-1 rounded-lg w-32 text-center">
-                ¡Tengo una promo para vos!
-              </span>
-            )}
+            {showPromo &&
+              !isSidebarOpen && ( // Solo mostrar promo si el sidebar está cerrado
+                <span className="absolute top-0 left-full ml-16 bg-red-500 text-white text-xs px-2 py-1 rounded-lg w-32 text-center">
+                  ¡Tengo una promo para vos!
+                </span>
+              )}
           </div>
 
           {/* Sidebar que actualizará la categoría seleccionada */}
           {isSidebarOpen && (
-            <Sidebar categories={categories} setCategory={setSelectedCategory} />
+            <Sidebar
+              categories={categories}
+              setCategory={setSelectedCategory}
+            />
           )}
 
           {/* Grid de Motos con margen izquierdo en modo web */}
@@ -135,7 +147,7 @@ function Motos() {
 
             {/* Mostrar los modelos si hay datos */}
             {!isLoading && modelos.length > 0 && (
-              <CardsCategorias modelos={modelos} isPromo={isPromo} /> 
+              <CardsCategorias modelos={modelos} isPromo={isPromo} />
             )}
           </div>
         </div>

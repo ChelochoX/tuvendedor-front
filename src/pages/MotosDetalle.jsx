@@ -69,6 +69,11 @@ function MotosDetalle() {
     obtenerDatosProducto();
   }, [title, isPromo]);
 
+  // useEffect para desplazar la vista hacia la parte superior al cargar el componente
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []); // Este efecto solo se ejecuta cuando el componente se monta
+
   const formatNumber = (value) => {
     if (!value) return "";
     const number = parseFloat(value.replace(/\./g, "").replace(",", "."));

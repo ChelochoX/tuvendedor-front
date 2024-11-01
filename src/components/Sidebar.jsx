@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 function Sidebar({ categories, setCategory }) {
   const [activeCategory, setActiveCategory] = useState(categories[0]);
@@ -21,7 +21,7 @@ function Sidebar({ categories, setCategory }) {
       {/* Contenedor del Sidebar */}
       <div
         className={`bg-white shadow-lg p-4 rounded-lg transition-transform 
-          ${isOpen ? 'block' : 'hidden'} 
+          ${isOpen ? "block" : "hidden"} 
           fixed top-36 left-16 w-3/4 h-auto z-40 md:w-64 md:h-auto md:fixed md:top-40`}
       >
         <h2 className="text-lg font-bold mb-2 underline decoration-2 decoration-gray-300">
@@ -32,9 +32,17 @@ function Sidebar({ categories, setCategory }) {
             <li
               key={index}
               className={`py-1 px-3 cursor-pointer transition-colors 
-                ${activeCategory === category ? 'font-semibold text-orange-500' : 'text-gray-700'}
+                ${
+                  activeCategory === category
+                    ? "font-semibold text-orange-500"
+                    : "text-gray-700"
+                }
                 hover:bg-yellow-100 hover:text-orange-500 hover:underline rounded
-                ${category === 'PROMOCIONES' ? 'text-red-500 font-bold animate-confetti' : ''}`} // Efecto "confetti" para PROMOCIONES
+                ${
+                  category === "PROMOCIONES"
+                    ? "text-red-500 font-bold animate-confetti"
+                    : ""
+                }`} // Efecto "confetti" para PROMOCIONES
               onClick={() => {
                 setActiveCategory(category);
                 setCategory(category);

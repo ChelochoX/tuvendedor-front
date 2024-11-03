@@ -171,6 +171,39 @@ function MotosDetalle() {
     return <div>Error: No se encontraron imágenes para este modelo.</div>;
   }
 
+  const handleWhatsAppClick = () => {
+    const numeroWhatsApp = "595991645806"; // Reemplaza con el número del vendedor
+    const modelo = title; // Nombre del modelo (ej. SPARK 150)
+    const plan = isPromo
+      ? selectedPlanPromo?.nombrePlan
+      : selectedPlan?.nombrePlan; // Nombre del plan seleccionado
+    const entrega = isPromo
+      ? selectedPlanPromo?.entregaPromo
+      : selectedPlan?.entrega; // Monto de la entrega inicial
+    const cuota = isPromo
+      ? selectedPlanPromo?.cuotasPromo
+      : selectedPlan?.cuotas; // Cantidad de cuotas
+    const montoCuota = isPromo ? cuotaMasBajaPromo : cuotaMasBaja; // Monto por cuota
+
+    // Crear el mensaje en formato legible
+    const mensaje = `
+    ¡He visto este modelo en la página Tu Vendedor:
+    - Modelo: ${modelo} !!
+    - En este Plan: ${plan}
+    - Entrega Inicial: G ${entrega?.toLocaleString("es-ES")}
+    - Cantidad de Cuotas: ${cuota}
+    - Monto por Cuota: G ${montoCuota?.toLocaleString("es-ES")}
+  
+    Me gustaría más detalles de este modelo. ¡Gracias!
+    `;
+
+    // Generar el enlace de WhatsApp con el mensaje codificado
+    const url = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(
+      mensaje
+    )}`;
+    window.open(url, "_blank");
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row">
@@ -375,7 +408,10 @@ function MotosDetalle() {
             >
               Solicitar Crédito
             </button>
-            <button className="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto">
+            <button
+              className="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto"
+              onClick={handleWhatsAppClick}
+            >
               Escríbenos al WhatsApp
             </button>
           </div>

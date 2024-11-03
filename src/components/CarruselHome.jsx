@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { registrarVisita } from "../components/RegistrarVisita";
 
 const CarruselHome = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -53,6 +54,8 @@ const CarruselHome = () => {
 
   // Función para manejar el clic en una imagen y redirigir a la página de detalles
   const handleImageClick = async (nombre, url, isPromo = true) => {
+    await registrarVisita(`CARRUSEL PROMOS`);
+
     // Quita la extensión de la imagen (por ejemplo, ".jpeg")
     const nombreSinExtension = nombre.replace(/\.[^/.]+$/, "");
     console.log("Nombre del modelo (sin extensión):", nombreSinExtension);
@@ -105,7 +108,7 @@ const CarruselHome = () => {
             images.map((image, index) => (
               <div key={index} className="w-full h-full flex-shrink-0">
                 <img
-                  src={`${apiUrl}${image.url}`} // Construir la URL completa de la imagen usando `image.url`
+                  src={`${apiUrl}${image.url}?t=${new Date().getTime()}`}
                   alt={image.nombre}
                   className="w-full h-full object-contain transform hover:scale-110 hover:shadow-lg transition-transform duration-300 ease-in-out"
                   onClick={() => handleImageClick(image.nombre)} // Manejar clic en la imagen

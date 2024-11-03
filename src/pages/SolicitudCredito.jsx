@@ -100,6 +100,31 @@ function SolicitudCredito() {
     setReferenciasPersonales(nuevasReferencias);
   };
 
+  // Nueva función para subir documentos adjuntos
+  const subirDocumentosAdjuntos = async () => {
+    const formData = new FormData();
+    documentos.forEach((documento) => {
+      formData.append("archivos", documento);
+    });
+
+    try {
+      const response = await fetch(
+        `${apiUrl}${basePath}guardardocumentos?cedula=${cedulaIdentidad}`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Error al subir los documentos");
+      }
+    } catch (error) {
+      console.error("Error al subir documentos:", error);
+      setErrorMessage("Error al subir los documentos");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -145,6 +170,9 @@ function SolicitudCredito() {
         const result = await response.json();
         setFormEnviado(true);
         setErrorMessage("");
+
+        // Subir documentos después de enviar la solicitud
+        await subirDocumentosAdjuntos();
 
         // Mostrar mensaje popup de éxito usando SweetAlert2
         Swal.fire({

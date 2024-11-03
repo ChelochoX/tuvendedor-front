@@ -58,10 +58,7 @@ const Footer = () => {
             Paraguay
           </p>
           <p>
-            Celular:{" "}
-            <a href="tel:+595994606048" className="text-yellow-500">
-              0994 606048
-            </a>
+            Celular: <span className="text-yellow-500">0994 60 60 48</span>
           </p>
           <p>
             Email:{" "}

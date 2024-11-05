@@ -21,7 +21,10 @@ function SolicitudesCredito() {
   const [totalRegistros, setTotalRegistros] = useState(0);
 
   // Estado para manejar los registros seleccionados
-  const [selectedRecords, setSelectedRecords] = useState([]);
+  const [selectedRecord, setSelectedRecord] = useState([]);
+
+  // Estado para almacenar los detalles de la solicitud de crédito seleccionada
+  const [detalleCredito, setDetalleCredito] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -79,12 +82,68 @@ function SolicitudesCredito() {
     }
   };
 
-  const handleSelectRecord = (id) => {
-    setSelectedRecords((prevSelected) =>
-      prevSelected.includes(id)
-        ? prevSelected.filter((recordId) => recordId !== id)
-        : [...prevSelected, id]
-    );
+  // Función modificada para manejar la selección de un solo registro
+  const handleSelectRecord = async (id) => {
+    // Si ya está seleccionado, lo deselecciona y borra el detalle
+    if (selectedRecord === id) {
+      setSelectedRecord(null);
+      setDetalleCredito(null);
+    } else {
+      setSelectedRecord(id);
+      await fetchDetalleCredito(id); // Llama a la API para obtener los detalles
+    }
+  };
+
+  const fetchDetalleCredito = async (id) => {
+    try {
+      const response = await fetch(
+        `${apiUrl}${basePath}obtener-detalle-solicitud-credito/${id}`
+      );
+      const result = await response.json();
+      console.log("Datos de detalle de crédito:", result); // Verificar datos recibidos
+      setDetalleCredito(result.Data || {});
+    } catch (error) {
+      console.error("Error al obtener detalles de crédito:", error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setDetalleCredito((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Definición de handleLaboralesChange
+  const handleLaboralesChange = (e) => {
+    const { name, value } = e.target;
+    setDetalleCredito((prev) => ({
+      ...prev,
+      datosLaborales: {
+        ...prev.datosLaborales,
+        [name]: value,
+      },
+    }));
+  };
+
+  const handleReferenciaComercialChange = (index, e) => {
+    const { name, value } = e.target;
+    const newReferenciasComerciales = [
+      ...detalleCredito.referenciasComerciales,
+    ];
+    newReferenciasComerciales[index][name] = value;
+    setDetalleCredito((prev) => ({
+      ...prev,
+      referenciasComerciales: newReferenciasComerciales,
+    }));
+  };
+
+  const handleReferenciaPersonalChange = (index, e) => {
+    const { name, value } = e.target;
+    const newReferenciasPersonales = [...detalleCredito.referenciasPersonales];
+    newReferenciasPersonales[index][name] = value;
+    setDetalleCredito((prev) => ({
+      ...prev,
+      referenciasPersonales: newReferenciasPersonales,
+    }));
   };
 
   // Definir la función clearFilter aquí para borrar el valor del filtro
@@ -297,7 +356,7 @@ function SolicitudesCredito() {
                     <td className="py-2 px-4 text-center">
                       <input
                         type="checkbox"
-                        checked={selectedRecords.includes(row.id)}
+                        checked={selectedRecord === row.id}
                         onChange={() => handleSelectRecord(row.id)}
                       />
                     </td>
@@ -324,6 +383,132 @@ function SolicitudesCredito() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Mostrar detalles solo si hay datos en detalleCredito */}
+      {detalleCredito && (
+        <div className="bg-white p-4 mt-4 rounded-lg shadow-md">
+          <h3 className="text-md font-semibold mb-2 text-gray-800">
+            Detalles de Solicitud de Crédito
+          </h3>
+
+          {/* Datos Personales */}
+          <div>
+            <label>
+              <strong>Nombres y Apellidos:</strong>
+            </label>
+            <input
+              type="text"
+              name="nombresApellidos"
+              value={detalleCredito.nombresApellidos || ""}
+              onChange={handleInputChange}
+              className="w-full px-2 py-1 border rounded mt-1"
+            />
+          </div>
+          <div>
+            <label>
+              <strong>Cédula:</strong>
+            </label>
+            <input
+              type="text"
+              name="cedulaIdentidad"
+              value={detalleCredito.cedulaIdentidad || ""}
+              onChange={handleInputChange}
+              className="w-full px-2 py-1 border rounded mt-1"
+            />
+          </div>
+          {/* Otros datos personales similares... */}
+
+          {/* Datos Laborales */}
+          <h4 className="mt-4 font-semibold">Datos Laborales</h4>
+          <div>
+            <label>
+              <strong>Empresa:</strong>
+            </label>
+            <input
+              type="text"
+              name="empresa"
+              value={detalleCredito.datosLaborales?.empresa || ""}
+              onChange={handleLaboralesChange}
+              className="w-full px-2 py-1 border rounded mt-1"
+            />
+          </div>
+          <div>
+            <label>
+              <strong>Dirección Laboral:</strong>
+            </label>
+            <input
+              type="text"
+              name="direccionLaboral"
+              value={detalleCredito.datosLaborales?.direccionLaboral || ""}
+              onChange={handleLaboralesChange}
+              className="w-full px-2 py-1 border rounded mt-1"
+            />
+          </div>
+          {/* Otros datos laborales similares... */}
+
+          {/* Referencias Comerciales */}
+          <h4 className="mt-4 font-semibold">Referencias Comerciales</h4>
+          {detalleCredito.referenciasComerciales?.map((refComercial, index) => (
+            <div key={index}>
+              <div>
+                <label>
+                  <strong>Nombre del Local:</strong>
+                </label>
+                <input
+                  type="text"
+                  name="nombreLocal"
+                  value={refComercial.nombreLocal || ""}
+                  onChange={(e) => handleReferenciaComercialChange(index, e)}
+                  className="w-full px-2 py-1 border rounded mt-1"
+                />
+              </div>
+              <div>
+                <label>
+                  <strong>Teléfono:</strong>
+                </label>
+                <input
+                  type="text"
+                  name="telefono"
+                  value={refComercial.telefono || ""}
+                  onChange={(e) => handleReferenciaComercialChange(index, e)}
+                  className="w-full px-2 py-1 border rounded mt-1"
+                />
+              </div>
+            </div>
+          ))}
+
+          {/* Referencias Personales */}
+          <h4 className="mt-4 font-semibold">Referencias Personales</h4>
+          {detalleCredito.referenciasPersonales?.map((refPersonal, index) => (
+            <div key={index}>
+              <div>
+                <label>
+                  <strong>Nombre:</strong>
+                </label>
+                <input
+                  type="text"
+                  name="nombre"
+                  value={refPersonal.nombre || ""}
+                  onChange={(e) => handleReferenciaPersonalChange(index, e)}
+                  className="w-full px-2 py-1 border rounded mt-1"
+                />
+              </div>
+              <div>
+                <label>
+                  <strong>Teléfono:</strong>
+                </label>
+                <input
+                  type="text"
+                  name="telefono"
+                  value={refPersonal.telefono || ""}
+                  onChange={(e) => handleReferenciaPersonalChange(index, e)}
+                  className="w-full px-2 py-1 border rounded mt-1"
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

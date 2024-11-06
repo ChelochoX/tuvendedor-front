@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
 const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
@@ -6,25 +7,19 @@ const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
 function SolicitudesCredito() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Estado para el filtro seleccionado y su valor
   const [selectedFilter, setSelectedFilter] = useState("terminoDeBusqueda");
   const [filterValue, setFilterValue] = useState("");
-
-  // Nuevos estados para el rango de fechas
   const [fechaInicio, setFechaInicio] = useState("");
   const [fechaFin, setFechaFin] = useState("");
-
-  // Paginación
   const [pagina, setPagina] = useState(1);
   const [cantidadRegistros, setCantidadRegistros] = useState(10);
   const [totalRegistros, setTotalRegistros] = useState(0);
-
-  // Estado para manejar los registros seleccionados
-  const [selectedRecord, setSelectedRecord] = useState([]);
-
-  // Estado para almacenar los detalles de la solicitud de crédito seleccionada
+  const [selectedRecord, setSelectedRecord] = useState(null);
   const [detalleCredito, setDetalleCredito] = useState(null);
+  const [isEditingSalario, setIsEditingSalario] = useState(false);
+  const [aportaIPS, setAportaIPS] = useState(
+    detalleCredito?.datosLaborales?.aportaIPS || false
+  );
 
   useEffect(() => {
     fetchData();
@@ -58,7 +53,6 @@ function SolicitudesCredito() {
 
       setData(result.items || []);
       setTotalRegistros(result.totalRegistros || 0);
-
       setLoading(false);
     } catch (error) {
       console.error("Error al obtener datos:", error);
@@ -115,14 +109,24 @@ function SolicitudesCredito() {
   // Definición de handleLaboralesChange
   const handleLaboralesChange = (e) => {
     const { name, value } = e.target;
-    setDetalleCredito((prev) => ({
-      ...prev,
+
+    const parsedValue =
+      name === "salario" ? parseFloat(value.replace(/,/g, "")) : value;
+
+    setDetalleCredito((prevDetalle) => ({
+      ...prevDetalle,
       datosLaborales: {
-        ...prev.datosLaborales,
-        [name]: value,
+        ...prevDetalle.datosLaborales,
+        [name]: parsedValue,
       },
     }));
   };
+
+  // Manejador para activar la edición del salario
+  const handleSalarioFocus = () => setIsEditingSalario(true);
+
+  // Manejador para aplicar formato cuando el usuario deja de editar
+  const handleSalarioBlur = () => setIsEditingSalario(false);
 
   const handleReferenciaComercialChange = (index, e) => {
     const { name, value } = e.target;
@@ -230,8 +234,180 @@ function SolicitudesCredito() {
   };
 
   // Formato de número con puntos de miles
-  const formatNumber = (number) => {
-    return new Intl.NumberFormat("es-ES").format(number);
+  const formatNumber = (value) => {
+    if (isNaN(value)) return ""; // Si el valor no es un número, devuelve una cadena vacía
+    return new Intl.NumberFormat().format(value); // Formatea el número si es válido
+  };
+
+  const handleActualizarSolicitud = async () => {
+    try {
+      const idSolicitud = selectedRecord;
+      const url = `${apiUrl}${basePath}solicitudcredito/actualizar/${idSolicitud}`;
+
+      // Crear el objeto `solicitudCreditoData` de acuerdo a la estructura esperada en el backend
+      const solicitudCreditoData = {
+        modeloSolicitado: detalleCredito.modeloSolicitado,
+        entregaInicial: detalleCredito.entregaInicial,
+        cantidadCuotas: detalleCredito.cantidadCuotas,
+        montoPorCuota: detalleCredito.montoPorCuota,
+        nombresApellidos: detalleCredito.nombresApellidos,
+        cedulaIdentidad: detalleCredito.cedulaIdentidad,
+        telefonoMovil: detalleCredito.telefonoMovil,
+        fechaNacimiento: detalleCredito.fechaNacimiento,
+        barrio: detalleCredito.barrio,
+        ciudad: detalleCredito.ciudad,
+        direccionParticular: detalleCredito.direccionParticular,
+        // Datos Laborales
+        empresa: detalleCredito.datosLaborales?.empresa || "",
+        telefonoLaboral: detalleCredito.datosLaborales?.telefonoLaboral || "",
+        direccionLaboral: detalleCredito.datosLaborales?.direccionLaboral || "",
+        antiguedadAnios: detalleCredito.datosLaborales?.antiguedadAnios || 0,
+        aportaIPS: detalleCredito.datosLaborales?.aportaIPS || false,
+        cantidadAportes: detalleCredito.datosLaborales?.aportaIPS
+          ? detalleCredito.datosLaborales?.cantidadAportes || 0
+          : 0,
+        salario: detalleCredito.datosLaborales?.salario || 0,
+        // Referencias Comerciales
+        referenciasComerciales:
+          detalleCredito.referenciasComerciales?.map((ref) => ({
+            id: ref.id, // Incluye el ID de la referencia comercial
+            nombreLocal: ref.nombreLocal,
+            telefono: ref.telefono,
+          })) || [],
+        // Referencias Personales
+        referenciasPersonales:
+          detalleCredito.referenciasPersonales?.map((ref) => ({
+            id: ref.id, // Incluye el ID de la referencia personal
+            nombre: ref.nombre,
+            telefono: ref.telefono,
+          })) || [],
+      };
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(solicitudCreditoData),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        Swal.fire({
+          icon: "success",
+          title: "Solicitud Actualizada",
+          text:
+            result.message ||
+            "La solicitud de crédito ha sido actualizada exitosamente",
+          confirmButtonColor: "#4CAF50",
+        });
+      } else {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message ||
+            `Error ${response.status}: ${response.statusText}`
+        );
+      }
+    } catch (error) {
+      console.error("Error al actualizar solicitud de crédito:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al Actualizar",
+        text:
+          error.message ||
+          "Ocurrió un error inesperado al actualizar la solicitud de crédito",
+        confirmButtonColor: "#d33",
+      });
+    }
+  };
+
+  const handleGenerarPDF = async () => {
+    try {
+      const idSolicitud = selectedRecord; // El ID seleccionado en la tabla
+      const url = `${apiUrl}${basePath}solicitudcredito/generarpdf?idSolicitud=${idSolicitud}`;
+
+      // Crear un nuevo objeto con los datos completos y consistentes
+      const solicitudCreditoData = {
+        modeloSolicitado: detalleCredito.modeloSolicitado,
+        entregaInicial: detalleCredito.entregaInicial,
+        cantidadCuotas: detalleCredito.cantidadCuotas,
+        montoPorCuota: detalleCredito.montoPorCuota,
+        nombresApellidos: detalleCredito.nombresApellidos,
+        cedulaIdentidad: detalleCredito.cedulaIdentidad,
+        telefonoMovil: detalleCredito.telefonoMovil,
+        fechaNacimiento: detalleCredito.fechaNacimiento,
+        barrio: detalleCredito.barrio,
+        ciudad: detalleCredito.ciudad,
+        direccionParticular: detalleCredito.direccionParticular,
+        // Datos Laborales
+        empresa: detalleCredito.datosLaborales?.empresa || "",
+        telefonoLaboral: detalleCredito.datosLaborales?.telefonoLaboral || "",
+        direccionLaboral: detalleCredito.datosLaborales?.direccionLaboral || "",
+        antiguedadAnios: detalleCredito.datosLaborales?.antiguedadAnios || 0,
+        aportaIPS: detalleCredito.datosLaborales?.aportaIPS || false,
+        cantidadAportes: detalleCredito.datosLaborales?.aportaIPS
+          ? detalleCredito.datosLaborales?.cantidadAportes || 0
+          : 0,
+        salario: detalleCredito.datosLaborales?.salario || 0,
+        // Referencias Comerciales
+        referenciasComerciales:
+          detalleCredito.referenciasComerciales?.map((ref) => ({
+            id: ref.id,
+            nombreLocal: ref.nombreLocal,
+            telefono: ref.telefono,
+          })) || [],
+        // Referencias Personales
+        referenciasPersonales:
+          detalleCredito.referenciasPersonales?.map((ref) => ({
+            id: ref.id,
+            nombre: ref.nombre,
+            telefono: ref.telefono,
+          })) || [],
+      };
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(solicitudCreditoData),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const pdfUrl = window.URL.createObjectURL(blob);
+        window.open(pdfUrl, "_blank");
+        Swal.fire("PDF generado", "Documento generado exitosamente", "success");
+      } else {
+        const errorResult = await response.json();
+        throw new Error(errorResult.message || `Error ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Error al generar documento PDF:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al Generar documento PDF",
+        text: error.message,
+        confirmButtonColor: "#d33",
+      });
+    }
+  };
+
+  const handleAportaIPSChange = (e) => {
+    const isAportaIPS = e.target.value === "true";
+    setAportaIPS(isAportaIPS);
+
+    // Actualizar el estado de detalleCredito
+    setDetalleCredito((prevDetalle) => ({
+      ...prevDetalle,
+      datosLaborales: {
+        ...prevDetalle.datosLaborales,
+        aportaIPS: isAportaIPS,
+        cantidadAportes: isAportaIPS
+          ? prevDetalle.datosLaborales?.cantidadAportes || ""
+          : 0,
+      },
+    }));
   };
 
   return (
@@ -388,127 +564,265 @@ function SolicitudesCredito() {
 
       {/* Mostrar detalles solo si hay datos en detalleCredito */}
       {detalleCredito && (
-        <div className="bg-white p-4 mt-4 rounded-lg shadow-md">
-          <h3 className="text-md font-semibold mb-2 text-gray-800">
+        <div className="bg-white p-4 mt-4 rounded-lg shadow-md text-xs">
+          <h4 className="font-semibold text-lg mb-2">
             Detalles de Solicitud de Crédito
-          </h3>
+          </h4>
 
-          {/* Datos Personales */}
-          <div>
-            <label>
-              <strong>Nombres y Apellidos:</strong>
-            </label>
-            <input
-              type="text"
-              name="nombresApellidos"
-              value={detalleCredito.nombresApellidos || ""}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1 border rounded mt-1"
-            />
-          </div>
-          <div>
-            <label>
-              <strong>Cédula:</strong>
-            </label>
-            <input
-              type="text"
-              name="cedulaIdentidad"
-              value={detalleCredito.cedulaIdentidad || ""}
-              onChange={handleInputChange}
-              className="w-full px-2 py-1 border rounded mt-1"
-            />
-          </div>
-          {/* Otros datos personales similares... */}
-
-          {/* Datos Laborales */}
-          <h4 className="mt-4 font-semibold">Datos Laborales</h4>
-          <div>
-            <label>
-              <strong>Empresa:</strong>
-            </label>
-            <input
-              type="text"
-              name="empresa"
-              value={detalleCredito.datosLaborales?.empresa || ""}
-              onChange={handleLaboralesChange}
-              className="w-full px-2 py-1 border rounded mt-1"
-            />
-          </div>
-          <div>
-            <label>
-              <strong>Dirección Laboral:</strong>
-            </label>
-            <input
-              type="text"
-              name="direccionLaboral"
-              value={detalleCredito.datosLaborales?.direccionLaboral || ""}
-              onChange={handleLaboralesChange}
-              className="w-full px-2 py-1 border rounded mt-1"
-            />
-          </div>
-          {/* Otros datos laborales similares... */}
-
-          {/* Referencias Comerciales */}
-          <h4 className="mt-4 font-semibold">Referencias Comerciales</h4>
-          {detalleCredito.referenciasComerciales?.map((refComercial, index) => (
-            <div key={index}>
-              <div>
-                <label>
-                  <strong>Nombre del Local:</strong>
-                </label>
-                <input
-                  type="text"
-                  name="nombreLocal"
-                  value={refComercial.nombreLocal || ""}
-                  onChange={(e) => handleReferenciaComercialChange(index, e)}
-                  className="w-full px-2 py-1 border rounded mt-1"
-                />
+          {/* Datos Personales y Laborales en paralelo */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="font-semibold text-lg mb-2">Datos Personales</h4>
+              <label>Nombres y Apellidos:</label>
+              <input
+                type="text"
+                name="nombresApellidos"
+                value={detalleCredito.nombresApellidos || ""}
+                onChange={handleInputChange}
+                className="w-full px-2 py-1 border rounded mt-1"
+              />
+              {/* Cedula y Telefono Movil en paralelo */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label>Cédula:</label>
+                  <input
+                    type="text"
+                    name="cedulaIdentidad"
+                    value={detalleCredito.cedulaIdentidad || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+                <div>
+                  <label>Teléfono Móvil:</label>
+                  <input
+                    type="text"
+                    name="telefonoMovil"
+                    value={detalleCredito.telefonoMovil || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
               </div>
-              <div>
-                <label>
-                  <strong>Teléfono:</strong>
-                </label>
-                <input
-                  type="text"
-                  name="telefono"
-                  value={refComercial.telefono || ""}
-                  onChange={(e) => handleReferenciaComercialChange(index, e)}
-                  className="w-full px-2 py-1 border rounded mt-1"
-                />
+
+              <label>Fecha de Nacimiento:</label>
+              <input
+                type="date"
+                name="fechaNacimiento"
+                value={
+                  detalleCredito.fechaNacimiento
+                    ? new Date(detalleCredito.fechaNacimiento)
+                        .toISOString()
+                        .substring(0, 10)
+                    : ""
+                }
+                onChange={handleInputChange}
+                className="w-full px-2 py-1 border rounded mt-1"
+              />
+              {/* Barrio y Ciudad en paralelo */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label>Barrio:</label>
+                  <input
+                    type="text"
+                    name="barrio"
+                    value={detalleCredito.barrio || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+                <div>
+                  <label>Ciudad:</label>
+                  <input
+                    type="text"
+                    name="ciudad"
+                    value={detalleCredito.ciudad || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+              </div>
+
+              <label>Dirección Particular:</label>
+              <input
+                type="text"
+                name="direccionParticular"
+                value={detalleCredito.direccionParticular || ""}
+                onChange={handleInputChange}
+                className="w-full px-2 py-1 border rounded mt-1"
+              />
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-lg mb-2">Datos Laborales</h4>
+              <label>Empresa:</label>
+              <input
+                type="text"
+                name="empresa"
+                value={detalleCredito.datosLaborales?.empresa || ""}
+                onChange={handleLaboralesChange}
+                className="w-full px-2 py-1 border rounded mt-1"
+              />
+              <label>Dirección Laboral:</label>
+              <input
+                type="text"
+                name="direccionLaboral"
+                value={detalleCredito.datosLaborales?.direccionLaboral || ""}
+                onChange={handleLaboralesChange}
+                className="w-full px-2 py-1 border rounded mt-1"
+              />
+
+              {/* Teléfono Laboral y Salario en la misma línea */}
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                  <label>Teléfono Laboral:</label>
+                  <input
+                    type="text"
+                    name="telefonoLaboral"
+                    value={detalleCredito.datosLaborales?.telefonoLaboral || ""}
+                    onChange={handleLaboralesChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+                <div>
+                  <label>Salario:</label>
+                  <input
+                    type="text"
+                    name="salario"
+                    value={
+                      isEditingSalario
+                        ? detalleCredito.datosLaborales?.salario || ""
+                        : formatNumber(detalleCredito.datosLaborales?.salario)
+                    }
+                    onChange={handleLaboralesChange}
+                    onFocus={handleSalarioFocus}
+                    onBlur={handleSalarioBlur}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+              </div>
+
+              {/* Antigüedad Años, Aporta IPS, y Cantidad de Aportes en la misma línea */}
+              <div className="grid grid-cols-3 gap-4 mt-2">
+                <div>
+                  <label>Antigüedad (Años):</label>
+                  <input
+                    type="number"
+                    name="antiguedadAnios"
+                    value={detalleCredito.datosLaborales?.antiguedadAnios || ""}
+                    onChange={handleLaboralesChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
+                <div>
+                  <label>Aporta IPS:</label>
+                  <select
+                    name="aportaIPS"
+                    value={aportaIPS ? "true" : "false"}
+                    onChange={handleAportaIPSChange}
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  >
+                    <option value="true">Sí</option>
+                    <option value="false">No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>Cantidad Aportes:</label>
+                  <input
+                    type="number"
+                    name="cantidadAportes"
+                    value={detalleCredito.datosLaborales?.cantidadAportes || ""}
+                    onChange={handleLaboralesChange}
+                    disabled={!aportaIPS} // Desactivar cuando aportaIPS es falso
+                    className="w-full px-2 py-1 border rounded mt-1"
+                  />
+                </div>
               </div>
             </div>
-          ))}
+          </div>
 
-          {/* Referencias Personales */}
-          <h4 className="mt-4 font-semibold">Referencias Personales</h4>
-          {detalleCredito.referenciasPersonales?.map((refPersonal, index) => (
-            <div key={index}>
-              <div>
-                <label>
-                  <strong>Nombre:</strong>
-                </label>
-                <input
-                  type="text"
-                  name="nombre"
-                  value={refPersonal.nombre || ""}
-                  onChange={(e) => handleReferenciaPersonalChange(index, e)}
-                  className="w-full px-2 py-1 border rounded mt-1"
-                />
-              </div>
-              <div>
-                <label>
-                  <strong>Teléfono:</strong>
-                </label>
-                <input
-                  type="text"
-                  name="telefono"
-                  value={refPersonal.telefono || ""}
-                  onChange={(e) => handleReferenciaPersonalChange(index, e)}
-                  className="w-full px-2 py-1 border rounded mt-1"
-                />
-              </div>
+          {/* Referencias Comerciales y Personales en paralelo */}
+          <div className="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <h4 className="font-semibold text-lg mb-2">
+                Referencias Comerciales
+              </h4>
+              {detalleCredito.referenciasComerciales?.map(
+                (refComercial, index) => (
+                  <div key={index} className="mt-2">
+                    <label>Nombre del Local {index + 1}:</label>
+                    <input
+                      type="text"
+                      name="nombreLocal"
+                      value={refComercial.nombreLocal || ""}
+                      onChange={(e) =>
+                        handleReferenciaComercialChange(index, e)
+                      }
+                      className="w-full px-2 py-1 border rounded mt-1"
+                    />
+                    <label>Teléfono:</label>
+                    <input
+                      type="text"
+                      name="telefono"
+                      value={refComercial.telefono || ""}
+                      onChange={(e) =>
+                        handleReferenciaComercialChange(index, e)
+                      }
+                      className="w-full px-2 py-1 border rounded mt-1"
+                    />
+                  </div>
+                )
+              )}
             </div>
-          ))}
+
+            <div>
+              <h4 className="font-semibold text-lg mb-2">
+                Referencias Personales
+              </h4>
+              {detalleCredito.referenciasPersonales?.map(
+                (refPersonal, index) => (
+                  <div key={index} className="mt-2">
+                    <label>Nombre {index + 1}</label>
+                    <input
+                      type="text"
+                      name="nombre"
+                      value={refPersonal.nombre || ""}
+                      onChange={(e) => handleReferenciaPersonalChange(index, e)}
+                      className="w-full px-2 py-1 border rounded mt-1"
+                    />
+                    <label>Teléfono:</label>
+                    <input
+                      type="text"
+                      name="telefono"
+                      value={refPersonal.telefono || ""}
+                      onChange={(e) => handleReferenciaPersonalChange(index, e)}
+                      className="w-full px-2 py-1 border rounded mt-1"
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+
+          {/* Botones de acción */}
+          <div
+            className="flex justify-start space-x-4 items-center"
+            style={{ marginTop: "-2rem" }}
+          >
+            <button
+              onClick={handleActualizarSolicitud}
+              className="bg-lime-500 text-white font-semibold py-2 px-4 rounded shadow hover:bg-lime-600 transition-all"
+            >
+              Actualizar Datos
+            </button>
+            <button
+              onClick={handleGenerarPDF}
+              className="bg-lime-500 text-white font-semibold py-2 px-4 rounded shadow hover:bg-lime-600 transition-all"
+            >
+              Generar PDF
+            </button>
+          </div>
         </div>
       )}
 

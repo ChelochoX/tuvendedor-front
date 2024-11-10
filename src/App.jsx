@@ -10,7 +10,7 @@ function App() {
   const location = useLocation();
 
   // Define las rutas específicas que no deben mostrar Header, Footer, etc.
-  const isUserPanel = location.pathname.startsWith("/panelControl");
+  const isUserPanel = location.pathname.startsWith("/panelcontrol");
   const isHome = location.pathname === "/";
 
   return (

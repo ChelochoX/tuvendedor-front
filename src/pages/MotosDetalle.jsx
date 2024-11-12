@@ -37,8 +37,6 @@ function MotosDetalle() {
           ? `${apiUrl}${basePath}productopromo/${modeloFormateado}`
           : `${apiUrl}${basePath}producto/${modeloFormateado}`;
 
-        console.log("Endpoint seleccionado:", endpoint);
-
         const response = await axios.get(endpoint);
         const data = response.data;
 
@@ -63,9 +61,7 @@ function MotosDetalle() {
             setCuotaMasBajaPromo(data.planes[0].importePromo);
           }
         }
-      } catch (error) {
-        console.error("Error al obtener los datos del producto:", error);
-      }
+      } catch (error) {}
     };
 
     obtenerDatosProducto();
@@ -127,9 +123,7 @@ function MotosDetalle() {
         } else if (response.data.montoPorCuota) {
           setMontoPorCuota(response.data.montoPorCuota);
         }
-      } catch (error) {
-        console.error("Error al calcular el monto de la cuota:", error);
-      }
+      } catch (error) {}
     }
   };
 

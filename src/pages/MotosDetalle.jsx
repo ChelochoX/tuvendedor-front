@@ -61,9 +61,7 @@ function MotosDetalle() {
             setCuotaMasBajaPromo(data.planes[0].importePromo);
           }
         }
-      } catch (error) {
-        console.error("Error al obtener los datos del producto:", error);
-      }
+      } catch (error) {}
     };
 
     obtenerDatosProducto();
@@ -125,9 +123,7 @@ function MotosDetalle() {
         } else if (response.data.montoPorCuota) {
           setMontoPorCuota(response.data.montoPorCuota);
         }
-      } catch (error) {
-        console.error("Error al calcular el monto de la cuota:", error);
-      }
+      } catch (error) {}
     }
   };
 
@@ -158,10 +154,16 @@ function MotosDetalle() {
         : isPromo
         ? selectedPlanPromo.entregaPromo
         : selectedPlan.entrega,
-      cantidadCuotas: isPromo
+      cantidadCuotas: incluyeEntrega
+        ? cantidadCuotas // Usa la cantidad de cuotas seleccionada en el combobox
+        : isPromo
         ? selectedPlanPromo?.cuotasPromo
         : selectedPlan?.cuotas,
-      montoPorCuota: isPromo ? cuotaMasBajaPromo : cuotaMasBaja,
+      montoPorCuota: incluyeEntrega
+        ? montoPorCuota // Usa el monto calculado si "Calcular con entrega mayor" está activado
+        : isPromo
+        ? cuotaMasBajaPromo
+        : cuotaMasBaja,
     };
 
     navigate("/solicitarcredito", { state: datosPlan });

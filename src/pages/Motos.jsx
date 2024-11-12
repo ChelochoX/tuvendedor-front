@@ -57,7 +57,6 @@ function Motos() {
       // Actualiza el estado con los modelos obtenidos
       setModelos(response.data);
     } catch (error) {
-      console.error("Error al obtener los modelos:", error);
     } finally {
       setIsLoading(false); // Finaliza la carga
     }

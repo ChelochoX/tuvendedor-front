@@ -202,7 +202,6 @@ function SolicitudCredito() {
       }
     } catch (error) {
       setErrorMessage("Error de conexión con el servidor");
-      console.error("Error:", error);
     }
   };
 
@@ -247,21 +246,21 @@ function SolicitudCredito() {
         {/* Datos Personales */}
         <h2 className="text-xl font-bold mb-2">Datos Personales</h2>
 
-        <div className="flex space-x-4 mb-4">
-          <div className="w-min">
+        <div className="flex flex-col md:flex-row md:space-x-4 mb-4">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">Cédula</label>
             <input
               type="text"
               maxLength="10" // Limita a 10 caracteres
               value={cedulaIdentidad}
               onChange={handlecedulaIdentidadChange}
-              className="border border-gray-300 px-2 py-1 rounded"
+              className="border border-gray-300 px-2 py-1 w-full rounded"
               placeholder="Número de Cédula"
               required
             />
           </div>
 
-          <div className="flex-grow">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">
               Nombres y Apellidos
             </label>
@@ -276,8 +275,8 @@ function SolicitudCredito() {
           </div>
         </div>
 
-        <div className="flex space-x-4 mb-4">
-          <div className="w-1/2">
+        <div className="flex flex-col md:flex-row md:space-x-4 mb-4">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">
               Fecha de Nacimiento
             </label>
@@ -290,7 +289,7 @@ function SolicitudCredito() {
             />
           </div>
 
-          <div className="w-1/2">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">Teléfono Móvil</label>
             <input
               type="text"
@@ -304,8 +303,8 @@ function SolicitudCredito() {
         </div>
 
         {/* Barrio y Ciudad */}
-        <div className="flex space-x-4 mb-4">
-          <div className="w-1/2">
+        <div className="flex flex-col md:flex-row md:space-x-4 mb-4">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">Barrio</label>
             <input
               type="text"
@@ -316,7 +315,7 @@ function SolicitudCredito() {
               required
             />
           </div>
-          <div className="w-1/2">
+          <div className="w-full md:w-1/2">
             <label className="block font-semibold mb-1">Ciudad</label>
             <input
               type="text"
@@ -458,8 +457,8 @@ function SolicitudCredito() {
             <h3 className="text-lg font-semibold mb-1">
               Referencia Comercial {index + 1}
             </h3>
-            <div className="flex space-x-4 mb-2">
-              <div className="w-1/2">
+            <div className="flex flex-col md:flex-row md:space-x-4 mb-2">
+              <div className="w-full md:w-1/2">
                 <label className="block font-semibold">Nombre Local</label>
                 <input
                   type="text"
@@ -475,7 +474,7 @@ function SolicitudCredito() {
                   placeholder={`Nombre Local ${index + 1}`}
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full md:w-1/2">
                 <label className="block font-semibold">Teléfono</label>
                 <input
                   type="text"
@@ -507,8 +506,8 @@ function SolicitudCredito() {
             <h3 className="text-lg font-semibold mb-1">
               Referencia Personal {index + 1}
             </h3>
-            <div className="flex space-x-4 mb-2">
-              <div className="w-1/2">
+            <div className="flex flex-col md:flex-row md:space-x-4 mb-2">
+              <div className="w-full md:w-1/2">
                 <label className="block font-semibold">Nombre</label>
                 <input
                   type="text"
@@ -524,7 +523,7 @@ function SolicitudCredito() {
                   placeholder={`Nombre de la referencia ${index + 1}`}
                 />
               </div>
-              <div className="w-1/2">
+              <div className="w-full md:w-1/2">
                 <label className="block font-semibold">Teléfono</label>
                 <input
                   type="text"

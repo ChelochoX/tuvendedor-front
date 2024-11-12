@@ -154,10 +154,16 @@ function MotosDetalle() {
         : isPromo
         ? selectedPlanPromo.entregaPromo
         : selectedPlan.entrega,
-      cantidadCuotas: isPromo
+      cantidadCuotas: incluyeEntrega
+        ? cantidadCuotas // Usa la cantidad de cuotas seleccionada en el combobox
+        : isPromo
         ? selectedPlanPromo?.cuotasPromo
         : selectedPlan?.cuotas,
-      montoPorCuota: isPromo ? cuotaMasBajaPromo : cuotaMasBaja,
+      montoPorCuota: incluyeEntrega
+        ? montoPorCuota // Usa el monto calculado si "Calcular con entrega mayor" está activado
+        : isPromo
+        ? cuotaMasBajaPromo
+        : cuotaMasBaja,
     };
 
     navigate("/solicitarcredito", { state: datosPlan });

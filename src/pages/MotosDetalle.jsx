@@ -28,6 +28,7 @@ function MotosDetalle() {
   const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
 
   useEffect(() => {
+    //if (!title || !isPromo) return;
     const obtenerDatosProducto = async () => {
       try {
         const modeloFormateado = encodeURIComponent(

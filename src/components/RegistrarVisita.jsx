@@ -9,8 +9,5 @@ export const registrarVisita = async (page) => {
     await axios.post(`${apiUrl}${visitasBasePath}/registrarvisita`, null, {
       params: { page },
     });
-    console.log(`Visita registrada exitosamente para la página: ${page}`);
-  } catch (error) {
-    console.error("Error al registrar la visita:", error);
-  }
+  } catch (error) {}
 };

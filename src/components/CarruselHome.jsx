@@ -31,7 +31,6 @@ const CarruselHome = () => {
           throw new Error("La respuesta no es un array");
         }
       } catch (error) {
-        console.error("Error al cargar las imágenes:", error);
         setError(error.message); // Guardar el error en el estado
       }
     };
@@ -58,7 +57,6 @@ const CarruselHome = () => {
 
     // Quita la extensión de la imagen (por ejemplo, ".jpeg")
     const nombreSinExtension = nombre.replace(/\.[^/.]+$/, "");
-    console.log("Nombre del modelo (sin extensión):", nombreSinExtension);
 
     try {
       // Llamar al endpoint para obtener todas las imágenes del modelo seleccionado
@@ -82,9 +80,7 @@ const CarruselHome = () => {
           isPromo: isPromo,
         },
       });
-    } catch (error) {
-      console.error("Error al cargar las imágenes del modelo:", error);
-    }
+    } catch (error) {}
   };
 
   // Efecto para el desplazamiento automático
@@ -108,7 +104,7 @@ const CarruselHome = () => {
             images.map((image, index) => (
               <div key={index} className="w-full h-full flex-shrink-0">
                 <img
-                  src={`${apiUrl}${image.url}?t=${new Date().getTime()}`}
+                  src={`${apiUrl}${image.url}`}
                   alt={image.nombre}
                   className="w-full h-full object-contain transform hover:scale-110 hover:shadow-lg transition-transform duration-300 ease-in-out"
                   onClick={() => handleImageClick(image.nombre)} // Manejar clic en la imagen

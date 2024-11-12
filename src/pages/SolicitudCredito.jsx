@@ -202,7 +202,6 @@ function SolicitudCredito() {
       }
     } catch (error) {
       setErrorMessage("Error de conexión con el servidor");
-      console.error("Error:", error);
     }
   };
 

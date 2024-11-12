@@ -28,7 +28,6 @@ function MotosDetalle() {
   const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
 
   useEffect(() => {
-    //if (!title || !isPromo) return;
     const obtenerDatosProducto = async () => {
       try {
         const modeloFormateado = encodeURIComponent(
@@ -37,6 +36,8 @@ function MotosDetalle() {
         const endpoint = isPromo
           ? `${apiUrl}${basePath}productopromo/${modeloFormateado}`
           : `${apiUrl}${basePath}producto/${modeloFormateado}`;
+
+        console.log("Endpoint seleccionado:", endpoint);
 
         const response = await axios.get(endpoint);
         const data = response.data;

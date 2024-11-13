@@ -16,21 +16,13 @@ function Motos() {
     "PROMOCIONES",
   ];
 
-  // Estado para la categoría seleccionada (por defecto es la primera categoría)
   const [selectedCategory, setSelectedCategory] = useState(categories[0]);
-
-  // Estado para almacenar los modelos de la categoría
   const [modelos, setModelos] = useState([]);
-
-  // Estado para controlar el efecto de sacudida y la promo
   const [showShake, setShowShake] = useState(false);
   const [showPromo, setShowPromo] = useState(false);
-
-  // Estado para controlar si el sidebar está abierto o no
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  // Estado para controlar si estamos cargando datos
   const [isLoading, setIsLoading] = useState(false);
+  const [showArrowMessage, setShowArrowMessage] = useState(true);
 
   // Obtener la URL base desde la variable de entorno
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
@@ -116,6 +108,25 @@ function Motos() {
             >
               Categorías
             </button>
+
+            {/* Flecha y mensaje fijo para guiar al usuario */}
+            {!isSidebarOpen && (
+              <>
+                {showArrowMessage && (
+                  <div className="fixed top-24 left-20 flex items-center z-50 space-x-2">
+                    <img
+                      src="/flecha.png" // Cambia a la ruta de tu imagen de flecha
+                      alt="Flecha"
+                      className="w-8 h-8 animate-bounce" // Tamaño y animación de la flecha
+                    />
+                    <p className="text-yellow-500 font-semibold bg-gray-800 px-3 py-1 rounded-md shadow-md text-sm md:text-base">
+                      ¡Presiona el botón Categorías y elige el modelo que más te
+                      gusta!
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Mensaje emergente de promo ajustado para estar justo al lado derecho en móvil y web */}
             {showPromo &&

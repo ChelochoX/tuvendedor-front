@@ -109,7 +109,7 @@ function Motos() {
               Categorías
             </button>
 
-            {/* Flecha y mensaje fijo para guiar al usuario */}
+            {/* Flecha y mensaje fijo para guiar al usuario
             {!isSidebarOpen && (
               <>
                 {showArrowMessage && (
@@ -126,7 +126,7 @@ function Motos() {
                   </div>
                 )}
               </>
-            )}
+            )} */}
 
             {/* Mensaje emergente de promo ajustado para estar justo al lado derecho en móvil y web */}
             {showPromo &&

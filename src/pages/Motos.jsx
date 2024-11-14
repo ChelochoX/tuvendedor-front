@@ -73,7 +73,7 @@ function Motos() {
         setTimeout(() => {
           setShowShake(false);
           setShowPromo(false);
-        }, 3000);
+        }, 1000);
       }, 3000); // Cada 5 segundos
     }
 

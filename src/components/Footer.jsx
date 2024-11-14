@@ -1,23 +1,17 @@
 import React from "react";
 import logo from "../assets/images/logoTuVendedor.png";
-
 const Footer = () => {
   return (
     <footer className="bg-black text-white py-8">
       <div className="container mx-auto flex flex-col md:flex-row justify-between items-center space-y-6 md:space-y-0 px-4">
-        {/* Logo e Información de Marca con ancho limitado */}
-        <div className="flex flex-col items-center md:items-start max-w-xs">
-          {" "}
-          {/* Ajuste de ancho con max-w-xs */}
-          <img
-            src={logo}
-            alt="Logo TuVendedor"
-            className="w-80 h-auto mb-4"
-          />{" "}
-          {/* Tamaño grande del logo */}
-          <p className="text-yellow-500 font-bold text-lg text-center md:text-left">
-            TU MEJOR OPCIÓN EN VENTAS
-          </p>
+        {/* Logo e Información de Marca */}
+        <div className="flex flex-col items-center md:items-start max-w-xs mb-4">
+          <img src={logo} alt="Logo TuVendedor" className="w-80 h-auto mb-2" />
+
+          {/* Descripción de Vendedor Autorizado */}
+          <div className="text-yellow-500 font-bold text-lg text-center md:text-left">
+            Vendedor autorizado por Chacomer
+          </div>
         </div>
 
         {/* Enlaces de Navegación */}
@@ -53,12 +47,9 @@ const Footer = () => {
         {/* Información de Contacto */}
         <div className="text-center md:text-left">
           <h3 className="text-yellow-500 font-semibold mb-2">Contáctanos</h3>
+          <p>Dirección: Gobernador Irala, Areguá,Paraguay</p>
           <p>
-            Dirección: Feliciano Baez No 33 c/ Gobernador Irala, Areguá,
-            Paraguay
-          </p>
-          <p>
-            Celular: <span className="text-yellow-500">0994 60 60 48</span>
+            Celular: <span className="text-yellow-500">0982 12 12 69</span>
           </p>
           <p>
             Email:{" "}

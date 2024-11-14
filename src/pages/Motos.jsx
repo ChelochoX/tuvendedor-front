@@ -6,11 +6,11 @@ import axios from "axios"; // Usaremos Axios para hacer la petición
 
 function Motos() {
   const categories = [
-    "ATV/CUACI",
-    "CUB/Motonetas",
+    "ATV/Cuaci",
+    "Motonetas",
     "Electricas",
     "Motocargas",
-    "Scooter",
+    "Automáticas",
     "Trail",
     "Utilitaria",
     "PROMOCIONES",
@@ -74,7 +74,7 @@ function Motos() {
           setShowShake(false);
           setShowPromo(false);
         }, 3000);
-      }, 5000); // Cada 5 segundos
+      }, 3000); // Cada 5 segundos
     }
 
     return () => clearInterval(interval); // Limpiar intervalo cuando se abra el sidebar o al desmontar
@@ -109,30 +109,11 @@ function Motos() {
               Categorías
             </button>
 
-            {/* Flecha y mensaje fijo para guiar al usuario
-            {!isSidebarOpen && (
-              <>
-                {showArrowMessage && (
-                  <div className="fixed top-24 left-20 flex items-center z-50 space-x-2">
-                    <img
-                      src="/flecha.png" // Cambia a la ruta de tu imagen de flecha
-                      alt="Flecha"
-                      className="w-8 h-8 animate-bounce" // Tamaño y animación de la flecha
-                    />
-                    <p className="text-yellow-500 font-semibold bg-gray-800 px-3 py-1 rounded-md shadow-md text-sm md:text-base">
-                      ¡Presiona el botón Categorías y elige el modelo que más te
-                      gusta!
-                    </p>
-                  </div>
-                )}
-              </>
-            )} */}
-
             {/* Mensaje emergente de promo ajustado para estar justo al lado derecho en móvil y web */}
             {showPromo &&
               !isSidebarOpen && ( // Solo mostrar promo si el sidebar está cerrado
                 <span className="absolute top-0 left-full ml-16 bg-red-500 text-white text-xs px-2 py-1 rounded-lg w-32 text-center">
-                  ¡Tengo una promo para vos!
+                  ¡Presiona el botón Categorías!
                 </span>
               )}
           </div>

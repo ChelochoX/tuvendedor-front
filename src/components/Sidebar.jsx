@@ -25,7 +25,7 @@ function Sidebar({ categories, setCategory }) {
           fixed top-36 left-16 w-3/4 h-auto z-40 md:w-64 md:h-auto md:fixed md:top-40`}
       >
         <h2 className="text-lg font-bold mb-2 underline decoration-2 decoration-gray-300">
-          CATEGORÍAS
+          Elige una categoría
         </h2>
         <ul className="space-y-1">
           {categories.map((category, index) => (

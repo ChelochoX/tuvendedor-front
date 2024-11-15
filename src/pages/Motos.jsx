@@ -22,7 +22,6 @@ function Motos() {
   const [showPromo, setShowPromo] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showArrowMessage, setShowArrowMessage] = useState(true);
 
   // Obtener la URL base desde la variable de entorno
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";

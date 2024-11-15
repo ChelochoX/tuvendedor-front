@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaTachometerAlt, FaFolderOpen, FaFileAlt } from "react-icons/fa"; // Icono de Solicitudes de Crédito
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import SolicitudesCredito from "./SolicitudesCredito";
+import Dashboard from "./Dashboard";
 
 function PanelControl() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -10,9 +11,7 @@ function PanelControl() {
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
-        return (
-          <h1 className="text-3xl font-bold">Bienvenido al Panel de Control</h1>
-        );
+        return <Dashboard />;
       case "data":
         return <h1 className="text-3xl font-bold">Gestión de Datos</h1>;
       case "solicitudesCredito":

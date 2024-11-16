@@ -1,60 +1,66 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Card({ images, title, link, isPromo }) {
   const navigate = useNavigate();
 
-  // Estado para manejar el índice de la imagen actual
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
 
-  // Obtener la URL base desde las variables de entorno
-  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-  // Función para iniciar la rotación de imágenes
   const startImageRotation = () => {
     if (images.length > 1) {
       const id = setInterval(() => {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
-      }, 1000); // Cambia la imagen cada 1 segundo
+      }, 1000);
       setIntervalId(id);
     }
   };
 
-  // Función para detener la rotación de imágenes
   const stopImageRotation = () => {
     if (intervalId) {
-      clearInterval(intervalId); // Detener la rotación
+      clearInterval(intervalId);
       setIntervalId(null);
-      setCurrentImageIndex(0); // Volver a la primera imagen
+      setCurrentImageIndex(0);
     }
   };
 
   useEffect(() => {
     return () => {
       if (intervalId) {
-        clearInterval(intervalId); // Limpiar el intervalo al desmontar el componente
+        clearInterval(intervalId);
       }
     };
   }, [intervalId]);
 
   const handleClick = () => {
-    // Navegamos y pasamos imágenes y título como estado
     navigate(link, {
-      state: { images, title, isPromo }
+      state: { images, title, isPromo },
     });
   };
 
-  // Generar la URL de la imagen actual
-  const currentImage = images && images.length > 0 ? `${apiUrl}${images[currentImageIndex]}` : 'https://via.placeholder.com/600x400';
+  const currentImage =
+    images && images.length > 0
+      ? `${apiUrl}${images[currentImageIndex]}`
+      : "https://via.placeholder.com/600x400";
 
   return (
     <div
-      onClick={handleClick} // Manejar el click para navegar
-      className="max-w-sm rounded overflow-hidden shadow-lg bg-gray-100 hover:bg-gray-200 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer group"
-      onMouseEnter={startImageRotation} // Iniciar rotación de imágenes en hover
-      onMouseLeave={stopImageRotation} // Detener rotación al salir del hover
+      onClick={handleClick}
+      className="relative max-w-sm rounded overflow-hidden shadow-lg bg-gray-100 hover:bg-gray-200 hover:shadow-2xl transform hover:scale-105 transition-all duration-300 cursor-pointer group"
+      onMouseEnter={startImageRotation}
+      onMouseLeave={stopImageRotation}
+      onTouchStart={startImageRotation}
+      onTouchEnd={stopImageRotation}
     >
+      {/* Etiqueta de Promo */}
+      {isPromo && (
+        <span className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg z-10">
+          Promo Black Friday
+        </span>
+      )}
+
       <div className="overflow-hidden">
         <img
           className="w-full h-52 object-cover transform hover:scale-105 transition-transform duration-300 ease-in-out"

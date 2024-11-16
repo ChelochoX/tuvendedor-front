@@ -1,146 +1,126 @@
 import React, { useState, useEffect } from "react";
-
-import Sidebar from "../components/Sidebar"; // Importa Sidebar
-import CardsCategorias from "../components/CardsCategorias"; // Importa CardsCategorias
-import axios from "axios"; // Usaremos Axios para hacer la petición
+import CardsCategorias from "../components/CardsCategorias";
+import Promos from "../components/Promos";
+import SearchBar from "../components/SearchBar";
+import axios from "axios";
+import useDebounce from "../hooks/useDebounce";
 
 function Motos() {
-  const categories = [
-    "ATV/Cuaci",
-    "Motonetas",
-    "Electricas",
-    "Motocargas",
-    "Automáticas",
-    "Trail",
-    "Utilitaria",
-    "PROMOCIONES",
-  ];
-
-  const [selectedCategory, setSelectedCategory] = useState(categories[0]);
   const [modelos, setModelos] = useState([]);
-  const [showShake, setShowShake] = useState(false);
-  const [showPromo, setShowPromo] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [filteredModelos, setFilteredModelos] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Obtener la URL base desde la variable de entorno
+  // Debounce para retrasar la búsqueda
+  const debouncedSearchQuery = useDebounce(searchQuery, 3000);
+
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:8080";
   const basePath = import.meta.env.VITE_BASE_PATH || "/api/Motos/";
-  const promoPath = "listarproductoPromo";
 
-  // Función para obtener los modelos de la categoría seleccionada
-  const fetchModelos = async (categoria) => {
-    setIsLoading(true); //
+  // Función para obtener todos los modelos
+  const fetchModelos = async () => {
+    setIsLoading(true);
     try {
-      let response;
-      if (categoria === "PROMOCIONES") {
-        // Llama al endpoint específico de promociones
-        response = await axios.get(`${apiUrl}${basePath}${promoPath}`);
-      } else {
-        // Convertimos '/' en '-' para la categoría 'ATV/CUACI'
-        const formattedCategory = categoria.replace(/\//g, "-");
-        // Llama a la API del backend para obtener los modelos con la categoría formateada
-        response = await axios.get(
-          `${apiUrl}${basePath}modelo/${formattedCategory}`
-        );
-      }
-
-      // Actualiza el estado con los modelos obtenidos
-      setModelos(response.data);
+      const response = await axios.get(`${apiUrl}${basePath}modelo`);
+      setModelos(response.data); // Guardar todos los modelos obtenidos
+      setFilteredModelos(response.data); // Inicializar los modelos filtrados
     } catch (error) {
+      console.error("Error al obtener los modelos:", error);
     } finally {
-      setIsLoading(false); // Finaliza la carga
+      setIsLoading(false);
     }
   };
 
-  // Llamar a la API cada vez que cambie la categoría seleccionada
-  useEffect(() => {
-    fetchModelos(selectedCategory);
-  }, [selectedCategory]);
-
-  // Efecto de sacudida continuo cada 5 segundos si el sidebar está cerrado
-  useEffect(() => {
-    let interval;
-
-    if (!isSidebarOpen) {
-      // Configura un intervalo para la sacudida cada 5 segundos
-      interval = setInterval(() => {
-        setShowShake(true); // Activar sacudida
-        setShowPromo(true); // Mostrar promoción
-
-        // Después de 3 segundos, desactivar la sacudida y el pop-up
-        setTimeout(() => {
-          setShowShake(false);
-          setShowPromo(false);
-        }, 1000);
-      }, 3000); // Cada 5 segundos
+  // Función para buscar modelos por coincidencia
+  const buscarModelos = async (expresionBusqueda) => {
+    if (!expresionBusqueda.trim()) {
+      fetchModelos(); // Si el campo está vacío, obtenemos todos los modelos
+      return;
     }
 
-    return () => clearInterval(interval); // Limpiar intervalo cuando se abra el sidebar o al desmontar
-  }, [isSidebarOpen]);
-
-  // Cambia el estado del sidebar con un solo clic
-  const handleSidebarToggle = () => {
-    setIsSidebarOpen((prev) => !prev); // Alterna el estado correctamente
+    setIsLoading(true);
+    try {
+      const url = `${apiUrl}${basePath}modelo/buscar/${encodeURIComponent(
+        expresionBusqueda
+      )}`;
+      console.log(`Realizando búsqueda con URL: ${url}`);
+      const response = await axios.get(url);
+      setFilteredModelos(response.data); // Mostrar solo los modelos encontrados
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        console.warn("No se encontraron resultados para la búsqueda.");
+        setFilteredModelos([]); // No hay resultados
+      } else {
+        console.error("Error al buscar modelos:", error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Definir isPromo para saber si la categoría seleccionada es 'PROMOCIONES'
-  const isPromo = selectedCategory === "PROMOCIONES";
-
-  // Añadimos solo este efecto para el desplazamiento hacia arriba
+  // Efecto inicial para obtener todos los modelos
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [selectedCategory]);
+    fetchModelos();
+  }, []);
+
+  // Efecto para manejar la búsqueda usando el debounce
+  useEffect(() => {
+    buscarModelos(debouncedSearchQuery); // Buscar modelos cuando `debouncedSearchQuery` cambie
+  }, [debouncedSearchQuery]);
+
+  const handleClearSearch = () => {
+    setSearchQuery(""); // Limpia el texto del input
+    fetchModelos(); // Recupera todos los modelos y promociones
+  };
 
   return (
-    <div>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex">
-          {/* Botón de Categorías con efecto de sacudida y promo */}
-          <div className="relative">
-            <button
-              className={`fixed top-28 left-4 z-50 p-2 bg-yellow-500 text-black font-bold rounded-lg shadow-md
-              ${showShake ? "animate-shake" : ""} 
-              p-2 text-base`} // Evitamos el crecimiento en móvil
-              onClick={handleSidebarToggle} // Cambia el estado del sidebar con un solo clic
-              style={{ transition: "none" }} // Evitar cualquier cambio de tamaño
-            >
-              Categorías
-            </button>
-
-            {/* Mensaje emergente de promo ajustado para estar justo al lado derecho en móvil y web */}
-            {showPromo &&
-              !isSidebarOpen && ( // Solo mostrar promo si el sidebar está cerrado
-                <span className="absolute top-0 left-full ml-16 bg-red-500 text-white text-xs px-2 py-1 rounded-lg w-32 text-center">
-                  ¡Presiona el botón Categorías!
-                </span>
-              )}
-          </div>
-
-          {/* Sidebar que actualizará la categoría seleccionada */}
-          {isSidebarOpen && (
-            <Sidebar
-              categories={categories}
-              setCategory={setSelectedCategory}
+    <div className="container mx-auto px-4 py-8">
+      {/* Contenedor principal */}
+      <div className="w-full max-w-screen-lg mx-auto">
+        {/* Buscador y descripción */}
+        <div className="mb-8">
+          <p className="text-gray-600 text-sm mb-2 text-left">
+            Ingresa el modelo que deseas buscar (Ej: Dakar, GL, Motocarro)
+          </p>
+          <div className="w-full">
+            <SearchBar
+              placeholder="Ingresa el modelo a buscar (Ej: Dakar, GL, Motocarro)"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onClear={handleClearSearch}
+              className="w-full" // Aseguramos que ocupe el mismo ancho
             />
-          )}
-
-          {/* Grid de Motos con margen izquierdo en modo web */}
-          <div className="flex-1 md:ml-64">
-            {/* Mostrar mensaje si está cargando */}
-            {isLoading && <p>Cargando modelos...</p>}
-
-            {/* Mostrar mensaje si no hay promociones y se seleccionó "PROMOCIONES" */}
-            {!isLoading && isPromo && modelos.length === 0 && (
-              <p>No hay promociones disponibles en este momento.</p>
-            )}
-
-            {/* Mostrar los modelos si hay datos */}
-            {!isLoading && modelos.length > 0 && (
-              <CardsCategorias modelos={modelos} isPromo={isPromo} />
-            )}
           </div>
         </div>
+
+        {/* Mostrar promociones y todos los modelos solo si no hay búsqueda */}
+        {searchQuery.trim() === "" && (
+          <>
+            <Promos />
+            <div className="my-12 text-left">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-500 via-green-500 to-orange-500 text-transparent bg-clip-text">
+                ¡Explora más modelos que tenemos para ti!
+              </h2>
+            </div>
+          </>
+        )}
+
+        {/* Mostrar mensaje si está cargando */}
+        {isLoading && <p className="text-center">Cargando modelos...</p>}
+
+        {/* Mostrar tarjetas de modelos */}
+        {!isLoading && filteredModelos.length > 0 && (
+          <div className="w-full">
+            <CardsCategorias modelos={filteredModelos} isPromo={false} />
+          </div>
+        )}
+
+        {/* Mostrar mensaje si no hay resultados */}
+        {!isLoading && filteredModelos.length === 0 && searchQuery.trim() && (
+          <p className="text-center text-gray-500">
+            No se encontraron modelos que coincidan con tu búsqueda.
+          </p>
+        )}
       </div>
     </div>
   );

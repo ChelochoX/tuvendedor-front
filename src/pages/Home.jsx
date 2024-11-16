@@ -10,6 +10,14 @@ import { registrarVisita } from "../components/RegistrarVisita";
 function Home() {
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Mensaje para seleccionar categoría */}
+      <div className="text-center my-6">
+        <h1 className="text-4xl font-bold text-blue-600">
+          Selecciona una categoría de búsqueda
+        </h1>
+      </div>
+
+      {/* Tarjetas de categorías */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {/* Primera Card */}
         <div onClick={() => registrarVisita("MOTOS")}>
@@ -32,10 +40,6 @@ function Home() {
         <h2 className="relative text-4xl font-bold text-gray-900 z-10">
           No dejes pasar estas <span className="promociones">PROMOCIONES</span>
         </h2>
-        <p className="relative text-lg text-gray-700 mt-2 z-10">
-          Ofertas irresistibles que no puedes dejar pasar. ¡Haz tu compra ahora
-          y disfruta de descuentos exclusivos!
-        </p>
       </div>
 
       {/* Estilos inline para evitar errores con el atributo `jsx` */}

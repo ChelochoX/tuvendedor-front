@@ -64,6 +64,26 @@ const Footer = () => {
               info@tuvendedor.com.py
             </a>
           </p>
+
+          {/* Icono de Facebook */}
+          <div className="mt-4">
+            <a
+              href="https://www.facebook.com/motostuvendedor/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-2 text-white hover:text-yellow-500"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-6 h-6"
+              >
+                <path d="M22.675 0H1.325C.592 0 0 .593 0 1.326v21.348C0 23.408.592 24 1.325 24H12.82v-9.294H9.692v-3.622h3.127V8.413c0-3.1 1.893-4.787 4.659-4.787 1.325 0 2.462.099 2.794.143v3.24l-1.918.001c-1.503 0-1.794.715-1.794 1.763v2.31h3.588l-.467 3.622h-3.121V24h6.116C23.408 24 24 23.408 24 22.674V1.326C24 .593 23.408 0 22.675 0z" />
+              </svg>
+              <span>Facebook</span>
+            </a>
+          </div>
         </div>
       </div>
 

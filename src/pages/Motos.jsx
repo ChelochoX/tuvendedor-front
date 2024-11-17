@@ -84,7 +84,7 @@ function Motos() {
           </p>
           <div className="w-full">
             <SearchBar
-              placeholder="Ingresa el modelo a buscar (Ej: Dakar, GL, Motocarro)"
+              placeholder="Ingresa nombre del modelo a buscar"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClear={handleClearSearch}

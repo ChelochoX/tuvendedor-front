@@ -1,12 +1,14 @@
-// tailwind.config.js
 module.exports = {
   content: ["./src/**/*.{html,js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        primary: "#FFCC00", // Amarillo principal
-        secondary: "#000000", // Negro, fondo del panel izquierdo
-        accentYellowLight: "#FFF4CC", // Amarillo claro para el panel derecho
+        primary: "#FFCC00",
+        secondary: "#000000",
+        accentYellowLight: "#FFF4CC",
+      },
+      textStroke: {
+        black: "1px black", // Define el borde negro
       },
     },
   },

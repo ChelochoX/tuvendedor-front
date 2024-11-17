@@ -47,9 +47,16 @@ const Footer = () => {
         {/* Información de Contacto */}
         <div className="text-center md:text-left">
           <h3 className="text-yellow-500 font-semibold mb-2">Contáctanos</h3>
-          <p>Dirección: Gobernador Irala, Areguá,Paraguay</p>
-          <p>
-            Celular: <span className="text-yellow-500">0982 12 12 69</span>
+          <p className="text-yellow-500 font-semibold">
+            Dirección: Gobernador Irala, Areguá, Paraguay
+          </p>
+          <p className="mt-4 text-white">
+            ¿Quieres tener tu propio catálogo de productos? Comunícate con
+            nosotros.
+          </p>
+          <p className="mt-2">
+            Celular:{" "}
+            <span className="text-yellow-500 font-bold">0982 12 12 69</span>
           </p>
           <p>
             Email:{" "}

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 function HeaderPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const messages = [
-    <span><span className="text-yellow-500">Comunícate con </span><span className="text-green-400">Nosotros</span><span className="text-yellow-500"> y elige el modelo que más te guste!!</span></span>,
-    <span><span className="text-yellow-500">WhatsApp </span><span className="text-green-400">0982 12 12 69</span> - <span className="text-green-400">0991 64 58 06</span></span>,
-    <span>¿Quieres que tu <span className="text-yellow-500">Marca</span> sea conocida? <span className="text-green-400">Llamanos!!</span> <span className="text-green-400">0994 60 60 48</span></span>,
+    <span>
+      ¿Quieres que tu <span className="text-yellow-500">Marca</span> sea
+      conocida? <span className="text-green-400">Llamanos!!</span>{" "}
+      <span className="text-green-400">0994 60 60 48</span>
+    </span>,
   ];
 
   // Control del índice actual del mensaje
@@ -41,7 +43,9 @@ function HeaderPage() {
           {/* Texto animado que simula el logo */}
           <div className="flex items-center">
             <div className="animated-logo">
-              <span className="logo-text text-3xl md:text-4xl">TU VENDEDOR</span>
+              <span className="logo-text text-3xl md:text-4xl">
+                TU VENDEDOR
+              </span>
             </div>
           </div>
 
@@ -56,25 +60,49 @@ function HeaderPage() {
           {/* Menú de navegación desplegable */}
           <nav
             className={`${
-              isMenuOpen ? 'block' : 'hidden'
+              isMenuOpen ? "block" : "hidden"
             } mt-2 md:mt-0 md:flex md:flex-row space-y-2 md:space-y-0 md:space-x-6`}
           >
-            <Link to="/" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               INICIO
             </Link>
-            <Link to="/nosotros" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/nosotros"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               NOSOTROS
             </Link>
-            <Link to="/motos" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/motos"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               MOTOS
             </Link>
-            <Link to="/inmuebles" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/inmuebles"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               INMUEBLES
             </Link>
-            <Link to="/vehiculos" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/vehiculos"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               VEHICULOS
             </Link>
-            <Link to="/contacto" className="text-gray-700 font-semibold hover:text-orange-500 block" onClick={handleLinkClick}>
+            <Link
+              to="/contacto"
+              className="text-gray-700 font-semibold hover:text-orange-500 block"
+              onClick={handleLinkClick}
+            >
               CONTACTO
             </Link>
           </nav>

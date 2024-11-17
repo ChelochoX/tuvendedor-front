@@ -263,7 +263,7 @@ function MotosDetalle() {
             {!incluyeEntrega && ( // Solo mostrar el selector si no está chequeado el checkbox
               <>
                 <h3 className="text-md md:text-lg font-semibold mb-2">
-                  Planes de financiamiento:
+                  Selecciona tu plan de financiamiento:
                 </h3>
                 <select
                   className="border border-gray-300 px-2 py-1 rounded w-full"
@@ -403,19 +403,48 @@ function MotosDetalle() {
             </div>
           )}
 
-          <div className="mt-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
-            <button
-              className="bg-orange-500 text-white px-4 py-2 rounded w-full md:w-auto"
-              onClick={handleSolicitarCredito}
-            >
-              Solicitar Crédito
-            </button>
-            <button
-              className="bg-green-500 text-white px-4 py-2 rounded w-full md:w-auto"
-              onClick={handleWhatsAppClick}
-            >
-              Escríbenos al WhatsApp
-            </button>
+          <div className="mt-6">
+            {/* Mensaje antes del botón Solicitar Crédito */}
+            <div className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 p-4 rounded-lg text-white font-semibold text-center shadow-lg">
+              Si ya tienes seleccionado un plan, presiona el botón{" "}
+              <strong>Solicitar Crédito</strong> y llena el formulario para
+              procesar tu crédito.
+            </div>
+
+            <div className="mt-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
+              {/* Botón Solicitar Crédito */}
+              <button
+                className="relative group bg-orange-500 text-white px-6 py-3 rounded w-full md:w-auto font-bold text-lg shadow-md overflow-hidden hover:bg-orange-600 focus:bg-orange-600 active:bg-orange-700 transition-all duration-500"
+                onClick={handleSolicitarCredito}
+              >
+                <span className="absolute inset-0 border-2 border-orange-400 rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500"></span>
+                <span className="relative z-10">Solicitar Crédito</span>
+              </button>
+            </div>
+
+            {/* Mensaje después del botón Solicitar Crédito */}
+            <div className="bg-gradient-to-r from-green-400 to-blue-500 p-4 rounded-lg text-white font-semibold text-center shadow-lg mt-4">
+              ¿Aún tienes dudas? Escríbenos al <strong>WhatsApp</strong>,
+              ¡estamos aquí para ayudarte!
+            </div>
+
+            {/* Botón WhatsApp */}
+            <div className="mt-4">
+              <button
+                className="relative group bg-green-500 text-white px-6 py-3 rounded w-full md:w-auto font-bold text-lg shadow-md overflow-hidden hover:bg-green-600 focus:bg-green-600 active:bg-green-700 transition-all duration-500"
+                onClick={handleWhatsAppClick}
+              >
+                <span className="absolute inset-0 border-2 border-green-400 rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity duration-500"></span>
+                <span className="relative z-10 flex items-center justify-center">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                    alt="WhatsApp Logo"
+                    className="w-6 h-6 mr-2"
+                  />
+                  Escríbenos al WhatsApp
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

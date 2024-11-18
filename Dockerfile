@@ -6,22 +6,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar las dependencias
-RUN npm install
-
-# Instalar vite globalmente para evitar problemas de permisos
-RUN npm install -g vite
+RUN npm ci
 
 # Convertir line endings con sed (opción alternativa a dos2unix)
 RUN find . -type f -exec sed -i 's/\r$//' {} +
-
-# Otorga permisos de ejecución a los binarios en node_modules
-RUN chmod -R +x node_modules/.bin
 
 # Copiar todo el proyecto
 COPY . .
 
 # Ejecutar el build de producción
-RUN vite build
+RUN npm run build
 
 # Etapa 2: Servir la aplicación con nginx
 FROM nginx:alpine

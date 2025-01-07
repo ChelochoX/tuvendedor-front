@@ -57,7 +57,7 @@ function Card({ images, title, link, isPromo }) {
       {/* Etiqueta de Promo */}
       {isPromo && (
         <span className="absolute top-2 right-2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-lg z-10">
-          Tanque Lleno!!
+          Promo Enero!!
         </span>
       )}
 

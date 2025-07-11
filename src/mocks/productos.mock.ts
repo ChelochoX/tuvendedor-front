@@ -16,7 +16,8 @@ export const productosMock: Producto[] = [
       "/images/fer.webp",
       "/images/moto.webp",
     ],
-    descripcion: "Moto económica y confiable, ideal para uso diario.",
+    descripcion:
+      "La Honda Wave 110 es sinónimo de confianza, economía y rendimiento diario. Este modelo se ha ganado el corazón de miles de paraguayos por su bajo consumo de combustible, su mantenimiento accesible y su diseño moderno que se adapta perfectamente tanto a la ciudad como al interior. Ya sea para ir al trabajo, estudiar o realizar mandados, esta moto responde siempre.\n\nSu motor de 110cc combina potencia con eficiencia, permitiendo una conducción ágil en el tráfico urbano y en rutas más largas. La transmisión semiautomática la convierte en una excelente opción tanto para conductores nuevos como para los más experimentados, facilitando el manejo sin comprometer la respuesta del motor.\n\nEl diseño compacto y aerodinámico de la Honda Wave no solo mejora la estética, sino también la maniobrabilidad. Su asiento ergonómico brinda comodidad incluso en trayectos prolongados, y su sistema de frenos ofrece seguridad en cada frenada. Además, cuenta con un amplio espacio bajo el asiento, ideal para guardar objetos personales o un casco.",
     vendedor: {
       nombre: "Ña Elo",
       avatar: "/images/delo.webp",

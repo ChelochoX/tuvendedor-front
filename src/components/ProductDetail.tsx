@@ -11,6 +11,8 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import CloseIcon from "@mui/icons-material/Close";
+import { useNavigate } from "react-router-dom";
 import { Producto } from "../types/producto";
 
 interface Props {
@@ -27,6 +29,7 @@ const ProductDetail: React.FC<Props> = ({
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const navigate = useNavigate();
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
@@ -42,11 +45,32 @@ const ProductDetail: React.FC<Props> = ({
 
   return (
     <Box
+      position="relative"
       display="flex"
       flexDirection={isMobile ? "column" : "row"}
       gap={4}
       padding={isMobile ? 2 : 4}
+      bgcolor="#111"
+      color="#fff"
     >
+      {/* Botón cerrar */}
+      <IconButton
+        onClick={() => navigate(-1)}
+        sx={{
+          position: "absolute",
+          top: 24,
+          left: 24,
+          color: "#FFD700",
+          zIndex: 10,
+          "&:hover": {
+            backgroundColor: "transparent",
+            transform: "scale(1.1)",
+          },
+        }}
+      >
+        <CloseIcon sx={{ fontSize: 32 }} />
+      </IconButton>
+
       {/* Galería de imágenes con fondo difuminado */}
       <Box flex={isMobile ? undefined : 2} position="relative">
         <Box
@@ -152,8 +176,8 @@ const ProductDetail: React.FC<Props> = ({
                 borderRadius: 8,
                 border:
                   selectedImageIndex === i
-                    ? "2px solid #2196f3"
-                    : "1px solid #ccc",
+                    ? "2px solid #FFD700"
+                    : "1px solid #333",
                 cursor: "pointer",
               }}
             />
@@ -166,34 +190,34 @@ const ProductDetail: React.FC<Props> = ({
         flex={1}
         mt={isMobile ? 2 : 0}
         p={isMobile ? 2 : 0}
-        bgcolor={isMobile ? "#f9f9f9" : "transparent"}
+        bgcolor="#1a1a1a"
         borderRadius={2}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h5" fontWeight="bold">
+          <Typography variant="h5" fontWeight="bold" color="#fff">
             {producto.nombre}
           </Typography>
           <Button onClick={onToggleFavorite}>
             {isFavorite ? (
               <FavoriteIcon color="error" />
             ) : (
-              <FavoriteBorderIcon />
+              <FavoriteBorderIcon sx={{ color: "#FFD700" }} />
             )}
           </Button>
         </Box>
 
-        <Typography variant="subtitle2" color="text.secondary" mt={1}>
+        <Typography variant="subtitle2" sx={{ color: "#ccc" }} mt={1}>
           Ubicación: {producto.ubicacion}
         </Typography>
 
         <Box mt={3}>
-          <Typography variant="h6" color="green">
+          <Typography variant="h6" sx={{ color: "#00ff87" }}>
             Contado: {producto.precio.toLocaleString()} ₲
           </Typography>
         </Box>
 
         {producto.planCredito && (
-          <Box mt={2} bgcolor="yellow" p={2} borderRadius={2}>
+          <Box mt={2} bgcolor="#FFD700" p={2} borderRadius={2} color="#000">
             <Typography variant="subtitle1" fontWeight="bold">
               Plan de Crédito
             </Typography>
@@ -209,10 +233,13 @@ const ProductDetail: React.FC<Props> = ({
 
         {producto.descripcion && (
           <Box mt={3}>
-            <Typography variant="body1" mb={1} fontWeight="bold">
+            <Typography variant="body1" mb={1} fontWeight="bold" color="#fff">
               Descripción del producto
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{ color: "#ccc", whiteSpace: "pre-line" }}
+            >
               {producto.descripcion}
             </Typography>
           </Box>
@@ -224,13 +251,24 @@ const ProductDetail: React.FC<Props> = ({
             alt={producto.vendedor.nombre}
             className="w-10 h-10 rounded-full object-cover"
           />
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="body2" color="#ccc">
             Vendedor: <strong>{producto.vendedor.nombre}</strong>
           </Typography>
         </Box>
 
         <Box mt={4}>
-          <Button fullWidth variant="contained" color="primary">
+          <Button
+            fullWidth
+            variant="contained"
+            sx={{
+              backgroundColor: "#FFD700",
+              color: "#000",
+              fontWeight: "bold",
+              "&:hover": {
+                backgroundColor: "#e6c200",
+              },
+            }}
+          >
             Contactar vendedor
           </Button>
         </Box>

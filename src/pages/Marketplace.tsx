@@ -9,7 +9,7 @@ import Cabecera from "../components/Cabecera";
 const categorias: Categoria[] = [
   { id: "1", nombre: "Vehículos", icono: "🚗" },
   { id: "2", nombre: "Propiedades", icono: "🏠" },
-  { id: "3", nombre: "Electrodomésticos", icono: "🔌" },
+  { id: "3", nombre: "Electrodomésticos", icono: "💡" },
 ];
 
 const Marketplace: React.FC = () => {
@@ -31,23 +31,23 @@ const Marketplace: React.FC = () => {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`bg-white border-r border-gray-200 p-4 w-64 
-        fixed top-[80px] left-0 h-[calc(100vh-80px)] z-50 
-        ${sidebarAbierto ? "block" : "hidden"} 
-        md:relative md:top-0 md:left-0 md:h-auto md:block`}
+          className={`fixed top-[64px] md:static bg-[#252525] text-white border-r border-gray-800 p-4 w-64 z-50 md:z-0 md:block h-[calc(100vh-64px)] md:h-auto transition-transform duration-300 ease-in-out ${
+            sidebarAbierto ? "block" : "hidden"
+          }`}
         >
           <CategoriasPanel
             categorias={categorias}
+            categoriaSeleccionada={categoriaSeleccionada}
             onSelect={(cat) => {
               setCategoriaSeleccionada(cat);
-              setSidebarAbierto(false); // cerrar en modo móvil
+              setSidebarAbierto(false);
             }}
           />
         </aside>
 
         {/* Zona de productos */}
-        <main className="flex-1 p-4 mt-2 md:mt-4 md:ml-0 ml-0">
-          <h2 className="text-2xl font-semibold mb-4">
+        <main className="flex-1 p-4 mt-2 md:mt-4">
+          <h2 className="text-2xl font-semibold mb-4 text-[#1a1a1a]">
             {categoriaSeleccionada?.nombre || "Todos los productos"}
           </h2>
 

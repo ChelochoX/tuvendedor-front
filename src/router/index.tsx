@@ -1,10 +1,11 @@
 import { Routes, Route } from "react-router-dom";
-import Marketplace from "../pages/Marketplace"; // u otras páginas que vayas agregando
+import Marketplace from "../pages/Marketplace";
+import ProductDetailWrapper from "../pages/ProductDetailWrapper";
 
 const RoutesHandler = () => (
   <Routes>
     <Route path="/" element={<Marketplace />} />
-    {/* Agregá más rutas acá cuando necesites */}
+    <Route path="/producto/:id" element={<ProductDetailWrapper />} />
   </Routes>
 );
 

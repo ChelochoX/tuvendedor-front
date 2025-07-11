@@ -1,3 +1,4 @@
+// src/mocks/productos.mock.ts
 import type { Producto } from "../types/producto";
 
 export const productosMock: Producto[] = [
@@ -8,9 +9,22 @@ export const productosMock: Producto[] = [
     categoria: "Vehículos",
     ubicacion: "Luque",
     imagen: "/images/moto.webp",
+    imagenes: [
+      "/images/acu.webp",
+      "/images/car.webp",
+      "/images/dog.webp",
+      "/images/fer.webp",
+      "/images/moto.webp",
+    ],
+    descripcion: "Moto económica y confiable, ideal para uso diario.",
     vendedor: {
       nombre: "Ña Elo",
-      avatar: "/assets/elo.jpg",
+      avatar: "/images/delo.webp",
+    },
+    planCredito: {
+      cuotas: 12,
+      valorCuota: 750000,
+      total: 9000000,
     },
   },
   {
@@ -20,6 +34,8 @@ export const productosMock: Producto[] = [
     categoria: "Propiedades",
     ubicacion: "Mariano Roque Alonso",
     imagen: "/images/terreno.webp",
+    imagenes: ["/images/terreno.webp"],
+    descripcion: "Terreno amplio con todos los servicios.",
     vendedor: {
       nombre: "Fátima Bienes Raíces",
       avatar: "/assets/fatima.jpg",
@@ -32,6 +48,8 @@ export const productosMock: Producto[] = [
     categoria: "Vehículos",
     ubicacion: "Asunción",
     imagen: "/images/ist.webp",
+    imagenes: ["/images/ist.webp"],
+    descripcion: "Auto compacto, económico y en excelente estado.",
     vendedor: {
       nombre: "Autos López",
       avatar: "/assets/lopez.jpg",
@@ -44,6 +62,7 @@ export const productosMock: Producto[] = [
     categoria: "Propiedades",
     ubicacion: "Itauguá",
     imagen: "/images/itagua.webp",
+    imagenes: ["/images/itagua.webp"],
     vendedor: {
       nombre: "Lotes Express",
       avatar: "/assets/express.jpg",
@@ -56,6 +75,7 @@ export const productosMock: Producto[] = [
     categoria: "Electrodomésticos",
     ubicacion: "San Lorenzo",
     imagen: "/assets/heladera.webp",
+    imagenes: ["/assets/heladera.webp"],
     vendedor: {
       nombre: "Electro Jet",
       avatar: "/assets/electrojet.jpg",
@@ -68,6 +88,7 @@ export const productosMock: Producto[] = [
     categoria: "Electrodomésticos",
     ubicacion: "Fernando de la Mora",
     imagen: "/assets/tv55.webp",
+    imagenes: ["/assets/tv55.webp"],
     vendedor: {
       nombre: "Electronova",
       avatar: "/assets/electronova.jpg",
@@ -80,6 +101,7 @@ export const productosMock: Producto[] = [
     categoria: "Vehículos",
     ubicacion: "Capiatá",
     imagen: "/images/kenton.webp",
+    imagenes: ["/images/kenton.webp"],
     vendedor: {
       nombre: "Moto Flash",
       avatar: "/assets/flash.jpg",
@@ -92,6 +114,7 @@ export const productosMock: Producto[] = [
     categoria: "Propiedades",
     ubicacion: "Limpio",
     imagen: "/images/centro.webp",
+    imagenes: ["/images/centro.webp"],
     vendedor: {
       nombre: "Bienes Limpios",
       avatar: "/assets/limpios.jpg",
@@ -104,6 +127,7 @@ export const productosMock: Producto[] = [
     categoria: "Electrodomésticos",
     ubicacion: "Ñemby",
     imagen: "/assets/aire.webp",
+    imagenes: ["/assets/aire.webp"],
     vendedor: {
       nombre: "CoolTech",
       avatar: "/assets/cooltech.jpg",
@@ -116,6 +140,7 @@ export const productosMock: Producto[] = [
     categoria: "Vehículos",
     ubicacion: "Villa Elisa",
     imagen: "/images/fiatpalio.webp",
+    imagenes: ["/images/fiatpalio.webp"],
     vendedor: {
       nombre: "Fiat Market",
       avatar: "/assets/fiatmarket.jpg",

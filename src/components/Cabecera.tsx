@@ -7,7 +7,7 @@ interface Props {
 
 const Cabecera: React.FC<Props> = ({ onToggleSidebar, mostrarBotonMenu }) => {
   return (
-    <header className="w-full bg-[#1a1a1a] shadow-md sticky top-0 z-50 px-4 py-3">
+    <header className="w-full bg-[#1a1a1a] text-white border-b-2 border-[#facc15] shadow-md sticky top-0 z-50 px-4 py-3">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Logo + menú */}
         <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">

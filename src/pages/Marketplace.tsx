@@ -22,7 +22,7 @@ const Marketplace: React.FC = () => {
     : productosMock;
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-[#f1f2f6] min-h-screen">
       <Cabecera
         onToggleSidebar={() => setSidebarAbierto(!sidebarAbierto)}
         mostrarBotonMenu
@@ -31,7 +31,7 @@ const Marketplace: React.FC = () => {
       <div className="flex">
         {/* Sidebar */}
         <aside
-          className={`fixed top-[64px] md:static bg-[#252525] text-white border-r border-gray-800 p-4 w-64 z-50 md:z-0 md:block h-[calc(100vh-64px)] md:h-auto transition-transform duration-300 ease-in-out ${
+          className={`fixed top-[64px] md:static bg-[#2f3542] text-white border-r border-gray-500 p-4 w-64 z-50 md:z-0 md:block h-[calc(100vh-64px)] md:h-auto transition-transform duration-300 ease-in-out ${
             sidebarAbierto ? "block" : "hidden"
           }`}
         >

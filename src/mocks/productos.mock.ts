@@ -16,17 +16,19 @@ export const productosMock: Producto[] = [
       "/images/fer.webp",
       "/images/moto.webp",
     ],
-    descripcion:
-      "La Honda Wave 110 es sinónimo de confianza, economía y rendimiento diario. Este modelo se ha ganado el corazón de miles de paraguayos por su bajo consumo de combustible, su mantenimiento accesible y su diseño moderno que se adapta perfectamente tanto a la ciudad como al interior. Ya sea para ir al trabajo, estudiar o realizar mandados, esta moto responde siempre.\n\nSu motor de 110cc combina potencia con eficiencia, permitiendo una conducción ágil en el tráfico urbano y en rutas más largas. La transmisión semiautomática la convierte en una excelente opción tanto para conductores nuevos como para los más experimentados, facilitando el manejo sin comprometer la respuesta del motor.\n\nEl diseño compacto y aerodinámico de la Honda Wave no solo mejora la estética, sino también la maniobrabilidad. Su asiento ergonómico brinda comodidad incluso en trayectos prolongados, y su sistema de frenos ofrece seguridad en cada frenada. Además, cuenta con un amplio espacio bajo el asiento, ideal para guardar objetos personales o un casco.",
+    descripcion: "Moto económica y confiable para el uso diario.",
     vendedor: {
       nombre: "Ña Elo",
       avatar: "/images/delo.webp",
     },
     planCredito: {
-      cuotas: 12,
-      valorCuota: 750000,
-      total: 9000000,
+      opciones: [
+        { cuotas: 10, valorCuota: 900000 },
+        { cuotas: 18, valorCuota: 520000 },
+        { cuotas: 24, valorCuota: 400000 },
+      ],
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 2,
@@ -41,6 +43,7 @@ export const productosMock: Producto[] = [
       nombre: "Fátima Bienes Raíces",
       avatar: "/assets/fatima.jpg",
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 3,
@@ -55,6 +58,7 @@ export const productosMock: Producto[] = [
       nombre: "Autos López",
       avatar: "/assets/lopez.jpg",
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 4,
@@ -64,10 +68,12 @@ export const productosMock: Producto[] = [
     ubicacion: "Itauguá",
     imagen: "/images/itagua.webp",
     imagenes: ["/images/itagua.webp"],
+    descripcion: "Lote ideal para inversión o vivienda propia.",
     vendedor: {
       nombre: "Lotes Express",
       avatar: "/assets/express.jpg",
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 5,
@@ -77,10 +83,18 @@ export const productosMock: Producto[] = [
     ubicacion: "San Lorenzo",
     imagen: "/assets/heladera.webp",
     imagenes: ["/assets/heladera.webp"],
+    descripcion: "Heladera con gran capacidad y bajo consumo.",
     vendedor: {
       nombre: "Electro Jet",
       avatar: "/assets/electrojet.jpg",
     },
+    planCredito: {
+      opciones: [
+        { cuotas: 6, valorCuota: 533000 },
+        { cuotas: 12, valorCuota: 280000 },
+      ],
+    },
+    mostrarBotonesCompra: true,
   },
   {
     id: 6,
@@ -90,10 +104,18 @@ export const productosMock: Producto[] = [
     ubicacion: "Fernando de la Mora",
     imagen: "/assets/tv55.webp",
     imagenes: ["/assets/tv55.webp"],
+    descripcion: "Televisor UHD con gran calidad de imagen.",
     vendedor: {
       nombre: "Electronova",
       avatar: "/assets/electronova.jpg",
     },
+    planCredito: {
+      opciones: [
+        { cuotas: 6, valorCuota: 600000 },
+        { cuotas: 10, valorCuota: 390000 },
+      ],
+    },
+    mostrarBotonesCompra: true,
   },
   {
     id: 7,
@@ -103,10 +125,12 @@ export const productosMock: Producto[] = [
     ubicacion: "Capiatá",
     imagen: "/images/kenton.webp",
     imagenes: ["/images/kenton.webp"],
+    descripcion: "Moto potente y moderna para ciudad o ruta.",
     vendedor: {
       nombre: "Moto Flash",
       avatar: "/assets/flash.jpg",
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 8,
@@ -116,10 +140,12 @@ export const productosMock: Producto[] = [
     ubicacion: "Limpio",
     imagen: "/images/centro.webp",
     imagenes: ["/images/centro.webp"],
+    descripcion: "Ubicado en zona privilegiada con acceso asfaltado.",
     vendedor: {
       nombre: "Bienes Limpios",
       avatar: "/assets/limpios.jpg",
     },
+    mostrarBotonesCompra: false,
   },
   {
     id: 9,
@@ -129,10 +155,18 @@ export const productosMock: Producto[] = [
     ubicacion: "Ñemby",
     imagen: "/assets/aire.webp",
     imagenes: ["/assets/aire.webp"],
+    descripcion: "Ideal para habitaciones grandes. Silencioso.",
     vendedor: {
       nombre: "CoolTech",
       avatar: "/assets/cooltech.jpg",
     },
+    planCredito: {
+      opciones: [
+        { cuotas: 6, valorCuota: 500000 },
+        { cuotas: 10, valorCuota: 310000 },
+      ],
+    },
+    mostrarBotonesCompra: true,
   },
   {
     id: 10,
@@ -142,9 +176,11 @@ export const productosMock: Producto[] = [
     ubicacion: "Villa Elisa",
     imagen: "/images/fiatpalio.webp",
     imagenes: ["/images/fiatpalio.webp"],
+    descripcion: "Auto familiar con excelente rendimiento.",
     vendedor: {
       nombre: "Fiat Market",
       avatar: "/assets/fiatmarket.jpg",
     },
+    mostrarBotonesCompra: false,
   },
 ];

@@ -6,8 +6,8 @@ export interface Producto {
   precio: number;
   categoria: string;
   ubicacion: string;
-  imagen: string; // imagen principal
-  imagenes: string[]; // galería de imágenes
+  imagen: string;
+  imagenes: string[];
 
   descripcion?: string;
 
@@ -17,8 +17,11 @@ export interface Producto {
   };
 
   planCredito?: {
-    cuotas: number;
-    valorCuota: number;
-    total: number;
+    opciones: {
+      cuotas: number;
+      valorCuota: number;
+    }[];
   };
+
+  mostrarBotonesCompra?: boolean;
 }

@@ -1,3 +1,4 @@
+// ProductDetail ajustado para múltiples cuotas dinámicas
 import React, { useState } from "react";
 import {
   Box,
@@ -6,6 +7,10 @@ import {
   useMediaQuery,
   useTheme,
   IconButton,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -31,6 +36,15 @@ const ProductDetail: React.FC<Props> = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const navigate = useNavigate();
 
+  const cuotas =
+    producto.planCredito?.opciones.map(
+      (op) => `${op.cuotas}x Gs. ${op.valorCuota.toLocaleString()}`
+    ) || [];
+
+  const [cuotaSeleccionada, setCuotaSeleccionada] = useState(cuotas[0] || "");
+
+  const mostrarBotonesCompra = producto.mostrarBotonesCompra === true;
+
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
       prev === 0 ? producto.imagenes.length - 1 : prev - 1
@@ -53,7 +67,6 @@ const ProductDetail: React.FC<Props> = ({
       bgcolor="#111"
       color="#fff"
     >
-      {/* Botón cerrar */}
       <IconButton
         onClick={() => navigate(-1)}
         sx={{
@@ -71,7 +84,6 @@ const ProductDetail: React.FC<Props> = ({
         <CloseIcon sx={{ fontSize: 32 }} />
       </IconButton>
 
-      {/* Galería de imágenes con fondo difuminado */}
       <Box flex={isMobile ? undefined : 2} position="relative">
         <Box
           position="relative"
@@ -80,7 +92,6 @@ const ProductDetail: React.FC<Props> = ({
           borderRadius={2}
           overflow="hidden"
         >
-          {/* Fondo desenfocado */}
           <Box
             sx={{
               position: "absolute",
@@ -95,7 +106,6 @@ const ProductDetail: React.FC<Props> = ({
             }}
           />
 
-          {/* Imagen principal */}
           <Box
             component="img"
             src={producto.imagenes[selectedImageIndex]}
@@ -109,7 +119,6 @@ const ProductDetail: React.FC<Props> = ({
             }}
           />
 
-          {/* Flechas navegación */}
           {producto.imagenes.length > 1 && (
             <>
               <IconButton
@@ -161,7 +170,6 @@ const ProductDetail: React.FC<Props> = ({
           )}
         </Box>
 
-        {/* Miniaturas */}
         <Box mt={2} display="flex" gap={1} overflow="auto">
           {producto.imagenes.map((img, i) => (
             <img
@@ -185,14 +193,7 @@ const ProductDetail: React.FC<Props> = ({
         </Box>
       </Box>
 
-      {/* Información del producto */}
-      <Box
-        flex={1}
-        mt={isMobile ? 2 : 0}
-        p={isMobile ? 2 : 0}
-        bgcolor="#1a1a1a"
-        borderRadius={2}
-      >
+      <Box flex={1} mt={isMobile ? 2 : 0} p={isMobile ? 2 : 0} maxWidth={320}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h5" fontWeight="bold" color="#fff">
             {producto.nombre}
@@ -210,29 +211,92 @@ const ProductDetail: React.FC<Props> = ({
           Ubicación: {producto.ubicacion}
         </Typography>
 
-        <Box mt={3}>
-          <Typography variant="h6" sx={{ color: "#00ff87" }}>
-            Contado: {producto.precio.toLocaleString()} ₲
-          </Typography>
+        <Box mt={3} display="flex" flexDirection="column" gap={2}>
+          <Box
+            p={2}
+            borderRadius={2}
+            sx={{ backgroundColor: "#ffd70022", backdropFilter: "blur(5px)" }}
+          >
+            <Typography variant="subtitle2" fontWeight="bold" color="#FFD700">
+              Precio CONTADO
+            </Typography>
+            <Typography variant="h5" fontWeight="bold" color="#fff">
+              Gs. {producto.precio.toLocaleString()}
+            </Typography>
+            {mostrarBotonesCompra && (
+              <Button
+                variant="contained"
+                fullWidth
+                sx={{
+                  mt: 1,
+                  bgcolor: "#FFD700",
+                  color: "#000",
+                  fontWeight: "bold",
+                }}
+              >
+                COMPRAR CONTADO
+              </Button>
+            )}
+          </Box>
+
+          {producto.planCredito && cuotas.length > 0 && (
+            <Box
+              p={2}
+              borderRadius={2}
+              sx={{ backgroundColor: "#ffd70022", backdropFilter: "blur(5px)" }}
+            >
+              <Typography variant="subtitle2" fontWeight="bold" color="#FFD700">
+                ¿Preferís comprar en CUOTAS?
+              </Typography>
+              <FormControl fullWidth sx={{ mt: 1 }}>
+                <InputLabel sx={{ color: "#FFD700" }}>Cuotas</InputLabel>
+                <Select
+                  value={cuotaSeleccionada}
+                  onChange={(e) => setCuotaSeleccionada(e.target.value)}
+                  fullWidth
+                  sx={{
+                    color: "#fff",
+                    backgroundColor: "#222",
+                    borderRadius: 2,
+                    border: "1px solid #2196f3",
+                    "& .MuiSelect-icon": { color: "#fff" },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: "#111",
+                        color: "#fff",
+                      },
+                    },
+                  }}
+                >
+                  {cuotas.map((opcion, index) => (
+                    <MenuItem key={index} value={opcion} sx={{ color: "#fff" }}>
+                      {opcion}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              {mostrarBotonesCompra && (
+                <Button
+                  variant="contained"
+                  fullWidth
+                  sx={{
+                    mt: 2,
+                    bgcolor: "#F28500",
+                    color: "#fff",
+                    fontWeight: "bold",
+                  }}
+                >
+                  SOLICITAR CRÉDITO
+                </Button>
+              )}
+            </Box>
+          )}
         </Box>
 
-        {producto.planCredito && (
-          <Box mt={2} bgcolor="#FFD700" p={2} borderRadius={2} color="#000">
-            <Typography variant="subtitle1" fontWeight="bold">
-              Plan de Crédito
-            </Typography>
-            <Typography variant="body2">
-              {producto.planCredito.cuotas} cuotas de{" "}
-              {producto.planCredito.valorCuota.toLocaleString()} ₲
-            </Typography>
-            <Typography variant="body2" fontWeight="bold">
-              Total: {producto.planCredito.total.toLocaleString()} ₲
-            </Typography>
-          </Box>
-        )}
-
         {producto.descripcion && (
-          <Box mt={3}>
+          <Box mt={4}>
             <Typography variant="body1" mb={1} fontWeight="bold" color="#fff">
               Descripción del producto
             </Typography>

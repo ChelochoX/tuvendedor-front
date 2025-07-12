@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import LoginModal from "./auth/LoginModal";
+import RegisterModal from "./auth/RegisterModal";
 
 const Cabecera: React.FC = () => {
   const [openLogin, setOpenLogin] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
 
   return (
     <>
@@ -27,7 +29,19 @@ const Cabecera: React.FC = () => {
         </div>
       </header>
 
-      <LoginModal open={openLogin} onClose={() => setOpenLogin(false)} />
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+        onSwitchToRegister={() => {
+          setOpenLogin(false);
+          setOpenRegister(true);
+        }}
+      />
+
+      <RegisterModal
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+      />
     </>
   );
 };

@@ -6,22 +6,21 @@ interface Props {
   categorias: Categoria[];
   categoriaSeleccionada: Categoria | null;
   onSelect: (categoria: Categoria) => void;
+  onCrearPublicacion: () => void;
 }
 
 const CategoriasPanel: React.FC<Props> = ({
   categorias,
   categoriaSeleccionada,
   onSelect,
+  onCrearPublicacion,
 }) => {
   return (
     <div className="flex flex-col gap-2">
       {/* Botón Crear publicación */}
       <button
         className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
-        onClick={() => {
-          // TODO: manejar apertura de modal o redirección
-          console.log("Crear publicación clickeado");
-        }}
+        onClick={onCrearPublicacion}
       >
         <AddIcon fontSize="small" />
         Crear publicación

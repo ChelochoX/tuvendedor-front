@@ -6,9 +6,10 @@ import { signInWithPopup } from "firebase/auth";
 interface Props {
   open: boolean;
   onClose: () => void;
+  onSwitchToRegister: () => void;
 }
 
-const LoginModal: React.FC<Props> = ({ open, onClose }) => {
+const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
   const [login, setLogin] = useState(""); // Puede ser email o usuario
   const [password, setPassword] = useState("");
 
@@ -123,7 +124,10 @@ const LoginModal: React.FC<Props> = ({ open, onClose }) => {
 
           <p className="text-sm text-center mt-2">
             ¿No tenés cuenta?{" "}
-            <span className="text-yellow-400 cursor-pointer font-medium">
+            <span
+              onClick={onSwitchToRegister}
+              className="text-yellow-400 cursor-pointer font-medium"
+            >
               Registrate
             </span>
           </p>

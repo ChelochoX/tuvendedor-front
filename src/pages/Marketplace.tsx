@@ -1,79 +1,93 @@
-import React, { useState } from "react";
-import CategoriasPanel from "../components/CategoriasPanel";
-import ProductoCard from "../components/ProductoCard";
-import { productosMock } from "../mocks/productos.mock";
-import { Producto } from "../types/producto";
-import { Categoria } from "../types/categoria";
-import Cabecera from "../components/Cabecera";
+import React from "react";
+import { Categoria } from "../../types/categoria";
 
-const categorias: Categoria[] = [
-  { id: "1", nombre: "Vehículos", icono: "🚗" },
-  { id: "2", nombre: "Propiedades", icono: "🏠" },
-  { id: "3", nombre: "Electrodomésticos", icono: "💡" },
-];
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  categorias: Categoria[];
+  onPublicar: (nueva: any) => void;
+}
 
-const Marketplace: React.FC = () => {
-  const [categoriaSeleccionada, setCategoriaSeleccionada] =
-    useState<Categoria | null>(null);
-  const [sidebarAbierto, setSidebarAbierto] = useState(false);
+const CrearPublicacionModal: React.FC<Props> = ({
+  open,
+  onClose,
+  categorias,
+  onPublicar,
+}) => {
+  const [titulo, setTitulo] = React.useState("");
+  const [descripcion, setDescripcion] = React.useState("");
+  const [precio, setPrecio] = React.useState("");
+  const [categoria, setCategoria] = React.useState("");
 
-  const productosFiltrados: Producto[] = categoriaSeleccionada
-    ? productosMock.filter((p) => p.categoria === categoriaSeleccionada.nombre)
-    : productosMock;
+  const handlePublicar = () => {
+    const nuevaPublicacion = { titulo, descripcion, precio, categoria };
+    onPublicar(nuevaPublicacion);
+    onClose();
+  };
+
+  if (!open) return null;
 
   return (
-    <div className="bg-[#1e1f23] min-h-screen text-white">
-      <Cabecera />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-[#1e1f23] rounded-xl w-full max-w-4xl p-6">
+        <h2 className="text-yellow-400 text-lg font-bold mb-4">
+          Crear Publicación
+        </h2>
 
-      {/* Categorías scrollable en móvil */}
-      <div className="md:hidden overflow-x-auto whitespace-nowrap px-4 py-2 flex gap-2 bg-[#1f2937] border-b border-gray-700">
-        {categorias.map((cat) => (
-          <button
-            key={cat.id}
-            className={`px-4 py-1 rounded-full border text-sm transition ${
-              categoriaSeleccionada?.id === cat.id
-                ? "bg-yellow-400 text-black font-semibold"
-                : "bg-[#2d3748] text-white"
-            }`}
-            onClick={() => setCategoriaSeleccionada(cat)}
-          >
-            {cat.icono} {cat.nombre}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex">
-        {/* Sidebar */}
-        <aside
-          className={`fixed top-[64px] md:static bg-[#1e1f23] text-white border-r-2 border-yellow-400 p-4 w-64 z-50 md:z-0 md:block h-[calc(100vh-64px)] md:h-auto transition-transform duration-300 ease-in-out ${
-            sidebarAbierto ? "block" : "hidden"
-          }`}
-        >
-          <CategoriasPanel
-            categorias={categorias}
-            categoriaSeleccionada={categoriaSeleccionada}
-            onSelect={(cat) => {
-              setCategoriaSeleccionada(cat);
-              setSidebarAbierto(false);
-            }}
-          />
-        </aside>
-
-        {/* Zona de productos */}
-        <main className="flex-1 p-4 mt-2 md:mt-4">
-          <h2 className="text-2xl font-semibold mb-4 text-white">
-            {categoriaSeleccionada?.nombre || "Todos los productos"}
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {productosFiltrados.map((p) => (
-              <ProductoCard key={p.id} producto={p} />
-            ))}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 flex flex-col gap-4">
+            <input
+              type="text"
+              placeholder="Título del producto"
+              className="bg-[#2a2b30] text-white px-4 py-2 rounded-md placeholder-gray-400"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+            />
+            <textarea
+              placeholder="Descripción detallada"
+              rows={3}
+              className="bg-[#2a2b30] text-white px-4 py-2 rounded-md placeholder-gray-400"
+              value={descripcion}
+              onChange={(e) => setDescripcion(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Precio ₲"
+              className="bg-[#2a2b30] text-white px-4 py-2 rounded-md placeholder-gray-400"
+              value={precio}
+              onChange={(e) => setPrecio(e.target.value)}
+            />
+            <select
+              className="bg-[#2a2b30] text-white px-4 py-2 rounded-md"
+              value={categoria}
+              onChange={(e) => setCategoria(e.target.value)}
+            >
+              <option value="">Seleccioná una categoría</option>
+              {categorias.map((cat) => (
+                <option key={cat.id} value={cat.nombre}>
+                  {cat.nombre}
+                </option>
+              ))}
+            </select>
+            <input type="file" className="text-white" />
           </div>
-        </main>
+
+          <div className="flex-1 bg-[#2a2b30] rounded-xl flex items-center justify-center text-gray-400 text-sm">
+            Previsualización del producto
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <button
+            onClick={handlePublicar}
+            className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-md hover:bg-yellow-300 transition"
+          >
+            Publicar
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Marketplace;
+export default CrearPublicacionModal;

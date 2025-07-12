@@ -1,5 +1,6 @@
 import React from "react";
 import { Categoria } from "../types/categoria";
+import AddIcon from "@mui/icons-material/Add";
 
 interface Props {
   categorias: Categoria[];
@@ -14,6 +15,22 @@ const CategoriasPanel: React.FC<Props> = ({
 }) => {
   return (
     <div className="flex flex-col gap-2">
+      {/* Botón Crear publicación */}
+      <button
+        className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
+        onClick={() => {
+          // TODO: manejar apertura de modal o redirección
+          console.log("Crear publicación clickeado");
+        }}
+      >
+        <AddIcon fontSize="small" />
+        Crear publicación
+      </button>
+
+      {/* Línea divisoria */}
+      <hr className="border-t border-gray-600 mb-2" />
+
+      {/* Listado de categorías */}
       {categorias.map((cat) => {
         const esSeleccionada = categoriaSeleccionada?.id === cat.id;
         return (

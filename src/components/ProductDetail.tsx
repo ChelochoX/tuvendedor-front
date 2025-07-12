@@ -38,7 +38,7 @@ const ProductDetail: React.FC<Props> = ({
 
   const cuotas =
     producto.planCredito?.opciones.map(
-      (op) => `${op.cuotas}x Gs. ${op.valorCuota.toLocaleString()}`
+      (op) => `${op.cuotas} X Gs. ${op.valorCuota.toLocaleString()}`
     ) || [];
 
   const [cuotaSeleccionada, setCuotaSeleccionada] = useState(cuotas[0] || "");

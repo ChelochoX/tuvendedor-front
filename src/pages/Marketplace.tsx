@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
+import CrearPublicacionModal from "../components/publicaciones/CrearPublicacionModal";
 import { productosMock } from "../mocks/productos.mock";
 import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
@@ -16,14 +17,19 @@ const Marketplace: React.FC = () => {
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState<Categoria | null>(null);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const productosFiltrados: Producto[] = categoriaSeleccionada
     ? productosMock.filter((p) => p.categoria === categoriaSeleccionada.nombre)
     : productosMock;
 
   const handleCrearPublicacion = () => {
-    // Abrir modal o redirigir a la creación de publicación
-    console.log("Crear publicación");
+    setModalOpen(true);
+  };
+
+  const handlePublicar = (nuevaPublicacion: any) => {
+    console.log("Publicar:", nuevaPublicacion);
+    setModalOpen(false);
   };
 
   return (
@@ -78,6 +84,13 @@ const Marketplace: React.FC = () => {
           </div>
         </main>
       </div>
+
+      <CrearPublicacionModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        categorias={categorias}
+        onPublicar={handlePublicar}
+      />
     </div>
   );
 };

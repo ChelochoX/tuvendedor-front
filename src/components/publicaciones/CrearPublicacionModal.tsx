@@ -1,3 +1,4 @@
+// CrearPublicacionModal.tsx
 import React from "react";
 import { Categoria } from "../../types/categoria";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -55,6 +56,15 @@ const CrearPublicacionModal: React.FC<Props> = ({
     }
   };
 
+  const handleRemoveImage = (index: number) => {
+    const nuevas = [...imagenes];
+    nuevas.splice(index, 1);
+    setImagenes(nuevas);
+    if (previewIndex >= nuevas.length) {
+      setPreviewIndex(nuevas.length - 1);
+    }
+  };
+
   const handleAddCuota = () => {
     setCuotas([...cuotas, { cuotas: 1, valorCuota: 0 }]);
   };
@@ -82,11 +92,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
   };
 
   React.useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
+    document.body.style.overflow = open ? "hidden" : "auto";
     return () => {
       document.body.style.overflow = "auto";
     };
@@ -109,6 +115,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
         </h2>
 
         <div className="flex flex-col md:flex-row gap-4">
+          {/* LADO IZQUIERDO */}
           <div className="w-full md:w-1/3 flex flex-col gap-4">
             <input
               type="text"
@@ -206,12 +213,20 @@ const CrearPublicacionModal: React.FC<Props> = ({
             {errorImagenes && (
               <span className="text-red-500 text-sm">{errorImagenes}</span>
             )}
+
+            <button
+              onClick={handlePublicar}
+              className="mt-4 bg-yellow-400 text-black font-semibold py-2 rounded-md hover:bg-yellow-300 transition"
+            >
+              Publicar
+            </button>
           </div>
 
+          {/* LADO DERECHO: IMAGEN */}
           <div className="w-full md:w-2/3 bg-[#2a2b30] rounded-xl flex flex-col items-center justify-center text-gray-400 text-sm relative overflow-hidden">
             {imagenes.length > 0 ? (
               <>
-                <div className="relative w-full h-[520px]">
+                <div className="relative w-full h-[600px]">
                   <img
                     src={URL.createObjectURL(imagenes[previewIndex])}
                     alt="Fondo desenfocado"
@@ -222,7 +237,6 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     alt="Preview"
                     className="relative z-10 w-full h-full object-contain rounded-xl"
                   />
-
                   {imagenes.length > 1 && (
                     <>
                       <button
@@ -243,16 +257,23 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
                 <div className="mt-2 w-full flex gap-2 overflow-x-auto">
                   {imagenes.map((img, idx) => (
-                    <img
-                      key={idx}
-                      src={URL.createObjectURL(img)}
-                      onClick={() => setPreviewIndex(idx)}
-                      className={`w-20 h-20 object-cover rounded cursor-pointer border-2 ${
-                        idx === previewIndex
-                          ? "border-yellow-400"
-                          : "border-transparent"
-                      }`}
-                    />
+                    <div className="relative" key={idx}>
+                      <img
+                        src={URL.createObjectURL(img)}
+                        onClick={() => setPreviewIndex(idx)}
+                        className={`w-20 h-20 object-cover rounded cursor-pointer border-2 ${
+                          idx === previewIndex
+                            ? "border-yellow-400"
+                            : "border-transparent"
+                        }`}
+                      />
+                      <button
+                        onClick={() => handleRemoveImage(idx)}
+                        className="absolute top-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 rounded-bl"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ))}
                 </div>
               </>
@@ -260,15 +281,6 @@ const CrearPublicacionModal: React.FC<Props> = ({
               <span className="text-center">Previsualización del producto</span>
             )}
           </div>
-        </div>
-
-        <div className="mt-6">
-          <button
-            onClick={handlePublicar}
-            className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-md hover:bg-yellow-300 transition"
-          >
-            Publicar
-          </button>
         </div>
       </div>
     </div>

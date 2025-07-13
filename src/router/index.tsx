@@ -1,3 +1,4 @@
+// src/router/index.tsx
 import { Routes, Route } from "react-router-dom";
 import Marketplace from "../pages/Marketplace";
 import ProductDetailWrapper from "../pages/ProductDetailWrapper";

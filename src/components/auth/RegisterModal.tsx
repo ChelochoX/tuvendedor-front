@@ -50,17 +50,17 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
-      <div className="bg-[#1a1a1a] p-6 rounded-lg w-[90%] max-w-md text-white relative mt-10 mb-10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+      <div className="bg-[#1a1a1a] p-6 rounded-lg w-[90%] max-w-md text-white relative max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-white text-xl"
+          className="absolute top-2 right-3 text-white text-xl z-10"
         >
           ×
         </button>
         <h2 className="text-xl font-bold mb-4 text-yellow-400">Registrarse</h2>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 pb-6">
           <label className="text-sm text-white">Nombre completo</label>
           <input
             type="text"

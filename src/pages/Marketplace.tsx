@@ -91,6 +91,16 @@ const Marketplace: React.FC = () => {
         categorias={categorias}
         onPublicar={handlePublicar}
       />
+
+      {/* Botón flotante Crear publicación en móvil con animación pulse */}
+      {!modalOpen && (
+        <button
+          onClick={handleCrearPublicacion}
+          className="md:hidden fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow"
+        >
+          + Crear publicación
+        </button>
+      )}
     </div>
   );
 };

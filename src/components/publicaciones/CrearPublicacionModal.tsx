@@ -214,12 +214,15 @@ const CrearPublicacionModal: React.FC<Props> = ({
               <span className="text-red-500 text-sm">{errorImagenes}</span>
             )}
 
-            <button
-              onClick={handlePublicar}
-              className="mt-4 bg-yellow-400 text-black font-semibold py-2 rounded-md hover:bg-yellow-300 transition"
-            >
-              Publicar
-            </button>
+            {/* Botón solo visible en escritorio */}
+            <div className="hidden md:block">
+              <button
+                onClick={handlePublicar}
+                className="w-full bg-yellow-400 text-black font-semibold py-2 rounded-md mt-4 hover:bg-yellow-300 transition"
+              >
+                Publicar
+              </button>
+            </div>
           </div>
 
           {/* LADO DERECHO: IMAGEN */}
@@ -281,6 +284,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
               <span className="text-center">Previsualización del producto</span>
             )}
           </div>
+        </div>
+
+        {/* Botón solo visible en móvil */}
+        <div className="block md:hidden mt-4 px-4">
+          <button
+            onClick={handlePublicar}
+            className="w-full bg-yellow-400 text-black font-semibold py-3 rounded-md hover:bg-yellow-300 transition"
+          >
+            Publicar
+          </button>
         </div>
       </div>
     </div>

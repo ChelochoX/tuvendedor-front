@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
@@ -31,6 +31,15 @@ const Marketplace: React.FC = () => {
     console.log("Publicar:", nuevaPublicacion);
     setModalOpen(false);
   };
+
+  useEffect(() => {
+    document.body.style.overflow = modalOpen ? "hidden" : "auto";
+    const crearBtn = document.getElementById("crear-publicacion-btn");
+    if (crearBtn) {
+      crearBtn.style.display =
+        !modalOpen && window.innerWidth < 768 ? "block" : "none";
+    }
+  }, [modalOpen]);
 
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
@@ -93,14 +102,13 @@ const Marketplace: React.FC = () => {
       />
 
       {/* Botón flotante Crear publicación en móvil con animación pulse */}
-      {!modalOpen && (
-        <button
-          onClick={handleCrearPublicacion}
-          className="md:hidden fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow"
-        >
-          + Crear publicación
-        </button>
-      )}
+      <button
+        id="crear-publicacion-btn"
+        onClick={handleCrearPublicacion}
+        className="fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow block md:hidden"
+      >
+        + Crear publicación
+      </button>
     </div>
   );
 };

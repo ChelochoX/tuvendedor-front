@@ -50,8 +50,8 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-      <div className="bg-[#1a1a1a] p-6 rounded-lg w-[90%] max-w-md text-white relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 overflow-y-auto">
+      <div className="bg-[#1a1a1a] p-6 rounded-lg w-[90%] max-w-md text-white relative mt-10 mb-10">
         <button
           onClick={onClose}
           className="absolute top-2 right-3 text-white text-xl"

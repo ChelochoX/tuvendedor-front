@@ -1,10 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import LoginModal from "./auth/LoginModal";
 import RegisterModal from "./auth/RegisterModal";
 
 const Cabecera: React.FC = () => {
   const [openLogin, setOpenLogin] = useState(false);
   const [openRegister, setOpenRegister] = useState(false);
+
+  // Ocultar el botón de "Crear publicación" y bloquear scroll si hay algún modal abierto
+  useEffect(() => {
+    const body = document.body;
+    const crearBtn = document.getElementById("crear-publicacion-btn");
+
+    if (openLogin || openRegister) {
+      body.style.overflow = "hidden";
+      if (crearBtn) crearBtn.style.display = "none";
+    } else {
+      body.style.overflow = "auto";
+      if (crearBtn) crearBtn.style.display = "block";
+    }
+  }, [openLogin, openRegister]);
 
   return (
     <>

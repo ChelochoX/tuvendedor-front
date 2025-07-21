@@ -18,5 +18,5 @@
       "@types/*": ["types/*"]
     }
   },
-  "include": ["src"]
+  "include": ["vite-env.d.ts", "src"]
 }

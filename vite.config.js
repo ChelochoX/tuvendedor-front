@@ -8,7 +8,6 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), tsconfigPaths()],
-    envFile: true,
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "src"),

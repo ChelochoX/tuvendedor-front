@@ -1,20 +1,39 @@
-// src/types/auth.types.ts
-
 export interface LoginRequest {
-  usuario: string;
-  clave: string;
+  email: string;
+  clave?: string;
+  nombre?: string;
+  fotoUrl?: string;
+  tipoLogin: "clasico" | "google" | "facebook";
 }
 
-export interface LoginResponse {
-  parTokens: {
+export interface LoginResponseData {
+  esNuevo: boolean;
+  parTokens?: {
     bearerToken: string;
-    refreshToken?: string;
   };
-  parUsuario: {
-    idUsuario: number;
-    nombre: string;
+  parUsuario?: {
+    id: number;
+    nombreUsuario: string;
     email: string;
-    roles: string[];
-    // puedes agregar más propiedades si vienen en la respuesta
+    estado: string;
   };
+  datosPrevios?: {
+    email: string;
+    nombre: string;
+    fotoUrl: string;
+    tipoLogin: string;
+  };
+}
+
+export interface RegisterRequest {
+  nombre: string;
+  email: string;
+  password: string;
+  telefono?: string;
+  ciudad?: string;
+  direccion?: string;
+  esVendedor?: boolean;
+  nombreNegocio?: string;
+  ruc?: string;
+  rubro?: string;
 }

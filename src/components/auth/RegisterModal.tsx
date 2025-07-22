@@ -1,5 +1,6 @@
-// src/components/auth/RegisterModal.tsx
 import React, { useState } from "react";
+import { register } from "../../api/authService";
+import Swal from "sweetalert2";
 
 interface Props {
   open: boolean;
@@ -15,7 +16,6 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
     telefono: "",
     ciudad: "",
     direccion: "",
-    // Solo si es vendedor
     nombreNegocio: "",
     ruc: "",
     rubro: "",
@@ -28,22 +28,21 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...formData, esVendedor }),
+      await register({ ...formData, esVendedor });
+      Swal.fire({
+        icon: "success",
+        title: "Registro exitoso",
+        text: "Ya podés iniciar sesión",
+        timer: 2000,
+        showConfirmButton: false,
       });
-
-      if (!response.ok) {
-        throw new Error("Error al registrar usuario");
-      }
-
-      alert("Usuario registrado con éxito");
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error al registrar",
+        text: error.message || "Ocurrió un problema",
+      });
     }
   };
 
@@ -61,50 +60,26 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
         <h2 className="text-xl font-bold mb-4 text-yellow-400">Registrarse</h2>
 
         <div className="flex flex-col gap-3 pb-6">
-          <label className="text-sm text-white">Nombre completo</label>
-          <input
-            type="text"
-            name="nombre"
-            value={formData.nombre}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-white text-black"
-          />
-
-          <label className="text-sm text-white">Correo electrónico</label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-white text-black"
-          />
-
-          <label className="text-sm text-white">Contraseña</label>
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-white text-black"
-          />
-
-          <label className="text-sm text-white">Teléfono</label>
-          <input
-            type="text"
-            name="telefono"
-            value={formData.telefono}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-white text-black"
-          />
-
-          <label className="text-sm text-white">Ciudad</label>
-          <input
-            type="text"
-            name="ciudad"
-            value={formData.ciudad}
-            onChange={handleChange}
-            className="w-full px-4 py-2 rounded bg-white text-black"
-          />
+          {/* campos comunes */}
+          {[
+            "nombre",
+            "email",
+            "password",
+            "telefono",
+            "ciudad",
+            "direccion",
+          ].map((name) => (
+            <>
+              <label className="text-sm text-white capitalize">{name}</label>
+              <input
+                type="text"
+                name={name}
+                value={(formData as any)[name]}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded bg-white text-black"
+              />
+            </>
+          ))}
 
           <label className="inline-flex items-center mt-2">
             <input
@@ -118,34 +93,20 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
 
           {esVendedor && (
             <>
-              <label className="text-sm text-white mt-2">
-                Nombre del negocio
-              </label>
-              <input
-                type="text"
-                name="nombreNegocio"
-                value={formData.nombreNegocio}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded bg-white text-black"
-              />
-
-              <label className="text-sm text-white">RUC</label>
-              <input
-                type="text"
-                name="ruc"
-                value={formData.ruc}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded bg-white text-black"
-              />
-
-              <label className="text-sm text-white">Rubro / Categoría</label>
-              <input
-                type="text"
-                name="rubro"
-                value={formData.rubro}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded bg-white text-black"
-              />
+              {["nombreNegocio", "ruc", "rubro"].map((name) => (
+                <>
+                  <label className="text-sm text-white capitalize">
+                    {name}
+                  </label>
+                  <input
+                    type="text"
+                    name={name}
+                    value={(formData as any)[name]}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 rounded bg-white text-black"
+                  />
+                </>
+              ))}
             </>
           )}
 

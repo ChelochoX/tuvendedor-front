@@ -1,52 +1,92 @@
-// src/components/auth/LoginModal.tsx
+// src/components/LoginModal.tsx
 import React, { useState } from "react";
 import { auth, googleProvider } from "../../firebase/firebase";
 import { signInWithPopup } from "firebase/auth";
+import { login, loginConGoogle } from "../../api/authService";
+import Swal from "sweetalert2";
+import { LoginResponseData } from "../../types/auth.types";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSwitchToRegister: () => void;
+  onSwitchToRegister: (datosPrevios?: any) => void;
 }
 
 const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
-  const [login, setLogin] = useState(""); // Puede ser email o usuario
+  const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
     try {
-      // Aquí haces la llamada a TU BACKEND, no Firebase Auth
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          login, // puede ser usuario o correo
-          password,
-        }),
+      const data: LoginResponseData = await login({
+        email: loginInput,
+        clave: password,
+        tipoLogin: "clasico",
       });
 
-      if (!response.ok) {
-        throw new Error("Credenciales inválidas");
+      if (data?.esNuevo) {
+        onSwitchToRegister(data.datosPrevios);
+        return;
       }
 
-      const data = await response.json();
-      alert("Sesión iniciada correctamente");
-      console.log("Usuario:", data);
+      if (data?.parTokens?.bearerToken) {
+        localStorage.setItem("token", data.parTokens.bearerToken);
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Sesión iniciada",
+        text: "Bienvenido/a",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       onClose();
     } catch (error: any) {
-      alert("Error al iniciar sesión: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.message || "Error al iniciar sesión",
+      });
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
-      alert("Sesión iniciada con Google");
+      const result = await signInWithPopup(auth, googleProvider);
+      const email = result.user.email;
+      const nombre = result.user.displayName || "";
+      const fotoUrl = result.user.photoURL || "";
+
+      if (!email) throw new Error("No se pudo obtener el correo de Google");
+
+      const data: LoginResponseData = await loginConGoogle({
+        email,
+        nombre,
+        fotoUrl,
+      });
+
+      if (data?.esNuevo) {
+        onSwitchToRegister(data.datosPrevios);
+        return;
+      }
+
+      if (data?.parTokens?.bearerToken) {
+        localStorage.setItem("token", data.parTokens.bearerToken);
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "Sesión iniciada con Google",
+        timer: 2000,
+        showConfirmButton: false,
+      });
       onClose();
     } catch (error: any) {
-      alert("Error con Google: " + error.message);
+      Swal.fire({
+        icon: "error",
+        title: "Error con Google",
+        text: error.message || "Falló el login con Google",
+      });
     }
   };
 
@@ -70,8 +110,8 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
             <label className="text-sm text-white">Correo o usuario</label>
             <input
               type="text"
-              value={login}
-              onChange={(e) => setLogin(e.target.value)}
+              value={loginInput}
+              onChange={(e) => setLoginInput(e.target.value)}
               className="w-full px-4 py-2 rounded bg-white text-black"
             />
           </div>
@@ -109,23 +149,12 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
                 className="w-6 h-6"
               />
             </button>
-
-            <button
-              className="bg-white text-black py-2 px-4 rounded-full hover:bg-gray-100 flex items-center justify-center"
-              disabled
-            >
-              <img
-                src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/facebook/facebook-original.svg"
-                alt="Facebook"
-                className="w-6 h-6"
-              />
-            </button>
           </div>
 
           <p className="text-sm text-center mt-2">
             ¿No tenés cuenta?{" "}
             <span
-              onClick={onSwitchToRegister}
+              onClick={() => onSwitchToRegister()}
               className="text-yellow-400 cursor-pointer font-medium"
             >
               Registrate

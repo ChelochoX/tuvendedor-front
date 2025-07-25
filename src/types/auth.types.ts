@@ -4,20 +4,27 @@ export interface LoginRequest {
   nombre?: string;
   fotoUrl?: string;
   tipoLogin: "clasico" | "google" | "facebook";
+  proveedorId?: string;
 }
 
-export interface LoginResponseData {
-  esNuevo: boolean;
-  parTokens?: {
+// Usuario ya registrado y autenticado
+export interface LoginExitoso {
+  esNuevo: false;
+  parTokens: {
     bearerToken: string;
   };
-  parUsuario?: {
+  parUsuario: {
     id: number;
     nombreUsuario: string;
     email: string;
     estado: string;
   };
-  datosPrevios?: {
+}
+
+// Usuario nuevo detectado por proveedor externo
+export interface LoginNuevo {
+  esNuevo: true;
+  datosPrevios: {
     email: string;
     nombre: string;
     fotoUrl: string;
@@ -25,8 +32,11 @@ export interface LoginResponseData {
   };
 }
 
+// Unión de ambos posibles
+export type LoginResponseData = LoginExitoso | LoginNuevo;
+
 export interface RegisterRequest {
-  nombre: string;
+  nombreUsuario: string;
   email: string;
   password: string;
   telefono?: string;
@@ -36,4 +46,7 @@ export interface RegisterRequest {
   nombreNegocio?: string;
   ruc?: string;
   rubro?: string;
+  proveedor?: string;
+  proveedorId?: string;
+  fotoPerfil?: string;
 }

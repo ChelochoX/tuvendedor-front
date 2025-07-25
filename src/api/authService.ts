@@ -1,49 +1,76 @@
-// src/api/authService.ts
 import instance from "./axiosInstance";
 import {
   LoginRequest,
   LoginResponseData,
   RegisterRequest,
 } from "../types/auth.types";
+import { ApiResponse } from "../types/api";
 
 const API_URL = "/Auth";
 
+// Para login clásico
 export const login = async (
   payload: LoginRequest
 ): Promise<LoginResponseData> => {
-  const response = await instance.post(`${API_URL}/login`, payload);
-  const { bearerToken } = response.data.parTokens;
+  const response = await instance.post<ApiResponse<LoginResponseData>>(
+    `${API_URL}/login`,
+    payload
+  );
+  const result = response.data;
 
-  if (bearerToken) {
-    localStorage.setItem("token", bearerToken);
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Login fallido");
   }
 
-  return response.data;
+  // Si tiene token, guardamos
+  if ("parTokens" in result.Data && result.Data.parTokens?.bearerToken) {
+    localStorage.setItem("token", result.Data.parTokens.bearerToken);
+  }
+
+  return result.Data;
 };
 
-export const register = async (payload: RegisterRequest): Promise<any> => {
-  const response = await instance.post(`${API_URL}/register`, payload);
-  return response.data;
-};
-
+// Para login con Google
 export const loginConGoogle = async (payload: {
   email: string;
   nombre: string;
   fotoUrl: string;
+  proveedorId: string;
 }): Promise<LoginResponseData> => {
-  const response = await instance.post(`${API_URL}/login`, {
-    email: payload.email,
-    clave: "",
-    tipoLogin: "google",
-    nombre: payload.nombre,
-    fotoUrl: payload.fotoUrl,
-  });
+  const response = await instance.post<ApiResponse<LoginResponseData>>(
+    `${API_URL}/login`,
+    {
+      email: payload.email,
+      clave: "",
+      tipoLogin: "google",
+      nombre: payload.nombre,
+      fotoUrl: payload.fotoUrl,
+      proveedorId: payload.proveedorId,
+    }
+  );
 
-  const { bearerToken } = response.data.parTokens ?? {};
+  const result = response.data;
 
-  if (bearerToken) {
-    localStorage.setItem("token", bearerToken);
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Login con Google fallido");
   }
 
-  return response.data;
+  // Si es usuario existente con token, guardamos
+  if ("parTokens" in result.Data && result.Data.parTokens?.bearerToken) {
+    localStorage.setItem("token", result.Data.parTokens.bearerToken);
+  }
+
+  return result.Data;
+};
+
+export const register = async (payload: RegisterRequest): Promise<void> => {
+  const response = await instance.post<ApiResponse<any>>(
+    `${API_URL}/registro`,
+    payload
+  );
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Registro fallido");
+  }
 };

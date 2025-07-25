@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { register } from "../../api/authService";
 import Swal from "sweetalert2";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  datosPrevios?: {
+    email?: string;
+    nombre?: string;
+    fotoUrl?: string;
+    tipoLogin?: string;
+    proveedor?: string;
+    proveedorId?: string;
+  } | null;
 }
 
-const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
+const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   const [esVendedor, setEsVendedor] = useState(false);
   const [formData, setFormData] = useState({
-    nombre: "",
+    nombreUsuario: "",
     email: "",
     password: "",
     telefono: "",
@@ -19,7 +27,26 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
     nombreNegocio: "",
     ruc: "",
     rubro: "",
+    proveedor: "",
+    proveedorId: "",
+    fotoPerfil: "",
+    tipoLogin: "clasico",
   });
+
+  useEffect(() => {
+    if (datosPrevios) {
+      console.log("Datos previos recibidos:", datosPrevios);
+      setFormData((prev) => ({
+        ...prev,
+        nombreUsuario: datosPrevios.nombre || "",
+        email: datosPrevios.email || "",
+        proveedor: datosPrevios.proveedor || datosPrevios.tipoLogin || "",
+        proveedorId: datosPrevios.proveedorId || "",
+        fotoPerfil: datosPrevios.fotoUrl || "",
+        tipoLogin: datosPrevios.tipoLogin || "clasico",
+      }));
+    }
+  }, [datosPrevios]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,15 +89,17 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
         <div className="flex flex-col gap-3 pb-6">
           {/* campos comunes */}
           {[
-            "nombre",
-            "email",
-            "password",
-            "telefono",
-            "ciudad",
-            "direccion",
-          ].map((name) => (
-            <>
-              <label className="text-sm text-white capitalize">{name}</label>
+            { label: "Nombre Completo", name: "nombreUsuario" },
+            { label: "Email", name: "email" },
+            ...(formData.tipoLogin === "clasico"
+              ? [{ label: "Password", name: "password" }]
+              : []),
+            { label: "Teléfono", name: "telefono" },
+            { label: "Ciudad", name: "ciudad" },
+            { label: "Dirección", name: "direccion" },
+          ].map(({ label, name }) => (
+            <div key={name}>
+              <label className="text-sm text-white">{label}</label>
               <input
                 type="text"
                 name={name}
@@ -78,7 +107,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded bg-white text-black"
               />
-            </>
+            </div>
           ))}
 
           <label className="inline-flex items-center mt-2">
@@ -93,11 +122,13 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
 
           {esVendedor && (
             <>
-              {["nombreNegocio", "ruc", "rubro"].map((name) => (
-                <>
-                  <label className="text-sm text-white capitalize">
-                    {name}
-                  </label>
+              {[
+                { label: "Nombre del Negocio", name: "nombreNegocio" },
+                { label: "RUC", name: "ruc" },
+                { label: "Rubro", name: "rubro" },
+              ].map(({ label, name }) => (
+                <div key={name}>
+                  <label className="text-sm text-white">{label}</label>
                   <input
                     type="text"
                     name={name}
@@ -105,7 +136,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose }) => {
                     onChange={handleChange}
                     className="w-full px-4 py-2 rounded bg-white text-black"
                   />
-                </>
+                </div>
               ))}
             </>
           )}

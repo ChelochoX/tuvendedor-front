@@ -56,31 +56,28 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       const email = result.user.email;
       const nombre = result.user.displayName || "";
       const fotoUrl = result.user.photoURL || "";
+      const proveedorId = result.user.providerData[0]?.uid;
 
       if (!email) throw new Error("No se pudo obtener el correo de Google");
 
-      const data: LoginResponseData = await loginConGoogle({
+      const data = await loginConGoogle({
         email,
         nombre,
         fotoUrl,
+        proveedorId,
       });
 
-      if (data?.esNuevo) {
+      if (data.esNuevo) {
         onSwitchToRegister(data.datosPrevios);
-        return;
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Sesión iniciada con Google",
+          timer: 3000,
+          showConfirmButton: false,
+        });
+        onClose();
       }
-
-      if (data?.parTokens?.bearerToken) {
-        localStorage.setItem("token", data.parTokens.bearerToken);
-      }
-
-      Swal.fire({
-        icon: "success",
-        title: "Sesión iniciada con Google",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      onClose();
     } catch (error: any) {
       Swal.fire({
         icon: "error",

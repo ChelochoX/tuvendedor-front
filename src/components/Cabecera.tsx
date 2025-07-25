@@ -5,20 +5,27 @@ import RegisterModal from "./auth/RegisterModal";
 const Cabecera: React.FC = () => {
   const [openLogin, setOpenLogin] = useState(false);
   const [openRegister, setOpenRegister] = useState(false);
+  const [datosPrevios, setDatosPrevios] = useState(null);
+  const [usuario, setUsuario] = useState<string | null>(null);
+  const [fotoPerfil, setFotoPerfil] = useState<string | null>(null);
 
-  // Ocultar el botón de "Crear publicación" y bloquear scroll si hay algún modal abierto
   useEffect(() => {
-    const body = document.body;
-    const crearBtn = document.getElementById("crear-publicacion-btn");
+    const usuarioLS = localStorage.getItem("usuario");
+    const fotoPerfilLS = localStorage.getItem("fotoPerfil");
+    console.log("Usuario:", usuarioLS);
+    console.log("Foto:", fotoPerfilLS);
+    setUsuario(usuarioLS);
+    setFotoPerfil(fotoPerfilLS);
+  }, [openLogin]);
 
-    if (openLogin || openRegister) {
-      body.style.overflow = "hidden";
-      if (crearBtn) crearBtn.style.display = "none";
-    } else {
-      body.style.overflow = "auto";
-      if (crearBtn) crearBtn.style.display = "block";
-    }
-  }, [openLogin, openRegister]);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("fotoPerfil");
+    localStorage.removeItem("permisos");
+    setUsuario(null);
+    setFotoPerfil(null);
+  };
 
   return (
     <>
@@ -34,19 +41,39 @@ const Cabecera: React.FC = () => {
             className="w-full md:w-[400px] px-4 py-2 bg-white text-black border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
 
-          <button
-            onClick={() => setOpenLogin(true)}
-            className="text-sm bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded-full"
-          >
-            Iniciar sesión
-          </button>
+          {!usuario ? (
+            <button
+              onClick={() => setOpenLogin(true)}
+              className="text-sm bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded-full"
+            >
+              Iniciar sesión
+            </button>
+          ) : (
+            <div className="flex items-center gap-4">
+              {fotoPerfil && (
+                <img
+                  src={fotoPerfil}
+                  alt="Perfil"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              )}
+              <span className="text-sm font-semibold">{usuario}</span>
+              <button
+                onClick={handleLogout}
+                className="text-sm bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-full"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
       <LoginModal
         open={openLogin}
         onClose={() => setOpenLogin(false)}
-        onSwitchToRegister={() => {
+        onSwitchToRegister={(datos?: any) => {
+          setDatosPrevios(datos || null);
           setOpenLogin(false);
           setOpenRegister(true);
         }}
@@ -55,6 +82,7 @@ const Cabecera: React.FC = () => {
       <RegisterModal
         open={openRegister}
         onClose={() => setOpenRegister(false)}
+        datosPrevios={datosPrevios}
       />
     </>
   );

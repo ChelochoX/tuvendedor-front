@@ -58,6 +58,12 @@ export const loginConGoogle = async (payload: {
   // Si es usuario existente con token, guardamos
   if ("parTokens" in result.Data && result.Data.parTokens?.bearerToken) {
     localStorage.setItem("token", result.Data.parTokens.bearerToken);
+
+    const usuario = result.Data.parUsuario;
+    if (usuario) {
+      localStorage.setItem("usuario", usuario.nombreUsuario || "");
+      localStorage.setItem("fotoPerfil", usuario.fotoPerfil || "");
+    }
   }
 
   return result.Data;

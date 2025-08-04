@@ -86,10 +86,12 @@ const Marketplace: React.FC = () => {
             {categoriaSeleccionada?.nombre || "Todos los productos"}
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {productosFiltrados.map((p) => (
-              <ProductoCard key={p.id} producto={p} />
-            ))}
+          <div className="max-w-screen-xl mx-auto">
+            <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+              {productosFiltrados.map((p) => (
+                <ProductoCard key={p.id} producto={p} />
+              ))}
+            </div>
           </div>
         </main>
       </div>

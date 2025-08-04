@@ -18,6 +18,7 @@ export interface LoginExitoso {
     nombreUsuario: string;
     email: string;
     estado: string;
+    fotoPerfil?: string;
   };
 }
 

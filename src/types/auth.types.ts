@@ -39,7 +39,7 @@ export type LoginResponseData = LoginExitoso | LoginNuevo;
 export interface RegisterRequest {
   nombreUsuario: string;
   email: string;
-  password: string;
+  clave: string;
   telefono?: string;
   ciudad?: string;
   direccion?: string;

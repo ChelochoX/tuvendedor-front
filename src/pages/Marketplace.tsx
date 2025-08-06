@@ -6,6 +6,8 @@ import CrearPublicacionModal from "../components/publicaciones/CrearPublicacionM
 import { productosMock } from "../mocks/productos.mock";
 import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
+import LoginModal from "../components/auth/LoginModal";
+import RegisterModal from "../components/auth/RegisterModal";
 
 const categorias: Categoria[] = [
   { id: "1", nombre: "Vehículos", icono: "🚗" },
@@ -18,19 +20,41 @@ const Marketplace: React.FC = () => {
     useState<Categoria | null>(null);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [openLogin, setOpenLogin] = useState(false);
+  const [openRegister, setOpenRegister] = useState(false);
+  const [datosPrevios, setDatosPrevios] = useState(null);
+  const [quierePublicar, setQuierePublicar] = useState(false);
 
   const productosFiltrados: Producto[] = categoriaSeleccionada
     ? productosMock.filter((p) => p.categoria === categoriaSeleccionada.nombre)
     : productosMock;
 
   const handleCrearPublicacion = () => {
-    setModalOpen(true);
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      setModalOpen(true); // abre modal de publicación
+    } else {
+      setQuierePublicar(true); // guarda intención
+      setOpenLogin(true); // abre modal login
+    }
   };
 
   const handlePublicar = (nuevaPublicacion: any) => {
     console.log("Publicar:", nuevaPublicacion);
     setModalOpen(false);
   };
+
+  useEffect(() => {
+    const handleAbrirLogin = () => {
+      setOpenLogin(true);
+    };
+
+    window.addEventListener("abrir-login", handleAbrirLogin);
+    return () => {
+      window.removeEventListener("abrir-login", handleAbrirLogin);
+    };
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = modalOpen ? "hidden" : "auto";
@@ -40,6 +64,20 @@ const Marketplace: React.FC = () => {
         !modalOpen && window.innerWidth < 768 ? "block" : "none";
     }
   }, [modalOpen]);
+
+  useEffect(() => {
+    const handleLoginExitoso = () => {
+      if (quierePublicar) {
+        setModalOpen(true);
+        setQuierePublicar(false);
+      }
+    };
+
+    window.addEventListener("login-exitoso", handleLoginExitoso);
+    return () => {
+      window.removeEventListener("login-exitoso", handleLoginExitoso);
+    };
+  }, [quierePublicar]);
 
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
@@ -111,6 +149,22 @@ const Marketplace: React.FC = () => {
       >
         + Crear publicación
       </button>
+
+      <LoginModal
+        open={openLogin}
+        onClose={() => setOpenLogin(false)}
+        onSwitchToRegister={(datos?: any) => {
+          setDatosPrevios(datos || null);
+          setOpenLogin(false);
+          setOpenRegister(true);
+        }}
+      />
+
+      <RegisterModal
+        open={openRegister}
+        onClose={() => setOpenRegister(false)}
+        datosPrevios={datosPrevios}
+      />
     </div>
   );
 };

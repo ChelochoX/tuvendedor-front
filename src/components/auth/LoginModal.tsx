@@ -5,6 +5,7 @@ import { signInWithPopup } from "firebase/auth";
 import { login, loginConGoogle } from "../../api/authService";
 import Swal from "sweetalert2";
 import { LoginResponseData } from "../../types/auth.types";
+import { useUsuario } from "../../context/UsuarioContext";
 
 interface Props {
   open: boolean;
@@ -15,6 +16,7 @@ interface Props {
 const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
   const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
+  const { setUsuario } = useUsuario();
 
   const handleLogin = async () => {
     try {
@@ -31,7 +33,16 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
 
       if (data?.parTokens?.bearerToken) {
         localStorage.setItem("token", data.parTokens.bearerToken);
+        localStorage.setItem("usuario", data?.parUsuario?.nombreUsuario || "");
+        localStorage.setItem("fotoUrl", ""); // clásico no trae foto
       }
+
+      // 👇 Guardar en contexto
+      setUsuario({
+        nombreUsuario: data?.parUsuario?.nombreUsuario || "",
+        fotoUrl: undefined, // clásico no trae foto
+      });
+      window.dispatchEvent(new Event("usuario-actualizado"));
 
       Swal.fire({
         icon: "success",
@@ -70,9 +81,21 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       if (data.esNuevo) {
         onSwitchToRegister(data.datosPrevios);
       } else {
+        localStorage.setItem("token", data.parTokens?.bearerToken || "");
+        localStorage.setItem("usuario", nombre);
+        localStorage.setItem("fotoUrl", fotoUrl);
+
+        // 👇 Guardar en contexto
+        setUsuario({
+          nombreUsuario: nombre,
+          fotoUrl: fotoUrl,
+        });
+
+        window.dispatchEvent(new Event("usuario-actualizado"));
+
         Swal.fire({
           icon: "success",
-          title: "Sesión iniciada con Google",
+          title: "Sesión iniciada",
           timer: 3000,
           showConfirmButton: false,
         });

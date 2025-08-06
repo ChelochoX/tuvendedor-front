@@ -20,7 +20,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   const [formData, setFormData] = useState({
     nombreUsuario: "",
     email: "",
-    password: "",
+    clave: "",
     telefono: "",
     ciudad: "",
     direccion: "",
@@ -92,7 +92,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
             { label: "Nombre Completo", name: "nombreUsuario" },
             { label: "Email", name: "email" },
             ...(formData.tipoLogin === "clasico"
-              ? [{ label: "Password", name: "password" }]
+              ? [{ label: "Password", name: "clave" }]
               : []),
             { label: "Teléfono", name: "telefono" },
             { label: "Ciudad", name: "ciudad" },

@@ -62,8 +62,11 @@ export const loginConGoogle = async (payload: {
     const usuario = result.Data.parUsuario;
     if (usuario) {
       localStorage.setItem("usuario", usuario.nombreUsuario || "");
-      localStorage.setItem("fotoPerfil", usuario.fotoPerfil || "");
+      localStorage.setItem("fotoUrl", usuario.fotoPerfil || "");
     }
+
+    // 🔥 IMPORTANTE: Esto notifica a la cabecera y al context
+    window.dispatchEvent(new Event("usuario-actualizado"));
   }
 
   return result.Data;

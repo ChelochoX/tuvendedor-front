@@ -3,6 +3,8 @@ import React from "react";
 import { Categoria } from "../../types/categoria";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import { crearPublicacion } from "../../api/publicacionesService";
+import Swal from "sweetalert2";
 
 interface Props {
   open: boolean;
@@ -29,18 +31,50 @@ const CrearPublicacionModal: React.FC<Props> = ({
   >([]);
   const [errorImagenes, setErrorImagenes] = React.useState("");
 
-  const handlePublicar = () => {
-    const nuevaPublicacion = {
-      titulo,
-      descripcion,
-      precio,
-      categoria,
-      imagenes,
-      mostrarBotonesCompra,
-      planCredito: mostrarBotonesCompra ? { opciones: cuotas } : undefined,
-    };
-    onPublicar(nuevaPublicacion);
-    onClose();
+  const handlePublicar = async () => {
+    try {
+      const nueva = {
+        titulo,
+        descripcion,
+        precio,
+        categoria,
+        imagenes,
+        mostrarBotonesCompra,
+        planCredito: mostrarBotonesCompra ? cuotas : undefined,
+      };
+
+      const response = await crearPublicacion(nueva);
+
+      // ✅ Mostrar alerta de éxito
+      Swal.fire({
+        icon: "success",
+        title: "Publicación creada",
+        text: "Tu producto fue publicado correctamente.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      // ✅ Limpiar formulario
+      setTitulo("");
+      setDescripcion("");
+      setPrecio("");
+      setCategoria("");
+      setImagenes([]);
+      setCuotas([]);
+      setMostrarBotonesCompra(false);
+      setPreviewIndex(0);
+      setErrorImagenes("");
+
+      // ✅ Cerrar modal
+      onClose();
+    } catch (error: any) {
+      console.error("❌ Error al publicar", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error al publicar",
+        text: error.message || "Ocurrió un error inesperado.",
+      });
+    }
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -125,6 +125,13 @@ const CrearPublicacionModal: React.FC<Props> = ({
     setPreviewIndex((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
   };
 
+  // Helper para formatear a ₲ con puntos de miles
+  const formatearGuaranies = (valor: string) => {
+    const limpio = valor.replace(/\D/g, ""); // quitamos todo lo que no sea número
+    const numero = parseInt(limpio || "0");
+    return numero.toLocaleString("es-PY"); // convierte a "1.000.000"
+  };
+
   React.useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "auto";
     return () => {
@@ -166,11 +173,14 @@ const CrearPublicacionModal: React.FC<Props> = ({
               onChange={(e) => setDescripcion(e.target.value)}
             />
             <input
-              type="number"
+              type="text"
               placeholder="Precio ₲"
               className="bg-[#2a2b30] text-white px-4 py-2 rounded-md placeholder-gray-400"
-              value={precio}
-              onChange={(e) => setPrecio(e.target.value)}
+              value={`₲ ${formatearGuaranies(precio)}`}
+              onChange={(e) => {
+                const sinSimbolo = e.target.value.replace(/[^\d]/g, "");
+                setPrecio(sinSimbolo);
+              }}
             />
             <select
               className="bg-[#2a2b30] text-white px-4 py-2 rounded-md"

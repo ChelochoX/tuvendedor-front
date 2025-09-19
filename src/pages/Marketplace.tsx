@@ -8,8 +8,10 @@ import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
 import LoginModal from "../components/auth/LoginModal";
 import RegisterModal from "../components/auth/RegisterModal";
+import { obtenerPublicaciones } from "../api/publicacionesService";
 
 const categorias: Categoria[] = [
+  { id: "0", nombre: "Todos", icono: "🌐" },
   { id: "1", nombre: "Vehículos", icono: "🚗" },
   { id: "2", nombre: "Propiedades", icono: "🏠" },
   { id: "3", nombre: "Electrodomésticos", icono: "💡" },
@@ -24,10 +26,30 @@ const Marketplace: React.FC = () => {
   const [openRegister, setOpenRegister] = useState(false);
   const [datosPrevios, setDatosPrevios] = useState(null);
   const [quierePublicar, setQuierePublicar] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [productos, setProductos] = useState<Producto[]>([]);
 
-  const productosFiltrados: Producto[] = categoriaSeleccionada
-    ? productosMock.filter((p) => p.categoria === categoriaSeleccionada.nombre)
-    : productosMock;
+  // 🔥 Consumir API cada vez que cambie categoría o búsqueda
+  useEffect(() => {
+    const fetchProductos = async () => {
+      try {
+        const categoria =
+          categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
+            ? categoriaSeleccionada.nombre
+            : undefined;
+
+        const data = await obtenerPublicaciones(
+          categoria,
+          busqueda || undefined
+        );
+        setProductos(data);
+      } catch (error) {
+        console.error("Error al obtener publicaciones:", error);
+      }
+    };
+
+    fetchProductos();
+  }, [categoriaSeleccionada, busqueda]);
 
   const handleCrearPublicacion = () => {
     const token = localStorage.getItem("token");
@@ -43,6 +65,7 @@ const Marketplace: React.FC = () => {
   const handlePublicar = (nuevaPublicacion: any) => {
     console.log("Publicar:", nuevaPublicacion);
     setModalOpen(false);
+    obtenerPublicaciones().then(setProductos);
   };
 
   useEffect(() => {
@@ -126,7 +149,7 @@ const Marketplace: React.FC = () => {
 
           <div className="max-w-screen-xl mx-auto">
             <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-              {productosFiltrados.map((p) => (
+              {productos.map((p) => (
                 <ProductoCard key={p.id} producto={p} />
               ))}
             </div>

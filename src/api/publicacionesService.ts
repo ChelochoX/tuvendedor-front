@@ -1,4 +1,5 @@
 import instance from "./axiosInstance";
+import { Producto } from "../types/producto";
 import { ApiResponse } from "../types/api";
 
 const API_URL = "/Publicaciones";
@@ -56,4 +57,24 @@ export const crearPublicacion = async (payload: {
   }
 
   return result.Data;
+};
+
+export const obtenerPublicaciones = async (
+  categoria?: string,
+  nombre?: string
+): Promise<Producto[]> => {
+  const response = await instance.get<ApiResponse<Producto[]>>(
+    `${API_URL}/obtener-publicaciones`,
+    {
+      params: { categoria, nombre },
+    }
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Error al obtener publicaciones");
+  }
+
+  return result.Data || [];
 };

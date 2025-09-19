@@ -11,15 +11,17 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
 
   return (
     <Link to={`/producto/${producto.id}`} className="block">
-      <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer max-w-xs overflow-hidden ring-1 ring-transparent hover:ring-yellow-500">
-        <img
-          src={producto.imagen}
-          alt={producto.nombre}
-          className="w-full h-56 object-cover transition duration-200"
-        />
+      <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-yellow-500 flex flex-col h-full">
+        <div className="aspect-square w-full bg-gray-100 rounded-xl overflow-hidden">
+          <img
+            src={producto.imagen}
+            alt={producto.nombre}
+            className="w-full h-full object-contain"
+          />
+        </div>
 
-        <div className="p-3 text-sm relative">
-          <h3 className="text-sm font-semibold text-gray-800 leading-snug mb-1">
+        <div className="p-3 text-sm relative flex flex-col flex-1">
+          <h3 className="text-sm font-semibold text-gray-800 leading-snug mb-1 line-clamp-2">
             {producto.nombre}
           </h3>
 
@@ -29,7 +31,7 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
 
           <p className="text-xs text-gray-500">{producto.ubicacion}</p>
 
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-auto">
             <div className="flex items-center gap-2">
               <img
                 src={producto.vendedor.avatar}

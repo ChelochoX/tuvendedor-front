@@ -2,11 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ProductDetail from "../components/ProductDetail";
-import { productosMock } from "../mocks/productos.mock"; // Asegúrate de esta importación
+import { obtenerPublicaciones } from "../api/publicacionesService";
 import { Producto } from "../types/producto";
 
 const ProductDetailWrapper = () => {
-  const { productos, setProductos } = useProductos();
   const { id } = useParams<{ id: string }>();
   const [producto, setProducto] = useState<Producto | null>(null);
 

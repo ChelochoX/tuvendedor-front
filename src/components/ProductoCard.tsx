@@ -14,9 +14,11 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-yellow-500 flex flex-col h-full">
         <div className="aspect-square w-full bg-gray-100 rounded-xl overflow-hidden">
           <img
-            src={producto.imagen}
+            src={
+              producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
+            }
             alt={producto.nombre}
-            className="w-full h-full object-contain"
+            className="w-full h-56 object-cover transition duration-200"
           />
         </div>
 

@@ -1,14 +1,16 @@
 // src/types/producto.ts
 
+export interface Imagen {
+  mainUrl: string;
+  thumbUrl: string;
+}
+
 export interface Producto {
   id: number;
   nombre: string;
   precio: number;
   categoria: string;
   ubicacion: string;
-  imagen: string;
-  imagenes: string[];
-
   descripcion?: string;
 
   vendedor: {
@@ -22,6 +24,8 @@ export interface Producto {
       valorCuota: number;
     }[];
   };
+
+  imagenes: Imagen[];
 
   mostrarBotonesCompra?: boolean;
 }

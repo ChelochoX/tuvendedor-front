@@ -108,7 +108,7 @@ const ProductDetail: React.FC<Props> = ({
 
           <Box
             component="img"
-            src={producto.imagenes[selectedImageIndex]}
+            src={producto.imagenes[selectedImageIndex].mainUrl}
             alt={producto.nombre}
             sx={{
               position: "relative",
@@ -174,7 +174,7 @@ const ProductDetail: React.FC<Props> = ({
           {producto.imagenes.map((img, i) => (
             <img
               key={i}
-              src={img}
+              src={img.thumbUrl}
               alt={`Miniatura ${i + 1}`}
               onClick={() => setSelectedImageIndex(i)}
               style={{

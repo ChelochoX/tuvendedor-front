@@ -8,24 +8,39 @@ import { Producto } from "../types/producto";
 const ProductDetailWrapper = () => {
   const { id } = useParams<{ id: string }>();
   const [producto, setProducto] = useState<Producto | null>(null);
+  const [cargando, setCargando] = useState(true);
+
+  const productos: Producto[] = [];
+  const setProductos = (data: Producto[]) => {};
 
   useEffect(() => {
     if (!id) return;
 
-    // 1) buscar en el contexto
+    setCargando(true);
+
+    // 1️⃣ Mostrar rápido lo que ya haya en memoria
     const encontrado = productos.find((p) => p.id === Number(id));
     if (encontrado) {
       setProducto(encontrado);
-    } else {
-      // 2) fallback a la API
-      obtenerPublicaciones().then((data) => {
-        setProductos(data);
-        setProducto(data.find((p) => p.id === Number(id)) ?? null);
-      });
+      setCargando(false);
     }
-  }, [id, productos, setProductos]);
 
-  if (!producto) return <p style={{ padding: "2rem" }}>Cargando producto...</p>;
+    // 2️⃣ Refrescar desde la API para asegurarnos
+    obtenerPublicaciones()
+      .then((data) => {
+        setProductos(data); // actualiza global
+        const actualizado = data.find((p) => p.id === Number(id));
+        if (actualizado) setProducto(actualizado);
+      })
+      .finally(() => setCargando(false));
+  }, [id]);
+
+  if (cargando) return <p style={{ padding: "2rem" }}>Cargando producto...</p>;
+
+  if (!producto)
+    return (
+      <p style={{ padding: "2rem", color: "red" }}>Producto no encontrado 😥</p>
+    );
 
   return (
     <ProductDetail

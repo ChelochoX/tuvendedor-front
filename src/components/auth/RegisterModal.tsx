@@ -65,10 +65,17 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
       });
       onClose();
     } catch (error: any) {
+      const msg =
+        error.response?.data?.Message ||
+        error.response?.data?.Errors?.[0] ||
+        error.message;
+
+      console.error("Error al registrar:", msg);
+
       Swal.fire({
         icon: "error",
         title: "Error al registrar",
-        text: error.message || "Ocurrió un problema",
+        text: msg,
       });
     }
   };

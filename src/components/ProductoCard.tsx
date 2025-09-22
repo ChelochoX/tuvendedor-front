@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // 👈 Importar Link
+import { Link } from "react-router-dom";
 import { Producto } from "../types/producto";
+import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
+import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 
 interface Props {
   producto: Producto;
@@ -12,13 +14,13 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
   return (
     <Link to={`/producto/${producto.id}`} className="block">
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-yellow-500 flex flex-col h-full">
-        <div className="aspect-square w-full bg-gray-100 rounded-xl overflow-hidden">
+        <div className="w-full aspect-[4/3] relative overflow-hidden rounded-t-lg bg-white">
           <img
             src={
               producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
             }
             alt={producto.nombre}
-            className="w-full h-56 object-cover transition duration-200"
+            className="w-full h-full object-cover absolute top-0 left-0"
           />
         </div>
 
@@ -44,45 +46,18 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
                 {producto.vendedor.nombre}
               </span>
             </div>
-
             <button
               className="text-gray-400 hover:text-red-500 transition"
               onClick={(e) => {
-                e.preventDefault(); // 👈 evitar navegación
+                e.preventDefault();
                 e.stopPropagation();
                 setFavorito(!favorito);
               }}
             >
               {favorito ? (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="red"
-                  viewBox="0 0 24 24"
-                  stroke="red"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 8.25C3 5.764 5.014 3.75..."
-                  />
-                </svg>
+                <HeartSolid className="w-5 h-5 text-red-500" />
               ) : (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  className="w-5 h-5"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 8.25C3 5.764 5.014 3.75..."
-                  />
-                </svg>
+                <HeartOutline className="w-5 h-5" />
               )}
             </button>
           </div>

@@ -19,7 +19,7 @@ export const login = async (
   const result = response.data;
 
   if (!result.Success) {
-    throw new Error(result.Errors?.[0] || "Login fallido");
+    throw new Error(result.Message || result.Errors?.[0] || "Login fallido");
   }
 
   // Si tiene token, guardamos
@@ -52,7 +52,9 @@ export const loginConGoogle = async (payload: {
   const result = response.data;
 
   if (!result.Success) {
-    throw new Error(result.Errors?.[0] || "Login con Google fallido");
+    throw new Error(
+      result.Message || result.Errors?.[0] || "Login con Google fallido"
+    );
   }
 
   // Si es usuario existente con token, guardamos
@@ -80,6 +82,6 @@ export const register = async (payload: RegisterRequest): Promise<void> => {
   const result = response.data;
 
   if (!result.Success) {
-    throw new Error(result.Errors?.[0] || "Registro fallido");
+    throw new Error(result.Message || result.Errors?.[0] || "Registro fallido");
   }
 };

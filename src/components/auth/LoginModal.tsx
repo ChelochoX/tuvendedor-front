@@ -4,7 +4,7 @@ import { auth, googleProvider } from "../../firebase/firebase";
 import { signInWithPopup } from "firebase/auth";
 import { login, loginConGoogle } from "../../api/authService";
 import Swal from "sweetalert2";
-import { LoginResponseData } from "../../types/auth.types";
+import { LoginResponseData, LoginRequest } from "../../types/auth.types";
 import { useUsuario } from "../../context/UsuarioContext";
 
 interface Props {
@@ -20,11 +20,27 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
 
   const handleLogin = async () => {
     try {
-      const data: LoginResponseData = await login({
-        email: loginInput,
-        clave: password,
-        tipoLogin: "clasico",
-      });
+      const input = loginInput.trim();
+
+      let payload: LoginRequest;
+
+      if (input.includes("@")) {
+        // 👉 Es un email
+        payload = {
+          email: input,
+          clave: password,
+          tipoLogin: "clasico",
+        };
+      } else {
+        // 👉 Es un usuario
+        payload = {
+          usuarioLogin: input,
+          clave: password,
+          tipoLogin: "clasico",
+        };
+      }
+
+      const data: LoginResponseData = await login(payload);
 
       if (data?.esNuevo) {
         onSwitchToRegister(data.datosPrevios);
@@ -53,6 +69,13 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       });
       onClose();
     } catch (error: any) {
+      let msg = "Error al iniciar sesión";
+
+      if (error.response?.status === 401) {
+        msg = "El usuario o la contraseña no son correctos.";
+      } else if (error.response?.data?.Message) {
+        msg = error.response.data.Message;
+      }
       Swal.fire({
         icon: "error",
         title: "Error",

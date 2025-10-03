@@ -1,5 +1,6 @@
 export interface LoginRequest {
-  email: string;
+  email?: string;
+  usuarioLogin?: string;
   clave?: string;
   nombre?: string;
   fotoUrl?: string;
@@ -38,6 +39,7 @@ export type LoginResponseData = LoginExitoso | LoginNuevo;
 
 export interface RegisterRequest {
   nombreUsuario: string;
+  usuarioLogin?: string;
   email: string;
   clave: string;
   telefono?: string;

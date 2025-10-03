@@ -19,7 +19,9 @@ export const login = async (
   const result = response.data;
 
   if (!result.Success) {
-    throw new Error(result.Message || result.Errors?.[0] || "Login fallido");
+    throw new Error(
+      result.Message || result.Errors?.[0] || "Usuario o contraseña incorrectos"
+    );
   }
 
   // Si tiene token, guardamos
@@ -49,6 +51,7 @@ export const loginConGoogle = async (payload: {
     }
   );
 
+  console.log("Respuesta completa del login con Google:", response);
   const result = response.data;
 
   if (!result.Success) {
@@ -84,4 +87,23 @@ export const register = async (payload: RegisterRequest): Promise<void> => {
   if (!result.Success) {
     throw new Error(result.Message || result.Errors?.[0] || "Registro fallido");
   }
+};
+
+export const verificarUsuarioLogin = async (
+  usuarioLogin: string
+): Promise<boolean> => {
+  const response = await instance.get<ApiResponse<any>>(
+    `${API_URL}/verificar-usuario-login`,
+    { params: { usuarioLogin } }
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(
+      result.Message || result.Errors?.[0] || "Error al verificar usuarioLogin"
+    );
+  }
+
+  return result.Data.disponible;
 };

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { register } from "../../api/authService";
+import { register, verificarUsuarioLogin } from "../../api/authService";
 import Swal from "sweetalert2";
 
 interface Props {
@@ -17,8 +17,13 @@ interface Props {
 
 const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   const [esVendedor, setEsVendedor] = useState(false);
+  const [usuarioDisponible, setUsuarioDisponible] = useState<boolean | null>(
+    null
+  );
+  const [checkingUsuario, setCheckingUsuario] = useState(false);
   const [formData, setFormData] = useState({
     nombreUsuario: "",
+    usuarioLogin: "",
     email: "",
     clave: "",
     telefono: "",
@@ -53,7 +58,94 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Generar usuarioLogin a partir de nombre completo
+  const generarUsuarioLogin = (nombreCompleto: string): string => {
+    if (!nombreCompleto.trim()) return "";
+
+    const partes = nombreCompleto.trim().split(" ");
+    if (partes.length < 2) return partes[0].toLowerCase();
+
+    const inicial = partes[0][0].toLowerCase(); // primera letra del nombre
+    const apellido = partes[1].toLowerCase(); // primer apellido
+    return inicial + apellido;
+  };
+
+  // Verificar disponibilidad (función común)
+  const verificarDisponibilidad = async (usuario: string) => {
+    if (!usuario.trim()) return;
+    try {
+      setCheckingUsuario(true);
+      const disponible = await verificarUsuarioLogin(usuario.trim());
+
+      setUsuarioDisponible(disponible);
+    } catch (err: any) {
+      setUsuarioDisponible(false);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || "No se pudo verificar el nombre de usuario",
+      });
+    } finally {
+      setCheckingUsuario(false);
+    }
+  };
+
+  // Cuando cambia el nombre completo
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const generado = generarUsuarioLogin(value);
+
+    setFormData((prev) => ({
+      ...prev,
+      nombreUsuario: value,
+      usuarioLogin: generado, // se genera automáticamente
+    }));
+
+    // 🔥 Llamamos al back apenas generamos uno
+    if (generado) {
+      verificarDisponibilidad(generado);
+    }
+  };
+
+  // Guardamos un timer global para debounce
+  let debounceTimer: any;
+
+  const handleUsuarioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      usuarioLogin: value,
+    }));
+
+    // Cancelamos cualquier request anterior
+    if (debounceTimer) clearTimeout(debounceTimer);
+
+    // Hacemos la validación después de 500ms sin teclear
+    debounceTimer = setTimeout(() => {
+      if (value.trim()) {
+        verificarDisponibilidad(value);
+      }
+    }, 500);
+  };
+
+  // Cuando el usuario edita directamente el campo Usuario
+  const handleUsuarioBlur = async () => {
+    if (formData.usuarioLogin) {
+      await verificarDisponibilidad(formData.usuarioLogin);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (usuarioDisponible === false) {
+      Swal.fire({
+        icon: "error",
+        title: "Nombre de usuario en uso",
+        text: "Por favor elegí otro usuario.",
+      });
+      return;
+    }
+
     try {
       await register({ ...formData, esVendedor });
       Swal.fire({
@@ -69,8 +161,6 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
         error.response?.data?.Message ||
         error.response?.data?.Errors?.[0] ||
         error.message;
-
-      console.error("Error al registrar:", msg);
 
       Swal.fire({
         icon: "error",
@@ -95,8 +185,41 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
 
         <div className="flex flex-col gap-3 pb-6">
           {/* campos comunes */}
+          <div>
+            <label className="text-sm text-white">Nombre Completo</label>
+            <input
+              type="text"
+              name="nombreUsuario"
+              value={formData.nombreUsuario}
+              onChange={handleNombreChange} // 👈 genera el usuarioLogin
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* UsuarioLogin con validación */}
+          <div>
+            <label className="text-sm text-white">Usuario</label>
+            <input
+              type="text"
+              name="usuarioLogin"
+              value={formData.usuarioLogin || ""}
+              onChange={handleUsuarioChange} // 👈 ahora valida mientras escribe
+              onBlur={handleUsuarioBlur} // verifica disponibilidad al salir del campo
+              className="w-full px-4 py-2 rounded bg-gray-200 text-black"
+            />
+            {checkingUsuario && (
+              <p className="text-yellow-400 text-xs mt-1">
+                Verificando disponibilidad...
+              </p>
+            )}
+            {usuarioDisponible === true && (
+              <p className="text-green-400 text-xs mt-1">✅ Disponible</p>
+            )}
+            {usuarioDisponible === false && (
+              <p className="text-red-400 text-xs mt-1">❌ Ya está en uso</p>
+            )}
+          </div>
           {[
-            { label: "Nombre Completo", name: "nombreUsuario" },
             { label: "Email", name: "email" },
             ...(formData.tipoLogin === "clasico"
               ? [{ label: "Password", name: "clave" }]

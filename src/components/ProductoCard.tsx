@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Producto } from "../types/producto";
-import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
-import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
+import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 interface Props {
   producto: Producto;
@@ -46,20 +45,31 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
                 {producto.vendedor.nombre}
               </span>
             </div>
-            <button
-              className="text-gray-400 hover:text-red-500 transition"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setFavorito(!favorito);
-              }}
-            >
-              {favorito ? (
-                <HeartSolid className="w-5 h-5 text-red-500" />
-              ) : (
-                <HeartOutline className="w-5 h-5" />
-              )}
-            </button>
+            <div className="flex gap-2">
+              {/* Botón Editar */}
+              <button
+                className="text-gray-400 hover:text-blue-500 transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Editar producto", producto.id);
+                }}
+              >
+                <PencilSquareIcon className="w-5 h-5" />
+              </button>
+
+              {/* Botón Eliminar */}
+              <button
+                className="text-gray-400 hover:text-red-500 transition"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Eliminar producto", producto.id);
+                }}
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

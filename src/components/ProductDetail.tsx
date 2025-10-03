@@ -43,8 +43,6 @@ const ProductDetail: React.FC<Props> = ({
 
   const [cuotaSeleccionada, setCuotaSeleccionada] = useState(cuotas[0] || "");
 
-  const mostrarBotonesCompra = producto.mostrarBotonesCompra === true;
-
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
       prev === 0 ? producto.imagenes.length - 1 : prev - 1
@@ -223,20 +221,6 @@ const ProductDetail: React.FC<Props> = ({
             <Typography variant="h5" fontWeight="bold" color="#fff">
               Gs. {producto.precio.toLocaleString()}
             </Typography>
-            {mostrarBotonesCompra && (
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{
-                  mt: 1,
-                  bgcolor: "#FFD700",
-                  color: "#000",
-                  fontWeight: "bold",
-                }}
-              >
-                COMPRAR CONTADO
-              </Button>
-            )}
           </Box>
 
           {producto.planCredito && cuotas.length > 0 && (
@@ -248,49 +232,23 @@ const ProductDetail: React.FC<Props> = ({
               <Typography variant="subtitle2" fontWeight="bold" color="#FFD700">
                 ¿Preferís comprar en CUOTAS?
               </Typography>
-              <FormControl fullWidth sx={{ mt: 1 }}>
-                <InputLabel sx={{ color: "#FFD700" }}>Cuotas</InputLabel>
-                <Select
-                  value={cuotaSeleccionada}
-                  onChange={(e) => setCuotaSeleccionada(e.target.value)}
-                  fullWidth
-                  sx={{
-                    color: "#fff",
-                    backgroundColor: "#222",
-                    borderRadius: 2,
-                    border: "1px solid #2196f3",
-                    "& .MuiSelect-icon": { color: "#fff" },
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      sx: {
-                        backgroundColor: "#111",
-                        color: "#fff",
-                      },
-                    },
-                  }}
-                >
-                  {cuotas.map((opcion, index) => (
-                    <MenuItem key={index} value={opcion} sx={{ color: "#fff" }}>
-                      {opcion}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              {mostrarBotonesCompra && (
-                <Button
-                  variant="contained"
-                  fullWidth
-                  sx={{
-                    mt: 2,
-                    bgcolor: "#F28500",
-                    color: "#fff",
-                    fontWeight: "bold",
-                  }}
-                >
-                  SOLICITAR CRÉDITO
-                </Button>
-              )}
+              <Box mt={1} display="flex" flexDirection="column" gap={1}>
+                {cuotas.map((opcion, index) => (
+                  <Typography
+                    key={index}
+                    variant="body2"
+                    sx={{
+                      color: "#fff",
+                      backgroundColor: "#222",
+                      padding: "6px 12px",
+                      borderRadius: 2,
+                      border: "1px solid #FFD700",
+                    }}
+                  >
+                    {opcion}
+                  </Typography>
+                ))}
+              </Box>
             </Box>
           )}
         </Box>

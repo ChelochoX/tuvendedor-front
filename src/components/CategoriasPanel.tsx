@@ -1,6 +1,8 @@
 import React from "react";
 import { Categoria } from "../types/categoria";
 import AddIcon from "@mui/icons-material/Add";
+import PersonIcon from "@mui/icons-material/Person"; // 👤 icono de clientes
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   categorias: Categoria[];
@@ -15,6 +17,13 @@ const CategoriasPanel: React.FC<Props> = ({
   onSelect,
   onCrearPublicacion,
 }) => {
+  const navigate = useNavigate();
+
+  // 🔹 Redirige a la pantalla de clientes
+  const irAClientes = () => {
+    navigate("/clientes");
+  };
+
   return (
     <div className="flex flex-col gap-2">
       {/* Botón Crear publicación */}
@@ -48,6 +57,19 @@ const CategoriasPanel: React.FC<Props> = ({
           </button>
         );
       })}
+
+      {/* Botón al pie del panel */}
+      <div className="mt-4">
+        <button
+          onClick={irAClientes}
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
+                     text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
+                     transition-all duration-300"
+        >
+          <PersonIcon fontSize="small" />
+          Gestionar Clientes
+        </button>
+      </div>
     </div>
   );
 };

@@ -276,28 +276,167 @@ const GestionClientes: React.FC = () => {
           </div>
 
           <div className="grid sm:grid-cols-2 gap-2">
-            {["nombre", "telefono", "email", "ciudad", "productoInteres"].map(
-              (campo, index) => (
+            <div>
+              <label className="block mb-1 text-sm">Nombre</label>
+              <input
+                type="text"
+                value={formInteresado.nombre || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    nombre: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm">Teléfono</label>
+              <input
+                type="text"
+                value={formInteresado.telefono || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    telefono: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm">Email</label>
+              <input
+                type="email"
+                value={formInteresado.email || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    email: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm">Ciudad</label>
+              <input
+                type="text"
+                value={formInteresado.ciudad || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    ciudad: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm">Producto de interés</label>
+              <input
+                type="text"
+                value={formInteresado.productoInteres || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    productoInteres: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1 text-sm">
+                Fecha próximo contacto
+              </label>
+              <input
+                type="date"
+                value={formInteresado.fechaProximoContacto || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    fechaProximoContacto: e.target.value,
+                  })
+                }
+                className="p-1.5 text-sm bg-gray-700 rounded w-full"
+              />
+            </div>
+
+            <div className="sm:col-span-2 flex items-center gap-2 mt-2">
+              <input
+                type="checkbox"
+                checked={formInteresado.aportaIPS || false}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    aportaIPS: e.target.checked,
+                    cantidadAportes: e.target.checked
+                      ? formInteresado.cantidadAportes || 0
+                      : 0,
+                  })
+                }
+              />
+              <label className="text-sm">Aporta IPS</label>
+            </div>
+
+            {formInteresado.aportaIPS && (
+              <div className="sm:col-span-2">
+                <label className="block mb-1 text-sm">
+                  Cantidad de aportes
+                </label>
                 <input
-                  key={index}
-                  placeholder={
-                    campo === "productoInteres"
-                      ? "Producto de interés"
-                      : campo.charAt(0).toUpperCase() + campo.slice(1)
-                  }
-                  value={(formInteresado as any)[campo] || ""}
+                  type="number"
+                  min={0}
+                  value={formInteresado.cantidadAportes || 0}
                   onChange={(e) =>
                     setFormInteresado({
                       ...formInteresado,
-                      [campo]: e.target.value,
+                      cantidadAportes: parseInt(e.target.value, 10),
                     })
                   }
-                  className={`p-1.5 text-sm bg-gray-700 rounded ${
-                    campo === "productoInteres" ? "sm:col-span-2" : ""
-                  }`}
+                  className="p-1.5 text-sm bg-gray-700 rounded w-full"
                 />
-              )
+              </div>
             )}
+
+            <div className="sm:col-span-2">
+              <label className="block mb-1 text-sm">
+                Archivo de conversación
+              </label>
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  setFormInteresado({
+                    ...formInteresado,
+                    archivoConversacion: file,
+                  });
+                }}
+                className="block w-full text-sm text-gray-400 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block mb-1 text-sm">Descripción</label>
+              <textarea
+                rows={3}
+                value={formInteresado.descripcion || ""}
+                onChange={(e) =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    descripcion: e.target.value,
+                  })
+                }
+                className="w-full p-1.5 text-sm bg-gray-700 rounded"
+              />
+            </div>
           </div>
 
           <button

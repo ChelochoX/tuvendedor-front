@@ -31,15 +31,6 @@ const Panel: React.FC = () => {
           <PersonAddIcon fontSize="small" />
           Registrar cliente
         </button>
-
-        {/* Listar clientes existentes */}
-        <button
-          onClick={() => navigate("/clientes/listar")}
-          className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
-        >
-          <GroupIcon fontSize="small" />
-          Listar clientes
-        </button>
       </div>
 
       {/* Botón volver al marketplace */}

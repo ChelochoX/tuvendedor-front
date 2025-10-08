@@ -77,10 +77,14 @@ export const registrarSeguimiento = async (
 };
 
 interface InteresadosResponse {
-  TotalRegistros: number;
-  PaginaActual: number;
-  RegistrosPorPagina: number;
-  Items: Interesado[];
+  totalRegistros?: number;
+  TotalRegistros?: number;
+  paginaActual?: number;
+  PaginaActual?: number;
+  registrosPorPagina?: number;
+  RegistrosPorPagina?: number;
+  items?: Interesado[];
+  Items?: Interesado[];
 }
 
 export const obtenerInteresados = async (
@@ -97,18 +101,19 @@ export const obtenerInteresados = async (
   );
 
   const result = response.data;
-  console.log("Respuesta de obtenerInteresados:", result); // 🔹 Log de depuración
+
   if (!result.Success) {
     throw new Error(result.Errors?.[0] || "Error al obtener interesados.");
   }
 
-  const data = result.Data || {}; // 🔹 asegura que no sea null
-
+  // 🔹 Acepta tanto Data (mayúscula) como data (minúscula)
+  const data: any = (result as any).Data ?? (result as any).data ?? {};
+  // 🔹 Acepta tanto campos con minúscula como mayúscula
   return {
-    totalRegistros: data.TotalRegistros ?? 0,
-    paginaActual: data.PaginaActual ?? 1,
-    registrosPorPagina: data.RegistrosPorPagina ?? 0,
-    items: data.Items || [], // 🔹 garantiza array
+    totalRegistros: data.totalRegistros ?? data.TotalRegistros ?? 0,
+    paginaActual: data.paginaActual ?? data.PaginaActual ?? 1,
+    registrosPorPagina: data.registrosPorPagina ?? data.RegistrosPorPagina ?? 0,
+    items: data.items ?? data.Items ?? [],
   };
 };
 

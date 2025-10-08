@@ -3,12 +3,13 @@ import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
 import CrearPublicacionModal from "../components/publicaciones/CrearPublicacionModal";
-import { productosMock } from "../mocks/productos.mock";
 import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
 import LoginModal from "../components/auth/LoginModal";
 import RegisterModal from "../components/auth/RegisterModal";
 import { obtenerPublicaciones } from "../api/publicacionesService";
+import { useNavigate } from "react-router-dom";
+import PersonIcon from "@mui/icons-material/Person";
 
 const categorias: Categoria[] = [
   { id: "0", nombre: "Todos", icono: "🌐" },
@@ -18,6 +19,7 @@ const categorias: Categoria[] = [
 ];
 
 const Marketplace: React.FC = () => {
+  const navigate = useNavigate();
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState<Categoria | null>(null);
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
@@ -80,15 +82,6 @@ const Marketplace: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = modalOpen ? "hidden" : "auto";
-    const crearBtn = document.getElementById("crear-publicacion-btn");
-    if (crearBtn) {
-      crearBtn.style.display =
-        !modalOpen && window.innerWidth < 768 ? "block" : "none";
-    }
-  }, [modalOpen]);
-
-  useEffect(() => {
     const handleLoginExitoso = () => {
       if (quierePublicar) {
         setModalOpen(true);
@@ -121,6 +114,14 @@ const Marketplace: React.FC = () => {
             {cat.icono} {cat.nombre}
           </button>
         ))}
+        {/* 👤 Gestionar Clientes */}
+        <button
+          onClick={() => navigate("/clientes")}
+          className="px-4 py-1 rounded-full border text-sm bg-[#2d3748] text-white hover:bg-yellow-400 hover:text-black transition"
+        >
+          <PersonIcon fontSize="small" className="mr-1" />
+          Gestionar Clientes
+        </button>
       </div>
 
       <div className="flex">

@@ -5,11 +5,19 @@ import {
   obtenerSeguimientos,
   registrarInteresado,
   registrarSeguimiento,
+  actualizarInteresado, // 👈 debes agregar esta función en clientesService
 } from "../../api/clientesService";
-import { Interesado, Seguimiento } from "../../types/clientes";
+import {
+  Interesado,
+  Seguimiento,
+  InteresadoRequest,
+} from "../../types/clientes";
 import Swal from "sweetalert2";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const GestionClientes: React.FC = () => {
+  const navigate = useNavigate();
   const [interesados, setInteresados] = useState<Interesado[]>([]);
   const [seleccionado, setSeleccionado] = useState<Interesado | null>(null);
   const [seguimientos, setSeguimientos] = useState<Seguimiento[]>([]);
@@ -19,12 +27,19 @@ const GestionClientes: React.FC = () => {
     nombre: "",
     estado: "",
     fechaDesde: new Date().toISOString().split("T")[0],
-    fechaHasta: new Date().toISOString().split("T")[0],
+    fechaHasta: "",
     numeroPagina: 1,
     registrosPorPagina: 10,
   });
 
-  const [formInteresado, setFormInteresado] = useState<Partial<Interesado>>({});
+  // 👇 Usamos un solo formulario, que cambia según si hay seleccionado o no
+  const [formInteresado, setFormInteresado] = useState<
+    Partial<InteresadoRequest & Interesado>
+  >({
+    aportaIPS: false,
+    cantidadAportes: 0,
+  });
+
   const [formSeguimiento, setFormSeguimiento] = useState({
     idInteresado: 0,
     comentario: "",
@@ -35,13 +50,12 @@ const GestionClientes: React.FC = () => {
     try {
       const data = await obtenerInteresados({
         fechaDesde: filtros.fechaDesde,
-        fechaHasta: filtros.fechaHasta,
+        fechaHasta: filtros.fechaHasta || undefined,
         nombre: filtros.nombre,
         estado: filtros.estado,
         numeroPagina: filtros.numeroPagina,
         registrosPorPagina: filtros.registrosPorPagina,
       });
-
       setInteresados(data.items || []);
       setTotalRegistros(data.totalRegistros);
     } catch {
@@ -64,19 +78,58 @@ const GestionClientes: React.FC = () => {
   // 🔹 Vaciar formulario
   const limpiarFormulario = () => {
     setSeleccionado(null);
-    setFormInteresado({});
+    setFormInteresado({
+      nombre: "",
+      telefono: "",
+      email: "",
+      ciudad: "",
+      productoInteres: "",
+      fechaProximoContacto: "",
+      descripcion: "",
+      aportaIPS: false,
+      cantidadAportes: 0,
+      archivoConversacion: null,
+    });
     setSeguimientos([]);
   };
 
-  // 🔹 Registrar interesado
-  const handleRegistrarInteresado = async () => {
+  // 🔹 Guardar interesado (nuevo o editar)
+  const handleGuardarInteresado = async () => {
     try {
-      await registrarInteresado(formInteresado as any);
-      Swal.fire("Éxito", "Interesado registrado correctamente", "success");
+      if (formInteresado.aportaIPS && !formInteresado.cantidadAportes) {
+        Swal.fire(
+          "Atención",
+          "Debe indicar la cantidad de aportes de IPS.",
+          "warning"
+        );
+        return;
+      }
+
+      if (seleccionado) {
+        // 🔸 Editar
+        await actualizarInteresado(formInteresado as Interesado);
+        Swal.fire({
+          title: "Actualización exitosa",
+          text: "Los datos del interesado fueron actualizados.",
+          icon: "success",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      } else {
+        await registrarInteresado(formInteresado as InteresadoRequest);
+        Swal.fire({
+          title: "Registro exitoso",
+          text: "El interesado se guardó correctamente.",
+          icon: "success",
+          timer: 1800,
+          showConfirmButton: false,
+        });
+      }
+
       limpiarFormulario();
       cargarInteresados();
     } catch (error: any) {
-      Swal.fire("Error", error.message || "No se pudo registrar", "error");
+      Swal.fire("Error", error.message || "No se pudo guardar", "error");
     }
   };
 
@@ -219,7 +272,6 @@ const GestionClientes: React.FC = () => {
               <option value={20}>20</option>
               <option value={50}>50</option>
             </select>
-            <span>por página</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -368,42 +420,59 @@ const GestionClientes: React.FC = () => {
               />
             </div>
 
-            <div className="sm:col-span-2 flex items-center gap-2 mt-2">
-              <input
-                type="checkbox"
-                checked={formInteresado.aportaIPS || false}
-                onChange={(e) =>
-                  setFormInteresado({
-                    ...formInteresado,
-                    aportaIPS: e.target.checked,
-                    cantidadAportes: e.target.checked
-                      ? formInteresado.cantidadAportes || 0
-                      : 0,
-                  })
-                }
-              />
-              <label className="text-sm">Aporta IPS</label>
-            </div>
-
-            {formInteresado.aportaIPS && (
-              <div className="sm:col-span-2">
-                <label className="block mb-1 text-sm">
-                  Cantidad de aportes
-                </label>
+            {/* 🔹 Aporta IPS + Cantidad de aportes */}
+            <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+              <label className="flex items-center gap-2 text-sm text-white">
                 <input
-                  type="number"
-                  min={0}
-                  value={formInteresado.cantidadAportes || 0}
+                  type="checkbox"
+                  checked={formInteresado.aportaIPS || false}
                   onChange={(e) =>
                     setFormInteresado({
                       ...formInteresado,
-                      cantidadAportes: parseInt(e.target.value, 10),
+                      aportaIPS: e.target.checked,
+                      cantidadAportes: e.target.checked
+                        ? formInteresado.cantidadAportes || 0
+                        : 0,
                     })
                   }
-                  className="p-1.5 text-sm bg-gray-700 rounded w-full"
+                  className="w-4 h-4 accent-yellow-400 cursor-pointer"
                 />
-              </div>
-            )}
+                Aporta IPS
+              </label>
+
+              {formInteresado.aportaIPS && (
+                <div className="flex items-center gap-2 sm:ml-3">
+                  <label className="text-sm text-gray-300 whitespace-nowrap">
+                    Cantidad:
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Ej: 5"
+                    value={
+                      formInteresado.cantidadAportes === 0 &&
+                      !formInteresado.aportaIPS
+                        ? ""
+                        : formInteresado.cantidadAportes?.toString() || ""
+                    }
+                    onChange={(e) => {
+                      const valor = e.target.value;
+
+                      // Aceptar solo dígitos o vacío
+                      if (/^\d*$/.test(valor)) {
+                        setFormInteresado({
+                          ...formInteresado,
+                          cantidadAportes:
+                            valor === "" ? undefined : parseInt(valor, 10),
+                        });
+                      }
+                    }}
+                    className="p-1.5 text-sm bg-gray-700 text-center rounded w-28 custom-number-input border border-yellow-500 focus:ring-2 focus:ring-yellow-400"
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="sm:col-span-2">
               <label className="block mb-1 text-sm">
@@ -440,7 +509,7 @@ const GestionClientes: React.FC = () => {
           </div>
 
           <button
-            onClick={handleRegistrarInteresado}
+            onClick={handleGuardarInteresado}
             className="mt-3 w-full bg-yellow-500 text-black font-semibold py-1.5 rounded hover:bg-yellow-400 transition"
           >
             {seleccionado ? "Actualizar" : "Registrar"}
@@ -491,6 +560,21 @@ const GestionClientes: React.FC = () => {
             </button>
           </div>
         )}
+        {/* 🔹 Botón Volver al final */}
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="group relative inline-flex items-center gap-2 px-5 py-2 rounded-full border border-yellow-400 
+               text-yellow-400 font-semibold text-sm transition-all duration-300 
+               hover:bg-yellow-400 hover:text-black hover:shadow-[0_0_10px_rgba(250,204,21,0.6)]"
+          >
+            <ArrowLeft
+              size={16}
+              className="transition-transform duration-300 group-hover:-translate-x-1"
+            />
+            <span>Volver</span>
+          </button>
+        </div>
       </main>
     </div>
   );

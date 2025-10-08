@@ -225,3 +225,23 @@ body {
     animation: pulse-custom 2s infinite;
   }
 }
+
+/* 🔸 Flechas amarillas pero sin bloquear entrada */
+.custom-number-input::-webkit-inner-spin-button,
+.custom-number-input::-webkit-outer-spin-button {
+  opacity: 1;
+  appearance: auto;
+  filter: invert(75%) sepia(85%) saturate(700%) hue-rotate(5deg)
+    brightness(110%) contrast(105%);
+}
+
+/* Firefox */
+.custom-number-input {
+  -moz-appearance: textfield;
+}
+
+.custom-number-input::-moz-number-spin-up,
+.custom-number-input::-moz-number-spin-down {
+  filter: invert(75%) sepia(85%) saturate(700%) hue-rotate(5deg)
+    brightness(110%) contrast(105%);
+}

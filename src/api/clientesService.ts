@@ -97,7 +97,7 @@ export const obtenerInteresados = async (
   );
 
   const result = response.data;
-
+  console.log("Respuesta de obtenerInteresados:", result); // 🔹 Log de depuración
   if (!result.Success) {
     throw new Error(result.Errors?.[0] || "Error al obtener interesados.");
   }
@@ -126,4 +126,12 @@ export const obtenerSeguimientos = async (
   }
 
   return result.Data;
+};
+
+export const actualizarInteresado = async (interesado: Interesado) => {
+  const response = await instance.put(
+    `/interesados/${interesado.id}`,
+    interesado
+  );
+  return response.data;
 };

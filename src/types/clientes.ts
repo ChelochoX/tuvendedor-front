@@ -50,7 +50,7 @@ export interface FiltroInteresadosRequest {
   nombre?: string;
   estado?: string;
   fechaDesde?: string;
-  fechaHasta?: string;
+  fechaHasta?: string | undefined;
   numeroPagina: number;
   registrosPorPagina: number;
 }

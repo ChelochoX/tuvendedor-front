@@ -311,6 +311,22 @@ const FormularioInteresado: React.FC<Props> = ({
               }}
               className="block w-full text-sm text-gray-400 file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-yellow-50 file:text-yellow-700 hover:file:bg-yellow-100"
             />
+            {/* 🔹 Mostrar link al archivo existente */}
+            {formInteresado.archivoUrl && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-gray-300 text-sm">
+                  Archivo existente:
+                </span>
+                <a
+                  href={formInteresado.archivoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-yellow-400 hover:text-yellow-300 underline underline-offset-2"
+                >
+                  📎 Ver archivo
+                </a>
+              </div>
+            )}
           </div>
 
           <div className="sm:col-span-2">

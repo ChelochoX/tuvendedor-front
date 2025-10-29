@@ -35,6 +35,7 @@ const FormularioInteresado: React.FC<Props> = ({
   >({
     aportaIPS: false,
     cantidadAportes: 0,
+    estado: "Activo",
   });
 
   const [formSeguimiento, setFormSeguimiento] = useState({
@@ -42,10 +43,13 @@ const FormularioInteresado: React.FC<Props> = ({
     comentario: "",
   });
 
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     if (seleccionado) {
       setFormInteresado({
         ...seleccionado,
+        estado: seleccionado.estado ?? "Activo",
         fechaProximoContacto: seleccionado.fechaProximoContacto
           ? seleccionado.fechaProximoContacto.split("T")[0]
           : "",
@@ -71,8 +75,13 @@ const FormularioInteresado: React.FC<Props> = ({
       aportaIPS: false,
       cantidadAportes: 0,
       archivoConversacion: null,
+      estado: "Activo",
     });
     setSeguimientos([]);
+    // 👇 Limpia el input file manualmente
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   // 🔹 Guardar interesado (nuevo o editar)
@@ -243,8 +252,42 @@ const FormularioInteresado: React.FC<Props> = ({
             />
           </div>
 
-          {/* 🔹 Aporta IPS + Cantidad de aportes */}
-          <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center gap-3 mt-2">
+          {/* 🔹 Estado (switch moderno) + Aporta IPS + Cantidad de aportes */}
+          <div className="sm:col-span-2 flex flex-col sm:flex-row sm:items-center gap-4 mt-2">
+            {/* Switch moderno de estado */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-300">Estado Registro:</span>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormInteresado({
+                    ...formInteresado,
+                    estado:
+                      formInteresado.estado === "Activo"
+                        ? "Inactivo"
+                        : "Activo",
+                  })
+                }
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                  formInteresado.estado === "Activo"
+                    ? "bg-yellow-500"
+                    : "bg-gray-500"
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                    formInteresado.estado === "Activo"
+                      ? "translate-x-5"
+                      : "translate-x-1"
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Separador visual */}
+            <span className="opacity-30">|</span>
+
+            {/* Checkbox Aporta IPS */}
             <label className="flex items-center gap-2 text-sm text-white">
               <input
                 type="checkbox"
@@ -387,11 +430,13 @@ const FormularioInteresado: React.FC<Props> = ({
                 comentario: e.target.value,
               })
             }
-            className="w-full p-1.5 text-sm rounded bg-gray-700 mb-2"
+            disabled={formInteresado.estado === "Inactivo"}
+            className="w-full p-1.5 text-sm rounded bg-gray-700 mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <button
             onClick={handleRegistrarSeguimiento}
-            className="bg-yellow-500 text-black font-semibold px-3 py-1.5 rounded hover:bg-yellow-400 transition text-sm"
+            disabled={formInteresado.estado === "Inactivo"}
+            className="bg-yellow-500 text-black font-semibold px-3 py-1.5 rounded hover:bg-yellow-400 transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Agregar seguimiento
           </button>

@@ -10,6 +10,7 @@ export interface InteresadoRequest {
   aportaIPS: boolean;
   cantidadAportes: number;
   archivoConversacion?: File | null;
+  estado: "Activo" | "Inactivo";
 }
 
 // 🧩 Datos retornados por el backend (según tabla Interesados)
@@ -22,12 +23,13 @@ export interface Interesado {
   productoInteres?: string;
   fechaRegistro: string;
   fechaProximoContacto?: string;
-  estado?: string;
+  estado: "Activo" | "Inactivo";
   descripcion?: string;
   usuarioResponsable?: string;
   aportaIPS: boolean;
   cantidadAportes: number;
   archivoUrl?: string;
+  archivoConversacion?: File | null;
 }
 
 // 🧩 Datos para registrar un seguimiento
@@ -49,8 +51,10 @@ export interface Seguimiento {
 export interface FiltroInteresadosRequest {
   nombre?: string;
   estado?: string;
-  fechaDesde?: string;
-  fechaHasta?: string | undefined;
+  fechaRegistroDesde?: string;
+  fechaRegistroHasta?: string;
+  fechaProximoContactoDesde?: string;
+  fechaProximoContactoHasta?: string;
   numeroPagina: number;
   registrosPorPagina: number;
 }

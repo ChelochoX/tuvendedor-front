@@ -23,8 +23,10 @@ const ListarInteresados: React.FC<Props> = ({
   const [filtros, setFiltros] = useState({
     nombre: "",
     estado: "",
-    fechaDesde: new Date().toISOString().split("T")[0],
-    fechaHasta: "",
+    fechaRegistroDesde: new Date().toISOString().split("T")[0],
+    fechaRegistroHasta: "",
+    fechaProximoContactoDesde: "",
+    fechaProximoContactoHasta: "",
     numeroPagina: 1,
     registrosPorPagina: 10,
   });
@@ -32,10 +34,14 @@ const ListarInteresados: React.FC<Props> = ({
   const cargarInteresados = async () => {
     try {
       const data = await obtenerInteresados({
-        fechaDesde: filtros.fechaDesde,
-        fechaHasta: filtros.fechaHasta || undefined,
         nombre: filtros.nombre,
         estado: filtros.estado,
+        fechaRegistroDesde: filtros.fechaRegistroDesde || undefined,
+        fechaRegistroHasta: filtros.fechaRegistroHasta || undefined,
+        fechaProximoContactoDesde:
+          filtros.fechaProximoContactoDesde || undefined,
+        fechaProximoContactoHasta:
+          filtros.fechaProximoContactoHasta || undefined,
         numeroPagina: filtros.numeroPagina,
         registrosPorPagina: filtros.registrosPorPagina,
       });
@@ -75,38 +81,85 @@ const ListarInteresados: React.FC<Props> = ({
         </div>
 
         <div>
-          <label className="block text-gray-300 mb-1">Estado:</label>
-          <select
-            value={filtros.estado}
-            onChange={(e) => setFiltros({ ...filtros, estado: e.target.value })}
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          >
-            <option value="">Todos</option>
-            <option value="Activo">Activo</option>
-            <option value="Inactivo">Inactivo</option>
-            <option value="Pendiente">Pendiente</option>
-          </select>
+          <label className="block text-gray-300 mb-1 text-sm">
+            Estado del registro:
+          </label>
+          <div className="flex gap-2">
+            {["", "Activo", "Inactivo"].map((estado) => (
+              <button
+                key={estado || "Todos"}
+                onClick={() => setFiltros({ ...filtros, estado })}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition ${
+                  filtros.estado === estado
+                    ? "bg-yellow-500 text-black"
+                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+                }`}
+              >
+                {estado === "" ? "Todos" : estado}
+              </button>
+            ))}
+          </div>
         </div>
 
+        {/* 🔹 Filtros por fecha de registro */}
         <div>
-          <label className="block text-gray-300 mb-1">Fecha desde:</label>
+          <label className="block text-gray-300 mb-1">
+            Fecha registro desde:
+          </label>
           <input
             type="date"
-            value={filtros.fechaDesde}
+            value={filtros.fechaRegistroDesde}
             onChange={(e) =>
-              setFiltros({ ...filtros, fechaDesde: e.target.value })
+              setFiltros({ ...filtros, fechaRegistroDesde: e.target.value })
             }
             className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
           />
         </div>
 
         <div>
-          <label className="block text-gray-300 mb-1">Fecha hasta:</label>
+          <label className="block text-gray-300 mb-1">
+            Fecha registro hasta:
+          </label>
           <input
             type="date"
-            value={filtros.fechaHasta}
+            value={filtros.fechaRegistroHasta}
             onChange={(e) =>
-              setFiltros({ ...filtros, fechaHasta: e.target.value })
+              setFiltros({ ...filtros, fechaRegistroHasta: e.target.value })
+            }
+            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
+          />
+        </div>
+
+        {/* 🔹 Filtros por fecha próximo seguimiento */}
+        <div>
+          <label className="block text-gray-300 mb-1">
+            Fecha próximo seguimiento desde:
+          </label>
+          <input
+            type="date"
+            value={filtros.fechaProximoContactoDesde}
+            onChange={(e) =>
+              setFiltros({
+                ...filtros,
+                fechaProximoContactoDesde: e.target.value,
+              })
+            }
+            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
+          />
+        </div>
+
+        <div>
+          <label className="block text-gray-300 mb-1">
+            Fecha próximo seguimiento hasta:
+          </label>
+          <input
+            type="date"
+            value={filtros.fechaProximoContactoHasta}
+            onChange={(e) =>
+              setFiltros({
+                ...filtros,
+                fechaProximoContactoHasta: e.target.value,
+              })
             }
             className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
           />
@@ -144,11 +197,7 @@ const ListarInteresados: React.FC<Props> = ({
 
             <span
               className={`text-xs font-semibold ${
-                i.estado === "Pendiente"
-                  ? "text-yellow-400"
-                  : i.estado === "Activo"
-                  ? "text-green-400"
-                  : "text-red-400"
+                i.estado === "Activo" ? "text-green-400" : "text-red-400"
               }`}
             >
               {i.estado || "Sin estado"}

@@ -29,6 +29,7 @@ export const registrarInteresado = async (
   if (payload.descripcion) formData.append("Descripcion", payload.descripcion);
   formData.append("AportaIPS", payload.aportaIPS.toString());
   formData.append("CantidadAportes", payload.cantidadAportes.toString());
+  formData.append("Estado", payload.estado || "Activo");
 
   if (payload.archivoConversacion) {
     formData.append("ArchivoConversacion", payload.archivoConversacion);
@@ -134,9 +135,33 @@ export const obtenerSeguimientos = async (
 };
 
 export const actualizarInteresado = async (interesado: Interesado) => {
+  const formData = new FormData();
+
+  formData.append("Nombre", interesado.nombre);
+  if (interesado.telefono) formData.append("Telefono", interesado.telefono);
+  if (interesado.email) formData.append("Email", interesado.email);
+  if (interesado.ciudad) formData.append("Ciudad", interesado.ciudad);
+  if (interesado.productoInteres)
+    formData.append("ProductoInteres", interesado.productoInteres);
+  if (interesado.fechaProximoContacto)
+    formData.append("FechaProximoContacto", interesado.fechaProximoContacto);
+  if (interesado.descripcion)
+    formData.append("Descripcion", interesado.descripcion);
+  formData.append("AportaIPS", interesado.aportaIPS.toString());
+  formData.append("CantidadAportes", interesado.cantidadAportes.toString());
+  formData.append("Estado", interesado.estado || "Activo");
+
+  if (interesado.archivoConversacion) {
+    formData.append("ArchivoConversacion", interesado.archivoConversacion);
+  }
+
   const response = await instance.put(
-    `/interesados/${interesado.id}`,
-    interesado
+    `${API_URL}/actualizar-interesado/${interesado.id}`,
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
   );
+
   return response.data;
 };

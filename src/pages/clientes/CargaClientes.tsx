@@ -11,8 +11,6 @@ const GestionClientes: React.FC = () => {
 
   const [seleccionado, setSeleccionado] = useState<Interesado | null>(null);
   const [recargarLista, setRecargarLista] = useState(false);
-
-  // 🔹 Agregar estos dos estados
   const [seguimientos, setSeguimientos] = useState<Seguimiento[]>([]);
 
   return (
@@ -24,23 +22,26 @@ const GestionClientes: React.FC = () => {
         setRecargarLista={setRecargarLista}
       />
 
-      <FormularioInteresado
-        seleccionado={seleccionado}
-        setSeleccionado={setSeleccionado}
-        setRecargarLista={setRecargarLista}
-        seguimientos={seguimientos}
-        setSeguimientos={setSeguimientos}
-      />
+      {/* Contenedor derecho: formulario + botón */}
+      <div className="flex flex-col flex-1">
+        <FormularioInteresado
+          seleccionado={seleccionado}
+          setSeleccionado={setSeleccionado}
+          setRecargarLista={setRecargarLista}
+          seguimientos={seguimientos}
+          setSeguimientos={setSeguimientos}
+        />
 
-      {/* 🔹 Botón Volver */}
-      <div className="md:absolute md:bottom-4 md:left-4 md:mb-0 mb-6 flex justify-center md:justify-start">
-        <button
-          onClick={() => navigate("/clientes")}
-          className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-2 px-4 rounded-full shadow-md transition-all duration-200"
-        >
-          <ArrowLeft size={18} />
-          <span>Volver al panel</span>
-        </button>
+        {/* 🔹 Botón Volver — ahora dentro del bloque del formulario */}
+        <div className="mt-auto py-6 flex justify-center md:justify-start px-6">
+          <button
+            onClick={() => navigate("/clientes/dashboard")}
+            className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-2 px-5 rounded-full shadow-md transition-all duration-200"
+          >
+            <ArrowLeft size={18} />
+            <span>Volver al panel</span>
+          </button>
+        </div>
       </div>
     </div>
   );

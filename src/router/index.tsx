@@ -1,5 +1,5 @@
 // src/router/index.tsx
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Marketplace from "../pages/Marketplace";
 import ProductDetailWrapper from "../pages/ProductDetailWrapper";
 
@@ -14,7 +14,11 @@ const RoutesHandler = () => (
     <Route path="/producto/:id" element={<ProductDetailWrapper />} />
 
     {/* 👥 Módulo de Clientes */}
-    <Route path="/clientes" element={<Dashboard />} />
+    <Route
+      path="/clientes"
+      element={<Navigate to="/clientes/dashboard" replace />}
+    />
+    <Route path="/clientes/dashboard" element={<Dashboard />} />
     <Route path="/clientes/cargar" element={<CargaClientes />} />
   </Routes>
 );

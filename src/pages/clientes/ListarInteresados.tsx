@@ -23,7 +23,7 @@ const ListarInteresados: React.FC<Props> = ({
   const [filtros, setFiltros] = useState({
     nombre: "",
     estado: "",
-    fechaRegistroDesde: new Date().toISOString().split("T")[0],
+    fechaRegistroDesde: "",
     fechaRegistroHasta: "",
     fechaProximoContactoDesde: "",
     fechaProximoContactoHasta: "",

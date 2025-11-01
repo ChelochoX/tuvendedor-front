@@ -284,58 +284,60 @@ const FormularioInteresado: React.FC<Props> = ({
               </button>
             </div>
 
-            {/* Separador visual */}
-            <span className="opacity-30">|</span>
+            {/* Separador visual solo en escritorio */}
+            <span className="hidden sm:inline opacity-30">|</span>
 
-            {/* Checkbox Aporta IPS */}
-            <label className="flex items-center gap-2 text-sm text-white">
-              <input
-                type="checkbox"
-                checked={formInteresado.aportaIPS || false}
-                onChange={(e) =>
-                  setFormInteresado({
-                    ...formInteresado,
-                    aportaIPS: e.target.checked,
-                    cantidadAportes: e.target.checked
-                      ? formInteresado.cantidadAportes || 0
-                      : 0,
-                  })
-                }
-                className="w-4 h-4 accent-yellow-400 cursor-pointer"
-              />
-              Aporta IPS
-            </label>
-
-            {formInteresado.aportaIPS && (
-              <div className="flex items-center gap-2 sm:ml-3">
-                <label className="text-sm text-gray-300 whitespace-nowrap">
-                  Cantidad:
-                </label>
+            {/* Checkbox Aporta IPS + Cantidad */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3">
+              <label className="flex items-center gap-2 text-sm text-white">
                 <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="Ej: 5"
-                  value={
-                    formInteresado.cantidadAportes === 0 &&
-                    !formInteresado.aportaIPS
-                      ? ""
-                      : formInteresado.cantidadAportes?.toString() || ""
+                  type="checkbox"
+                  checked={formInteresado.aportaIPS || false}
+                  onChange={(e) =>
+                    setFormInteresado({
+                      ...formInteresado,
+                      aportaIPS: e.target.checked,
+                      cantidadAportes: e.target.checked
+                        ? formInteresado.cantidadAportes || 0
+                        : 0,
+                    })
                   }
-                  onChange={(e) => {
-                    const valor = e.target.value;
-                    if (/^\d*$/.test(valor)) {
-                      setFormInteresado({
-                        ...formInteresado,
-                        cantidadAportes:
-                          valor === "" ? undefined : parseInt(valor, 10),
-                      });
-                    }
-                  }}
-                  className="p-1.5 text-sm bg-gray-700 text-center rounded w-28 border border-yellow-500 focus:ring-2 focus:ring-yellow-400"
+                  className="w-4 h-4 accent-yellow-400 cursor-pointer"
                 />
-              </div>
-            )}
+                Aporta IPS
+              </label>
+
+              {formInteresado.aportaIPS && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-gray-300 whitespace-nowrap">
+                    Cantidad:
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="Ej: 5"
+                    value={
+                      formInteresado.cantidadAportes === 0 &&
+                      !formInteresado.aportaIPS
+                        ? ""
+                        : formInteresado.cantidadAportes?.toString() || ""
+                    }
+                    onChange={(e) => {
+                      const valor = e.target.value;
+                      if (/^\d*$/.test(valor)) {
+                        setFormInteresado({
+                          ...formInteresado,
+                          cantidadAportes:
+                            valor === "" ? undefined : parseInt(valor, 10),
+                        });
+                      }
+                    }}
+                    className="p-1.5 text-sm bg-gray-700 text-center rounded w-20 sm:w-28 border border-yellow-500 focus:ring-2 focus:ring-yellow-400"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="sm:col-span-2">

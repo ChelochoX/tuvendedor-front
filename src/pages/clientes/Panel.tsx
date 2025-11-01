@@ -2,7 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
-import GroupIcon from "@mui/icons-material/Group";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const Panel: React.FC = () => {
@@ -12,18 +11,20 @@ const Panel: React.FC = () => {
     <div className="flex flex-col justify-between h-full">
       {/* Sección superior */}
       <div className="flex flex-col gap-2">
-        <h2 className="text-white font-bold text-lg px-4 mb-3">Clientes</h2>
+        <h2 className="text-yellow-400 font-bold text-lg px-4 mb-3">
+          Clientes
+        </h2>
 
         {/* Dashboard general */}
         <button
-          onClick={() => navigate("/clientes")}
+          onClick={() => navigate("/clientes/dashboard")}
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <DashboardIcon fontSize="small" />
           Panel general
         </button>
 
-        {/* Registrar nuevo cliente / seguimiento */}
+        {/* Registrar nuevo cliente */}
         <button
           onClick={() => navigate("/clientes/cargar")}
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"

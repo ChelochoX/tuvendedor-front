@@ -13,14 +13,25 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
   return (
     <Link to={`/producto/${producto.id}`} className="block">
       <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer overflow-hidden ring-1 ring-transparent hover:ring-yellow-500 flex flex-col h-full">
-        <div className="w-full aspect-[4/3] relative overflow-hidden rounded-t-lg bg-white">
-          <img
-            src={
-              producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
-            }
-            alt={producto.nombre}
-            className="w-full h-full object-cover absolute top-0 left-0"
-          />
+        <div className="w-full aspect-[4/3] relative overflow-hidden rounded-t-lg bg-black">
+          {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
+            <video
+              src={producto.imagenes[0]?.mainUrl}
+              className="w-full h-full object-cover absolute top-0 left-0"
+              muted
+              autoPlay
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              src={
+                producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
+              }
+              alt={producto.nombre}
+              className="w-full h-full object-cover absolute top-0 left-0"
+            />
+          )}
         </div>
 
         <div className="p-3 text-sm relative flex flex-col flex-1">

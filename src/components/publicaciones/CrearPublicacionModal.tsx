@@ -250,7 +250,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
             <input
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,video/*"
               onChange={handleImageChange}
               className="text-white"
             />
@@ -273,17 +273,28 @@ const CrearPublicacionModal: React.FC<Props> = ({
           <div className="w-full md:w-2/3 bg-[#2a2b30] rounded-xl flex flex-col items-center justify-center text-gray-400 text-sm relative overflow-hidden">
             {imagenes.length > 0 ? (
               <>
-                <div className="relative w-full h-[600px]">
-                  <img
-                    src={URL.createObjectURL(imagenes[previewIndex])}
-                    alt="Fondo desenfocado"
-                    className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-20"
-                  />
-                  <img
-                    src={URL.createObjectURL(imagenes[previewIndex])}
-                    alt="Preview"
-                    className="relative z-10 w-full h-full object-contain rounded-xl"
-                  />
+                <div className="relative w-full h-[600px] flex items-center justify-center bg-black rounded-xl overflow-hidden">
+                  {imagenes[previewIndex].type.startsWith("video/") ? (
+                    <video
+                      src={URL.createObjectURL(imagenes[previewIndex])}
+                      controls
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  ) : (
+                    <>
+                      <img
+                        src={URL.createObjectURL(imagenes[previewIndex])}
+                        alt="Fondo desenfocado"
+                        className="absolute inset-0 w-full h-full object-cover blur-md scale-110 opacity-20"
+                      />
+                      <img
+                        src={URL.createObjectURL(imagenes[previewIndex])}
+                        alt="Preview"
+                        className="relative z-10 w-full h-full object-contain rounded-xl"
+                      />
+                    </>
+                  )}
+                  {/* Botones de navegación (izquierda/derecha) */}
                   {imagenes.length > 1 && (
                     <>
                       <button
@@ -305,15 +316,27 @@ const CrearPublicacionModal: React.FC<Props> = ({
                 <div className="mt-2 w-full flex gap-2 overflow-x-auto">
                   {imagenes.map((img, idx) => (
                     <div className="relative" key={idx}>
-                      <img
-                        src={URL.createObjectURL(img)}
-                        onClick={() => setPreviewIndex(idx)}
-                        className={`w-20 h-20 object-cover rounded cursor-pointer border-2 ${
-                          idx === previewIndex
-                            ? "border-yellow-400"
-                            : "border-transparent"
-                        }`}
-                      />
+                      {img.type.startsWith("video/") ? (
+                        <video
+                          src={URL.createObjectURL(img)}
+                          className={`w-20 h-20 object-cover rounded cursor-pointer border-2 ${
+                            idx === previewIndex
+                              ? "border-yellow-400"
+                              : "border-transparent"
+                          }`}
+                          muted
+                        />
+                      ) : (
+                        <img
+                          src={URL.createObjectURL(img)}
+                          onClick={() => setPreviewIndex(idx)}
+                          className={`w-20 h-20 object-cover rounded cursor-pointer border-2 ${
+                            idx === previewIndex
+                              ? "border-yellow-400"
+                              : "border-transparent"
+                          }`}
+                        />
+                      )}
                       <button
                         onClick={() => handleRemoveImage(idx)}
                         className="absolute top-0 right-0 bg-black bg-opacity-70 text-white text-xs px-1 rounded-bl"

@@ -13,7 +13,7 @@ import PersonIcon from "@mui/icons-material/Person";
 
 const categorias: Categoria[] = [
   { id: "0", nombre: "Todos", icono: "🌐" },
-  { id: "1", nombre: "Vehículos", icono: "🚗" },
+  { id: "1", nombre: "Vehículos/Motos", icono: "🚗" },
   { id: "2", nombre: "Propiedades", icono: "🏠" },
   { id: "3", nombre: "Electrodomésticos", icono: "💡" },
 ];

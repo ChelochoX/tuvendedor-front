@@ -1,4 +1,4 @@
-// ProductDetail ajustado para múltiples cuotas dinámicas
+// ProductDetail con soporte híbrido imágenes + videos, manteniendo diseño original
 import React, { useState } from "react";
 import {
   Box,
@@ -7,10 +7,6 @@ import {
   useMediaQuery,
   useTheme,
   IconButton,
-  MenuItem,
-  Select,
-  InputLabel,
-  FormControl,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -41,8 +37,6 @@ const ProductDetail: React.FC<Props> = ({
       (op) => `${op.cuotas} X Gs. ${op.valorCuota.toLocaleString()}`
     ) || [];
 
-  const [cuotaSeleccionada, setCuotaSeleccionada] = useState(cuotas[0] || "");
-
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
       prev === 0 ? producto.imagenes.length - 1 : prev - 1
@@ -55,6 +49,9 @@ const ProductDetail: React.FC<Props> = ({
     );
   };
 
+  const currentUrl = producto.imagenes[selectedImageIndex].mainUrl;
+  const isVideo = currentUrl?.toLowerCase().endsWith(".mp4");
+
   return (
     <Box
       position="relative"
@@ -65,6 +62,7 @@ const ProductDetail: React.FC<Props> = ({
       bgcolor="#111"
       color="#fff"
     >
+      {/* 🔸 Botón Cerrar */}
       <IconButton
         onClick={() => navigate(-1)}
         sx={{
@@ -72,7 +70,7 @@ const ProductDetail: React.FC<Props> = ({
           top: 24,
           left: 24,
           color: "#FFD700",
-          zIndex: 10,
+          zIndex: 20,
           "&:hover": {
             backgroundColor: "transparent",
             transform: "scale(1.1)",
@@ -82,41 +80,68 @@ const ProductDetail: React.FC<Props> = ({
         <CloseIcon sx={{ fontSize: 32 }} />
       </IconButton>
 
+      {/* 🔸 Galería principal */}
       <Box flex={isMobile ? undefined : 2} position="relative">
         <Box
           position="relative"
           width="100%"
-          height={isMobile ? "70vh" : "80vh"}
+          height={isMobile ? "65vh" : "80vh"}
           borderRadius={2}
           overflow="hidden"
         >
-          <Box
-            sx={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              backgroundImage: `url(${producto.imagenes[selectedImageIndex]})`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              filter: "blur(20px)",
-              transform: "scale(1.1)",
-              zIndex: 0,
-            }}
-          />
+          {/* Fondo difuminado solo si es imagen */}
+          {!isVideo && (
+            <Box
+              sx={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+                backgroundImage: `url(${currentUrl})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                filter: "blur(20px)",
+                transform: "scale(1.1)",
+                zIndex: 0,
+              }}
+            />
+          )}
 
-          <Box
-            component="img"
-            src={producto.imagenes[selectedImageIndex].mainUrl}
-            alt={producto.nombre}
-            sx={{
-              position: "relative",
-              zIndex: 1,
-              width: "100%",
-              height: "100%",
-              objectFit: "contain",
-            }}
-          />
+          {/* Contenido dinámico */}
+          {isVideo ? (
+            <video
+              key={currentUrl} // fuerza reinicio si cambiás de video
+              src={currentUrl}
+              muted
+              autoPlay
+              loop
+              playsInline
+              controls={false} // lo ocultamos si querés que se vea automático, o ponelo true si preferís visible
+              className="relative z-10 w-full h-full object-contain bg-black"
+              style={{
+                maxHeight: isMobile ? "65vh" : "80vh",
+              }}
+              onEnded={(e) => {
+                const vid = e.currentTarget;
+                vid.currentTime = 0;
+                vid.play();
+              }}
+            />
+          ) : (
+            <Box
+              component="img"
+              src={currentUrl}
+              alt={producto.nombre}
+              sx={{
+                position: "relative",
+                zIndex: 1,
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+            />
+          )}
 
+          {/* Flechas de navegación */}
           {producto.imagenes.length > 1 && (
             <>
               <IconButton
@@ -126,12 +151,12 @@ const ProductDetail: React.FC<Props> = ({
                   top: "50%",
                   left: 10,
                   transform: "translateY(-50%)",
-                  zIndex: 2,
+                  zIndex: 15,
                   backgroundColor: "#000",
                   border: "2px solid #FFD700",
                   color: "#FFD700",
-                  width: 48,
-                  height: 48,
+                  width: 42,
+                  height: 42,
                   "&:hover": {
                     backgroundColor: "#fff",
                     borderColor: "#000",
@@ -149,12 +174,12 @@ const ProductDetail: React.FC<Props> = ({
                   top: "50%",
                   right: 10,
                   transform: "translateY(-50%)",
-                  zIndex: 2,
+                  zIndex: 15,
                   backgroundColor: "#000",
                   border: "2px solid #FFD700",
                   color: "#FFD700",
-                  width: 48,
-                  height: 48,
+                  width: 42,
+                  height: 42,
                   "&:hover": {
                     backgroundColor: "#fff",
                     borderColor: "#000",
@@ -168,30 +193,57 @@ const ProductDetail: React.FC<Props> = ({
           )}
         </Box>
 
-        <Box mt={2} display="flex" gap={1} overflow="auto">
-          {producto.imagenes.map((img, i) => (
-            <img
-              key={i}
-              src={img.thumbUrl}
-              alt={`Miniatura ${i + 1}`}
-              onClick={() => setSelectedImageIndex(i)}
-              style={{
-                width: 60,
-                height: 60,
-                objectFit: "cover",
-                borderRadius: 8,
-                border:
-                  selectedImageIndex === i
-                    ? "2px solid #FFD700"
-                    : "1px solid #333",
-                cursor: "pointer",
-              }}
-            />
-          ))}
+        {/* 🔸 Miniaturas (imágenes + videos) */}
+        <Box mt={2} display="flex" gap={1} overflow="auto" pb={1}>
+          {producto.imagenes.map((img, i) => {
+            const isVid = img.mainUrl.toLowerCase().endsWith(".mp4");
+            return (
+              <Box
+                key={i}
+                onClick={() => setSelectedImageIndex(i)}
+                sx={{
+                  width: 60,
+                  height: 60,
+                  borderRadius: 1.5,
+                  overflow: "hidden",
+                  border:
+                    selectedImageIndex === i
+                      ? "2px solid #FFD700"
+                      : "1px solid #333",
+                  cursor: "pointer",
+                  position: "relative",
+                  flexShrink: 0,
+                  backgroundColor: "#000",
+                }}
+              >
+                {isVid ? (
+                  <video
+                    src={img.mainUrl}
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                    style={{ opacity: 0.85 }}
+                  />
+                ) : (
+                  <img
+                    src={img.thumbUrl || img.mainUrl}
+                    alt={`Miniatura ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                )}
+              </Box>
+            );
+          })}
         </Box>
       </Box>
 
-      <Box flex={1} mt={isMobile ? 2 : 0} p={isMobile ? 2 : 0} maxWidth={320}>
+      {/* 🔸 Lado derecho: descripción, precio, cuotas, vendedor */}
+      <Box
+        flex={1}
+        mt={isMobile ? 2 : 0}
+        p={isMobile ? 2 : 0}
+        maxWidth={isMobile ? "100%" : 320}
+      >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h5" fontWeight="bold" color="#fff">
             {producto.nombre}
@@ -209,6 +261,7 @@ const ProductDetail: React.FC<Props> = ({
           Ubicación: {producto.ubicacion}
         </Typography>
 
+        {/* 🔸 Precio y cuotas */}
         <Box mt={3} display="flex" flexDirection="column" gap={2}>
           <Box
             p={2}
@@ -253,6 +306,7 @@ const ProductDetail: React.FC<Props> = ({
           )}
         </Box>
 
+        {/* 🔸 Descripción */}
         {producto.descripcion && (
           <Box mt={4}>
             <Typography variant="body1" mb={1} fontWeight="bold" color="#fff">
@@ -267,6 +321,7 @@ const ProductDetail: React.FC<Props> = ({
           </Box>
         )}
 
+        {/* 🔸 Vendedor */}
         <Box mt={4} display="flex" alignItems="center" gap={2}>
           <img
             src={producto.vendedor.avatar}
@@ -278,6 +333,7 @@ const ProductDetail: React.FC<Props> = ({
           </Typography>
         </Box>
 
+        {/* 🔸 Botón de contacto */}
         <Box mt={4}>
           <Button
             fullWidth

@@ -109,3 +109,44 @@ export const obtenerPublicaciones = async (
     } as Producto;
   });
 };
+
+// 🗑️ Eliminar publicación
+export const eliminarPublicacion = async (id: number): Promise<void> => {
+  const response = await instance.delete<ApiResponse<any>>(
+    `${API_URL}/eliminar-publicacion/${id}`
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    const mensaje =
+      result.Message || result.Errors?.[0] || "Error al eliminar publicación.";
+    const error = new Error(mensaje);
+    (error as any).customErrors = result.Errors;
+    throw error;
+  }
+};
+
+// 🚀 Obtener solo las publicaciones del usuario autenticado
+export const obtenerMisPublicaciones = async (): Promise<Producto[]> => {
+  const response = await instance.get<ApiResponse<any[]>>(
+    `${API_URL}/mis-publicaciones`
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Error al obtener tus publicaciones");
+  }
+
+  const productos = result.Data || [];
+
+  return productos.map((p) => {
+    const imagenes = normalizeImagenes(p.imagenes);
+    return {
+      ...p,
+      imagenes,
+      imagen: imagenes[0]?.mainUrl || "",
+    } as Producto;
+  });
+};

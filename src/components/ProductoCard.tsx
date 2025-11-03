@@ -2,13 +2,82 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Producto } from "../types/producto";
 import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import Swal from "sweetalert2";
+import { eliminarPublicacion } from "../api/publicacionesService";
 
 interface Props {
   producto: Producto;
+  onEliminado?: (id: number) => void;
+  mostrarAcciones?: boolean; // 🔹 nueva prop
 }
 
-const ProductoCard: React.FC<Props> = ({ producto }) => {
+const ProductoCard: React.FC<Props> = ({
+  producto,
+  onEliminado,
+  mostrarAcciones = false, // valor por defecto
+}) => {
   const [favorito, setFavorito] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+
+  // 🔹 Maneja la eliminación con confirmación SweetAlert2
+  const handleEliminar = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const confirm = await Swal.fire({
+      title: "¿Eliminar publicación?",
+      text: "Esta acción eliminará también las imágenes y videos asociados.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#facc15",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      background: "#1e1f23",
+      color: "#fff",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      setEliminando(true);
+
+      Swal.fire({
+        title: "Eliminando...",
+        text: "Por favor, esperá un momento.",
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: "#1e1f23",
+        color: "#fff",
+        didOpen: () => Swal.showLoading(),
+      });
+
+      await eliminarPublicacion(producto.id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Publicación eliminada",
+        text: "El producto fue eliminado correctamente.",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#1e1f23",
+        color: "#fff",
+      });
+
+      // 🔹 Notificar al padre (Marketplace) para refrescar el listado
+      if (onEliminado) onEliminado(producto.id);
+    } catch (error: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al eliminar",
+        text: error.message || "Ocurrió un error inesperado.",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+    } finally {
+      setEliminando(false);
+    }
+  };
 
   return (
     <Link to={`/producto/${producto.id}`} className="block">
@@ -56,31 +125,36 @@ const ProductoCard: React.FC<Props> = ({ producto }) => {
                 {producto.vendedor.nombre}
               </span>
             </div>
-            <div className="flex gap-2">
-              {/* Botón Editar */}
-              <button
-                className="text-gray-400 hover:text-blue-500 transition"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Editar producto", producto.id);
-                }}
-              >
-                <PencilSquareIcon className="w-5 h-5" />
-              </button>
 
-              {/* Botón Eliminar */}
-              <button
-                className="text-gray-400 hover:text-red-500 transition"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log("Eliminar producto", producto.id);
-                }}
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
-            </div>
+            {/* 🔹 Solo muestra los botones si mostrarAcciones = true */}
+            {mostrarAcciones && (
+              <div className="flex gap-2">
+                {/* Botón Editar */}
+                <button
+                  className="text-gray-400 hover:text-blue-500 transition"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log("Editar producto", producto.id);
+                  }}
+                >
+                  <PencilSquareIcon className="w-5 h-5" />
+                </button>
+
+                {/* Botón Eliminar */}
+                <button
+                  disabled={eliminando}
+                  className={`transition ${
+                    eliminando
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-400 hover:text-red-500"
+                  }`}
+                  onClick={handleEliminar}
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

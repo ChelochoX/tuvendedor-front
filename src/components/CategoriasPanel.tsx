@@ -1,7 +1,8 @@
 import React from "react";
 import { Categoria } from "../types/categoria";
 import AddIcon from "@mui/icons-material/Add";
-import PersonIcon from "@mui/icons-material/Person"; // 👤 icono de clientes
+import PersonIcon from "@mui/icons-material/Person";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks"; // 📚 icono de "Mis publicaciones"
 import { useNavigate } from "react-router-dom";
 
 interface Props {
@@ -19,14 +20,12 @@ const CategoriasPanel: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
 
-  // 🔹 Redirige a la pantalla de clientes
-  const irAClientes = () => {
-    navigate("/clientes");
-  };
+  const irAClientes = () => navigate("/clientes");
+  const irAMisPublicaciones = () => navigate("/mis-publicaciones");
 
   return (
     <div className="flex flex-col gap-2">
-      {/* Botón Crear publicación */}
+      {/* 🟡 Botón Crear publicación */}
       <button
         className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
         onClick={onCrearPublicacion}
@@ -35,10 +34,10 @@ const CategoriasPanel: React.FC<Props> = ({
         Crear publicación
       </button>
 
-      {/* Línea divisoria */}
-      <hr className="border-t border-gray-600 mb-2" />
+      {/* 🟨 Separador */}
+      <hr className="border-t-2 border-yellow-400 opacity-60 my-2" />
 
-      {/* Listado de categorías */}
+      {/* 🌐 Listado de categorías */}
       {categorias.map((cat) => {
         const esSeleccionada = categoriaSeleccionada?.id === cat.id;
         return (
@@ -58,18 +57,32 @@ const CategoriasPanel: React.FC<Props> = ({
         );
       })}
 
-      {/* Botón al pie del panel */}
-      <div className="mt-4">
-        <button
-          onClick={irAClientes}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
-                     text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
-                     transition-all duration-300"
-        >
-          <PersonIcon fontSize="small" />
-          Gestionar Clientes
-        </button>
-      </div>
+      {/* 🟨 Separador */}
+      <hr className="border-t-2 border-yellow-400 opacity-60 my-3" />
+
+      {/* 📚 Mis publicaciones */}
+      <button
+        onClick={() => window.dispatchEvent(new Event("ver-mis-publicaciones"))}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
+             text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
+             transition-all duration-300"
+      >
+        📚 Mis publicaciones
+      </button>
+
+      {/* 🟨 Separador */}
+      <hr className="border-t-2 border-yellow-400 opacity-60 my-3" />
+
+      {/* 👤 Gestionar Clientes */}
+      <button
+        onClick={irAClientes}
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
+                   text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
+                   transition-all duration-300"
+      >
+        <PersonIcon fontSize="small" />
+        Gestionar Clientes
+      </button>
     </div>
   );
 };

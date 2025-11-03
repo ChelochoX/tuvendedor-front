@@ -7,7 +7,10 @@ import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
 import LoginModal from "../components/auth/LoginModal";
 import RegisterModal from "../components/auth/RegisterModal";
-import { obtenerPublicaciones } from "../api/publicacionesService";
+import {
+  obtenerPublicaciones,
+  obtenerMisPublicaciones,
+} from "../api/publicacionesService";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 
@@ -31,21 +34,26 @@ const Marketplace: React.FC = () => {
   const [busqueda, setBusqueda] = useState("");
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(false);
+  const [mostrarSoloMias, setMostrarSoloMias] = useState(false);
 
   // 🔥 Consumir API cada vez que cambie categoría o búsqueda
   useEffect(() => {
     const fetchProductos = async () => {
       setCargando(true);
       try {
-        const categoria =
-          categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
-            ? categoriaSeleccionada.nombre
-            : undefined;
+        let data: Producto[] = [];
 
-        const data = await obtenerPublicaciones(
-          categoria,
-          busqueda || undefined
-        );
+        if (mostrarSoloMias) {
+          data = await obtenerMisPublicaciones();
+        } else {
+          const categoria =
+            categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
+              ? categoriaSeleccionada.nombre
+              : undefined;
+
+          data = await obtenerPublicaciones(categoria, busqueda || undefined);
+        }
+
         setProductos(data);
       } catch (error) {
         console.error("Error al obtener publicaciones:", error);
@@ -55,7 +63,7 @@ const Marketplace: React.FC = () => {
     };
 
     fetchProductos();
-  }, [categoriaSeleccionada, busqueda]);
+  }, [categoriaSeleccionada, busqueda, mostrarSoloMias]);
 
   const handleCrearPublicacion = () => {
     const token = localStorage.getItem("token");
@@ -105,12 +113,30 @@ const Marketplace: React.FC = () => {
     };
   }, [quierePublicar]);
 
+  useEffect(() => {
+    const handleVerMisPublicaciones = () => {
+      setMostrarSoloMias(true);
+    };
+
+    // 📡 Escucha el evento que dispara el botón "Mis publicaciones" del sidebar
+    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
+
+    // 🧹 Limpieza al desmontar el componente
+    return () => {
+      window.removeEventListener(
+        "ver-mis-publicaciones",
+        handleVerMisPublicaciones
+      );
+    };
+  }, []);
+
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
       <Cabecera />
 
       {/* Categorías scrollable en móvil */}
       <div className="md:hidden overflow-x-auto whitespace-nowrap px-4 py-2 flex gap-2 bg-[#1f2937] border-b border-gray-700">
+        {/* 🧭 Botones de categorías */}
         {categorias.map((cat) => (
           <button
             key={cat.id}
@@ -119,15 +145,31 @@ const Marketplace: React.FC = () => {
                 ? "bg-yellow-400 text-black font-semibold"
                 : "bg-[#2d3748] text-white"
             }`}
-            onClick={() => setCategoriaSeleccionada(cat)}
+            onClick={() => {
+              setCategoriaSeleccionada(cat);
+              setMostrarSoloMias(false); // ⚡ al tocar categoría, salimos del modo “mis publicaciones”
+            }}
           >
             {cat.icono} {cat.nombre}
           </button>
         ))}
+
+        {/* 📚 Mis publicaciones */}
+        <button
+          onClick={() =>
+            window.dispatchEvent(new Event("ver-mis-publicaciones"))
+          }
+          className="px-4 py-1 rounded-full border text-sm font-semibold 
+               text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+        >
+          📚 Mis publicaciones
+        </button>
+
         {/* 👤 Gestionar Clientes */}
         <button
           onClick={() => navigate("/clientes")}
-          className="px-4 py-1 rounded-full border text-sm bg-[#2d3748] text-white hover:bg-yellow-400 hover:text-black transition"
+          className="px-4 py-1 rounded-full border text-sm font-semibold 
+               text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
         >
           <PersonIcon fontSize="small" className="mr-1" />
           Gestionar Clientes
@@ -147,6 +189,7 @@ const Marketplace: React.FC = () => {
             onSelect={(cat) => {
               setCategoriaSeleccionada(cat);
               setSidebarAbierto(false);
+              setMostrarSoloMias(false);
             }}
             onCrearPublicacion={handleCrearPublicacion}
           />
@@ -158,6 +201,15 @@ const Marketplace: React.FC = () => {
             {categoriaSeleccionada?.nombre || "Todos los productos"}
           </h2>
 
+          {mostrarSoloMias && (
+            <button
+              onClick={() => setMostrarSoloMias(false)}
+              className="mb-3 text-yellow-400 hover:text-yellow-500 underline"
+            >
+              ← Volver al marketplace
+            </button>
+          )}
+
           <div className="max-w-screen-xl mx-auto">
             {cargando ? (
               <div className="flex justify-center items-center py-10 text-yellow-400">
@@ -167,7 +219,14 @@ const Marketplace: React.FC = () => {
             ) : (
               <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
                 {productos.map((p) => (
-                  <ProductoCard key={p.id} producto={p} />
+                  <ProductoCard
+                    key={p.id}
+                    producto={p}
+                    onEliminado={(id) =>
+                      setProductos((prev) => prev.filter((x) => x.id !== id))
+                    }
+                    mostrarAcciones={mostrarSoloMias}
+                  />
                 ))}
               </div>
             )}
@@ -182,14 +241,16 @@ const Marketplace: React.FC = () => {
         onPublicar={handlePublicar}
       />
 
-      {/* Botón flotante Crear publicación en móvil con animación pulse */}
-      <button
-        id="crear-publicacion-btn"
-        onClick={handleCrearPublicacion}
-        className="fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow block md:hidden"
-      >
-        + Crear publicación
-      </button>
+      {/* Botón flotante Crear publicación (solo visible en móvil y si el modal está cerrado) */}
+      {!modalOpen && (
+        <button
+          id="crear-publicacion-btn"
+          onClick={handleCrearPublicacion}
+          className="fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow block md:hidden"
+        >
+          + Crear publicación
+        </button>
+      )}
 
       <LoginModal
         open={openLogin}

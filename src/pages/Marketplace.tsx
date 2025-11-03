@@ -30,10 +30,12 @@ const Marketplace: React.FC = () => {
   const [quierePublicar, setQuierePublicar] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(false);
 
   // 🔥 Consumir API cada vez que cambie categoría o búsqueda
   useEffect(() => {
     const fetchProductos = async () => {
+      setCargando(true);
       try {
         const categoria =
           categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
@@ -47,6 +49,8 @@ const Marketplace: React.FC = () => {
         setProductos(data);
       } catch (error) {
         console.error("Error al obtener publicaciones:", error);
+      } finally {
+        setCargando(false);
       }
     };
 
@@ -64,10 +68,16 @@ const Marketplace: React.FC = () => {
     }
   };
 
-  const handlePublicar = (nuevaPublicacion: any) => {
-    console.log("Publicar:", nuevaPublicacion);
+  const handlePublicar = async (nuevaPublicacion: any) => {
     setModalOpen(false);
-    obtenerPublicaciones().then(setProductos);
+    // ✅ Refrescar publicaciones inmediatamente
+    const data = await obtenerPublicaciones(
+      categoriaSeleccionada?.nombre !== "Todos"
+        ? categoriaSeleccionada?.nombre
+        : undefined,
+      busqueda || undefined
+    );
+    setProductos(data);
   };
 
   useEffect(() => {
@@ -149,11 +159,18 @@ const Marketplace: React.FC = () => {
           </h2>
 
           <div className="max-w-screen-xl mx-auto">
-            <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-              {productos.map((p) => (
-                <ProductoCard key={p.id} producto={p} />
-              ))}
-            </div>
+            {cargando ? (
+              <div className="flex justify-center items-center py-10 text-yellow-400">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-70 mr-3"></div>
+                Cargando publicaciones...
+              </div>
+            ) : (
+              <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+                {productos.map((p) => (
+                  <ProductoCard key={p.id} producto={p} />
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>

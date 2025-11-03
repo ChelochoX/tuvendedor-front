@@ -32,7 +32,86 @@ const CrearPublicacionModal: React.FC<Props> = ({
   const [errorImagenes, setErrorImagenes] = React.useState("");
 
   const handlePublicar = async () => {
+    // 🔹 Validaciones front-end antes de enviar al backend
+    if (!titulo.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Falta el título",
+        text: "Por favor, escribí un título para tu producto.",
+        confirmButtonColor: "#facc15", // amarillo TuVendedor
+        background: "#1e1f23",
+        color: "#fff",
+      });
+      return;
+    }
+
+    if (!descripcion.trim()) {
+      Swal.fire({
+        icon: "warning",
+        title: "Falta la descripción",
+        text: "Contanos un poco más sobre tu producto.",
+        confirmButtonColor: "#facc15",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+      return;
+    }
+
+    if (!precio || parseInt(precio) <= 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Precio inválido",
+        text: "Ingresá un precio válido en guaraníes (₲).",
+        confirmButtonColor: "#facc15",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+      return;
+    }
+
+    if (!categoria) {
+      Swal.fire({
+        icon: "warning",
+        title: "Seleccioná una categoría",
+        text: "Elegí en qué categoría publicar tu producto.",
+        confirmButtonColor: "#facc15",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+      return;
+    }
+
+    if (imagenes.length === 0) {
+      Swal.fire({
+        icon: "warning",
+        title: "Faltan imágenes o videos",
+        text: "Agregá al menos una imagen o video del producto.",
+        confirmButtonColor: "#facc15",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+      return;
+    }
+
     try {
+      // 🔹 Mostrar loader con SweetAlert2
+      Swal.fire({
+        title: "Publicando tu producto...",
+        html: `
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div class="swal2-loader"></div>
+          <span>Estamos procesando tus imágenes y videos.</span>
+        </div>
+      `,
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        background: "#1e1f23",
+        color: "#fff",
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
       const nueva = {
         titulo,
         descripcion,
@@ -45,13 +124,15 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
       const response = await crearPublicacion(nueva);
 
-      // ✅ Mostrar alerta de éxito
+      // ✅ Cerrar loader y mostrar éxito
       Swal.fire({
         icon: "success",
-        title: "Publicación creada",
+        title: "Publicación creada 🎉",
         text: "Tu producto fue publicado correctamente.",
         timer: 2000,
         showConfirmButton: false,
+        background: "#1e1f23",
+        color: "#fff",
       });
 
       // ✅ Limpiar formulario
@@ -65,14 +146,23 @@ const CrearPublicacionModal: React.FC<Props> = ({
       setPreviewIndex(0);
       setErrorImagenes("");
 
-      // ✅ Cerrar modal
       onClose();
+      onPublicar(response);
     } catch (error: any) {
       console.error("❌ Error al publicar", error);
+
+      // 🔹 Si el backend devuelve un mensaje específico (ej. FluentValidation)
+      const backendMessage = error.response?.data?.errors
+        ? Object.values(error.response.data.errors).flat().join("\n")
+        : error.message;
+
       Swal.fire({
         icon: "error",
         title: "Error al publicar",
-        text: error.message || "Ocurrió un error inesperado.",
+        text: backendMessage || "Ocurrió un error inesperado.",
+        confirmButtonColor: "#f87171", // rojo suave
+        background: "#1e1f23",
+        color: "#fff",
       });
     }
   };

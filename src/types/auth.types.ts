@@ -20,6 +20,7 @@ export interface LoginExitoso {
     email: string;
     estado: string;
     fotoPerfil?: string;
+    roles: string[];
   };
 }
 

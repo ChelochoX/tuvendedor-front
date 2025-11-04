@@ -51,6 +51,11 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         localStorage.setItem("token", data.parTokens.bearerToken);
         localStorage.setItem("usuario", data?.parUsuario?.nombreUsuario || "");
         localStorage.setItem("fotoUrl", ""); // clásico no trae foto
+
+        // 🧠 Intentamos con Roles (mayúscula) o roles (minúscula) por compatibilidad
+        const rol = data?.parUsuario?.roles?.[0] || "Comprador";
+
+        localStorage.setItem("rol", rol);
       }
 
       // 👇 Guardar en contexto
@@ -107,6 +112,10 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         localStorage.setItem("token", data.parTokens?.bearerToken || "");
         localStorage.setItem("usuario", nombre);
         localStorage.setItem("fotoUrl", fotoUrl);
+        localStorage.setItem(
+          "rol",
+          data?.parUsuario?.roles?.[0] || "Comprador"
+        );
 
         // 👇 Guardar en contexto
         setUsuario({

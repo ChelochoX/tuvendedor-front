@@ -135,7 +135,28 @@ const ProductoCard: React.FC<Props> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    console.log("Editar producto", producto.id);
+
+                    Swal.fire({
+                      icon: "info",
+                      title: "✨ ¡Estamos trabajando en ello!",
+                      html: `
+        <p style="color: #ddd; font-size: 15px; margin-top: 8px;">
+          En este momento estamos desarrollando la opción de <b>editar publicaciones</b>
+          para que puedas actualizar tus productos fácilmente. 💪
+        </p>
+        <p style="color: #ddd; font-size: 14px; margin-top: 10px;">
+          Mientras tanto, podés <b>eliminar</b> tu publicación y crear una nueva con los cambios que necesites.
+        </p>
+        <p style="color: #facc15; font-weight: bold; margin-top: 12px;">
+          🛠️ ¡Muy pronto estará disponible esta funcionalidad!
+        </p>
+      `,
+                      background: "#1e1f23",
+                      color: "#fff",
+                      confirmButtonColor: "#22c55e",
+                      confirmButtonText: "Entendido 💛",
+                      showCloseButton: true,
+                    });
                   }}
                 >
                   <PencilSquareIcon className="w-5 h-5" />

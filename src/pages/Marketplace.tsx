@@ -13,6 +13,8 @@ import {
 } from "../api/publicacionesService";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
+import { useUsuario } from "../context/UsuarioContext";
+import CambiarClaveModal from "../components/auth/CambiarClaveModal";
 
 const categorias: Categoria[] = [
   { id: "0", nombre: "Todos", icono: "🌐" },
@@ -35,8 +37,13 @@ const Marketplace: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(false);
   const [mostrarSoloMias, setMostrarSoloMias] = useState(false);
+  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
+  const { usuario } = useUsuario();
+  const [openRecuperar, setOpenRecuperar] = useState(false);
 
-  // 🔥 Consumir API cada vez que cambie categoría o búsqueda
+  // ==============================================================
+  // 1️⃣ Cargar publicaciones según categoría, búsqueda o usuario
+  // ==============================================================
   useEffect(() => {
     const fetchProductos = async () => {
       setCargando(true);
@@ -63,7 +70,73 @@ const Marketplace: React.FC = () => {
     };
 
     fetchProductos();
-  }, [categoriaSeleccionada, busqueda, mostrarSoloMias]);
+  }, [categoriaSeleccionada, busqueda, mostrarSoloMias, usuario]);
+
+  // ==============================================================
+  // 2️⃣ Abrir modal de login desde otros componentes
+  // ==============================================================
+  useEffect(() => {
+    const handleAbrirLogin = () => setOpenLogin(true);
+    window.addEventListener("abrir-login", handleAbrirLogin);
+    return () => window.removeEventListener("abrir-login", handleAbrirLogin);
+  }, []);
+
+  // ==============================================================
+  // 3️⃣ Abrir modal de recuperar contraseña
+  // ==============================================================
+  useEffect(() => {
+    const handleAbrirRecuperar = () => setOpenRecuperar(true);
+    window.addEventListener("abrir-recuperar", handleAbrirRecuperar);
+    return () =>
+      window.removeEventListener("abrir-recuperar", handleAbrirRecuperar);
+  }, []);
+
+  // ==============================================================
+  // 4️⃣ Detectar login exitoso (por ejemplo, si quería publicar)
+  // ==============================================================
+  useEffect(() => {
+    const handleLoginExitoso = () => {
+      if (quierePublicar) {
+        setModalOpen(true);
+        setQuierePublicar(false);
+      }
+    };
+    window.addEventListener("login-exitoso", handleLoginExitoso);
+    return () =>
+      window.removeEventListener("login-exitoso", handleLoginExitoso);
+  }, [quierePublicar]);
+
+  // ==============================================================
+  // 5️⃣ Mostrar "Mis publicaciones" desde evento global
+  // ==============================================================
+  useEffect(() => {
+    const handleVerMisPublicaciones = () => setMostrarSoloMias(true);
+    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
+    return () =>
+      window.removeEventListener(
+        "ver-mis-publicaciones",
+        handleVerMisPublicaciones
+      );
+  }, []);
+
+  // ==============================================================
+  // 6️⃣ 🔥 Sincronizar el usuario al cambiar de ruta (soluciona el F5)
+  // ==============================================================
+  useEffect(() => {
+    const handleLocationChange = () => {
+      // Pequeño delay para esperar a que la ruta cambie completamente
+      setTimeout(() => {
+        window.dispatchEvent(new Event("usuario-actualizado"));
+      }, 50);
+    };
+
+    // Escuchar cambio de ruta (emitido por patchHistory.ts)
+    window.addEventListener("locationchange", handleLocationChange);
+
+    return () => {
+      window.removeEventListener("locationchange", handleLocationChange);
+    };
+  }, []);
 
   const handleCrearPublicacion = () => {
     const token = localStorage.getItem("token");
@@ -87,48 +160,6 @@ const Marketplace: React.FC = () => {
     );
     setProductos(data);
   };
-
-  useEffect(() => {
-    const handleAbrirLogin = () => {
-      setOpenLogin(true);
-    };
-
-    window.addEventListener("abrir-login", handleAbrirLogin);
-    return () => {
-      window.removeEventListener("abrir-login", handleAbrirLogin);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleLoginExitoso = () => {
-      if (quierePublicar) {
-        setModalOpen(true);
-        setQuierePublicar(false);
-      }
-    };
-
-    window.addEventListener("login-exitoso", handleLoginExitoso);
-    return () => {
-      window.removeEventListener("login-exitoso", handleLoginExitoso);
-    };
-  }, [quierePublicar]);
-
-  useEffect(() => {
-    const handleVerMisPublicaciones = () => {
-      setMostrarSoloMias(true);
-    };
-
-    // 📡 Escucha el evento que dispara el botón "Mis publicaciones" del sidebar
-    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
-
-    // 🧹 Limpieza al desmontar el componente
-    return () => {
-      window.removeEventListener(
-        "ver-mis-publicaciones",
-        handleVerMisPublicaciones
-      );
-    };
-  }, []);
 
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
@@ -155,25 +186,29 @@ const Marketplace: React.FC = () => {
         ))}
 
         {/* 📚 Mis publicaciones */}
-        <button
-          onClick={() =>
-            window.dispatchEvent(new Event("ver-mis-publicaciones"))
-          }
-          className="px-4 py-1 rounded-full border text-sm font-semibold 
-               text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
-        >
-          📚 Mis publicaciones
-        </button>
+        {!esVisitante && puedePublicar && (
+          <button
+            onClick={() =>
+              window.dispatchEvent(new Event("ver-mis-publicaciones"))
+            }
+            className="px-4 py-1 rounded-full border text-sm font-semibold 
+         text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+          >
+            📚 Mis publicaciones
+          </button>
+        )}
 
         {/* 👤 Gestionar Clientes */}
-        <button
-          onClick={() => navigate("/clientes")}
-          className="px-4 py-1 rounded-full border text-sm font-semibold 
-               text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
-        >
-          <PersonIcon fontSize="small" className="mr-1" />
-          Gestionar Clientes
-        </button>
+        {puedeVerClientes && (
+          <button
+            onClick={() => navigate("/clientes")}
+            className="px-4 py-1 rounded-full border text-sm font-semibold 
+         text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+          >
+            <PersonIcon fontSize="small" className="mr-1" />
+            Gestionar Clientes
+          </button>
+        )}
       </div>
 
       <div className="flex">
@@ -266,6 +301,11 @@ const Marketplace: React.FC = () => {
         open={openRegister}
         onClose={() => setOpenRegister(false)}
         datosPrevios={datosPrevios}
+      />
+
+      <CambiarClaveModal
+        open={openRecuperar}
+        onClose={() => setOpenRecuperar(false)}
       />
     </div>
   );

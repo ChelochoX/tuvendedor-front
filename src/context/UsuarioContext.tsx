@@ -27,7 +27,6 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
-  // ✅ Cargar usuario desde localStorage al iniciar
   // ✅ Cargar usuario desde localStorage y actualizar dinámicamente
   useEffect(() => {
     const cargarUsuarioDesdeLocalStorage = () => {
@@ -50,16 +49,27 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
     // 🔹 Ejecutar al montar
     cargarUsuarioDesdeLocalStorage();
 
-    // 🔹 Escuchar cambios globales (por ejemplo, desde LoginModal)
+    // 🔹 Escuchar actualizaciones manuales
     window.addEventListener(
       "usuario-actualizado",
       cargarUsuarioDesdeLocalStorage
     );
 
+    // 🔹 Escuchar cambios del storage (por ejemplo, en otra pestaña)
+    window.addEventListener("storage", cargarUsuarioDesdeLocalStorage);
+
+    // 🔹 Escuchar cuando cambia la ruta (evento emitido por patchHistory)
+    window.addEventListener("locationchange", cargarUsuarioDesdeLocalStorage);
+
     // 🔹 Limpieza
     return () => {
       window.removeEventListener(
         "usuario-actualizado",
+        cargarUsuarioDesdeLocalStorage
+      );
+      window.removeEventListener("storage", cargarUsuarioDesdeLocalStorage);
+      window.removeEventListener(
+        "locationchange",
         cargarUsuarioDesdeLocalStorage
       );
     };

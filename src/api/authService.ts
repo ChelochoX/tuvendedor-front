@@ -107,3 +107,20 @@ export const verificarUsuarioLogin = async (
 
   return result.Data.disponible;
 };
+
+export const cambiarClave = async (payload: any): Promise<any> => {
+  const response = await instance.post<ApiResponse<any>>(
+    "/Auth/cambiar-clave",
+    payload
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(
+      result.Message || result.Errors?.[0] || "Error al cambiar la contraseña"
+    );
+  }
+
+  return result.Data;
+};

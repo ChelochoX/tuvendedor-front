@@ -212,6 +212,19 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
               Registrate
             </span>
           </p>
+
+          <p className="text-sm text-center mt-2">
+            ¿Olvidaste tu contraseña?{" "}
+            <span
+              onClick={() => {
+                onClose(); // cerrar login
+                window.dispatchEvent(new Event("abrir-recuperar")); // abrir modal recuperar
+              }}
+              className="text-yellow-400 cursor-pointer font-medium"
+            >
+              Recuperar
+            </span>
+          </p>
         </div>
       </div>
     </div>

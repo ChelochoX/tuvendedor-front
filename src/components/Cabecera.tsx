@@ -1,32 +1,8 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useUsuario } from "../context/UsuarioContext";
 
 const Cabecera: React.FC = () => {
-  const { usuario, setUsuario } = useUsuario();
-
-  useEffect(() => {
-    const refrescar = () => {
-      const nombreUsuario = localStorage.getItem("usuario") || "";
-      const fotoUrl = localStorage.getItem("fotoUrl") || "";
-      if (nombreUsuario) {
-        setUsuario({ nombreUsuario, fotoUrl: fotoUrl || undefined });
-      } else {
-        setUsuario(null);
-      }
-    };
-
-    refrescar(); // ← Ejecutar al montar el componente
-    window.addEventListener("usuario-actualizado", refrescar);
-    return () => window.removeEventListener("usuario-actualizado", refrescar);
-  }, []);
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("fotoUrl");
-    localStorage.removeItem("permisos");
-    setUsuario(null);
-  };
+  const { usuario, cerrarSesion } = useUsuario();
 
   return (
     <header className="w-full bg-[#1a1a1a] text-white border-b-2 border-[#facc15] shadow-md sticky top-0 z-50 px-4 py-3">
@@ -56,7 +32,7 @@ const Cabecera: React.FC = () => {
               {usuario.nombreUsuario}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={cerrarSesion}
               className="text-sm bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-full"
             >
               Cerrar sesión

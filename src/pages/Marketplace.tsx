@@ -277,7 +277,7 @@ const Marketplace: React.FC = () => {
       />
 
       {/* Botón flotante Crear publicación (solo visible en móvil y si el modal está cerrado) */}
-      {!modalOpen && (
+      {!modalOpen && puedePublicar && (
         <button
           id="crear-publicacion-btn"
           onClick={handleCrearPublicacion}
@@ -291,9 +291,15 @@ const Marketplace: React.FC = () => {
         open={openLogin}
         onClose={() => setOpenLogin(false)}
         onSwitchToRegister={(datos?: any) => {
-          setDatosPrevios(datos || null);
-          setOpenLogin(false);
-          setOpenRegister(true);
+          // 🔥 Forzar limpieza inmediata antes de abrir el modal de registro
+          setDatosPrevios(null);
+
+          // 🔹 Luego, si vienen datos (por ejemplo desde Google), los aplicamos
+          setTimeout(() => {
+            setDatosPrevios(datos || null);
+            setOpenLogin(false);
+            setOpenRegister(true);
+          }, 0);
         }}
       />
 

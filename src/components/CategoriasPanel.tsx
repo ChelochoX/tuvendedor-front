@@ -28,13 +28,15 @@ const CategoriasPanel: React.FC<Props> = ({
   return (
     <div className="flex flex-col gap-2">
       {/* 🟡 Botón Crear publicación */}
-      <button
-        className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
-        onClick={onCrearPublicacion}
-      >
-        <AddIcon fontSize="small" />
-        Crear publicación
-      </button>
+      {puedePublicar && (
+        <button
+          className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
+          onClick={onCrearPublicacion}
+        >
+          <AddIcon fontSize="small" />
+          Crear publicación
+        </button>
+      )}
 
       {/* 🟨 Separador */}
       <hr className="border-t-2 border-yellow-400 opacity-60 my-2" />

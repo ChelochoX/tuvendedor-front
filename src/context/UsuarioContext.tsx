@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 export interface Usuario {
   nombreUsuario: string;
   fotoUrl?: string;
-  rol?: string;
+  roles?: string[];
 }
 
 interface UsuarioContextType {
@@ -33,13 +33,13 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
       const token = localStorage.getItem("token");
       const nombreUsuario = localStorage.getItem("usuario");
       const fotoUrl = localStorage.getItem("fotoUrl");
-      const rol = localStorage.getItem("rol");
+      const roles = JSON.parse(localStorage.getItem("roles") || "[]");
 
       if (token && nombreUsuario) {
         setUsuario({
           nombreUsuario,
           fotoUrl: fotoUrl || undefined,
-          rol: rol || undefined,
+          roles: roles,
         });
       } else {
         setUsuario(null);
@@ -86,8 +86,11 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // 🔹 Helpers globales (evita duplicar lógica en los componentes)
   const esVisitante = !usuario;
-  const esVendedor = usuario?.rol === "Vendedor";
-  const esAdmin = usuario?.rol === "Administrador";
+  const roles = usuario?.roles || [];
+
+  const esVendedor = roles.includes("Vendedor");
+  const esAdmin = roles.includes("Administrador");
+
   const puedePublicar = esVendedor || esAdmin;
   const puedeVerClientes = esAdmin;
 

@@ -21,6 +21,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     null
   );
   const [checkingUsuario, setCheckingUsuario] = useState(false);
+  const [mostrarClave, setMostrarClave] = useState(false); // 👁️ Nuevo estado
   const [formData, setFormData] = useState({
     nombreUsuario: "",
     usuarioLogin: "",
@@ -39,8 +40,34 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   });
 
   useEffect(() => {
-    if (datosPrevios) {
-      console.log("Datos previos recibidos:", datosPrevios);
+    if (!open) return;
+
+    // 🧹 Si el registro NO viene de Google → limpiar todo
+    if (!datosPrevios || datosPrevios?.tipoLogin !== "google") {
+      console.log("🧹 Registro clásico o sin datos → limpiando formulario");
+      setFormData({
+        nombreUsuario: "",
+        usuarioLogin: "",
+        email: "",
+        clave: "",
+        telefono: "",
+        ciudad: "",
+        direccion: "",
+        nombreNegocio: "",
+        ruc: "",
+        rubro: "",
+        proveedor: "",
+        proveedorId: "",
+        fotoPerfil: "",
+        tipoLogin: "clasico",
+      });
+      setUsuarioDisponible(null);
+      setCheckingUsuario(false);
+      setEsVendedor(false);
+      setMostrarClave(false);
+    } else {
+      // 🧩 Si viene de Google → precargar datos
+      console.log("🟢 Registro con Google detectado, precargando datos");
       setFormData((prev) => ({
         ...prev,
         nombreUsuario: datosPrevios.nombre || "",
@@ -51,32 +78,27 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
         tipoLogin: datosPrevios.tipoLogin || "clasico",
       }));
     }
-  }, [datosPrevios]);
+  }, [open, datosPrevios]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Generar usuarioLogin a partir de nombre completo
   const generarUsuarioLogin = (nombreCompleto: string): string => {
     if (!nombreCompleto.trim()) return "";
-
     const partes = nombreCompleto.trim().split(" ");
     if (partes.length < 2) return partes[0].toLowerCase();
-
-    const inicial = partes[0][0].toLowerCase(); // primera letra del nombre
-    const apellido = partes[1].toLowerCase(); // primer apellido
+    const inicial = partes[0][0].toLowerCase();
+    const apellido = partes[1].toLowerCase();
     return inicial + apellido;
   };
 
-  // Verificar disponibilidad (función común)
   const verificarDisponibilidad = async (usuario: string) => {
     if (!usuario.trim()) return;
     try {
       setCheckingUsuario(true);
       const disponible = await verificarUsuarioLogin(usuario.trim());
-
       setUsuarioDisponible(disponible);
     } catch (err: any) {
       setUsuarioDisponible(false);
@@ -90,38 +112,28 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     }
   };
 
-  // Cuando cambia el nombre completo
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     const generado = generarUsuarioLogin(value);
-
     setFormData((prev) => ({
       ...prev,
       nombreUsuario: value,
-      usuarioLogin: generado, // se genera automáticamente
+      usuarioLogin: generado,
     }));
-
-    // 🔥 Llamamos al back apenas generamos uno
     if (generado) {
       verificarDisponibilidad(generado);
     }
   };
 
-  // Guardamos un timer global para debounce
   let debounceTimer: any;
 
   const handleUsuarioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
     setFormData((prev) => ({
       ...prev,
       usuarioLogin: value,
     }));
-
-    // Cancelamos cualquier request anterior
     if (debounceTimer) clearTimeout(debounceTimer);
-
-    // Hacemos la validación después de 500ms sin teclear
     debounceTimer = setTimeout(() => {
       if (value.trim()) {
         verificarDisponibilidad(value);
@@ -129,7 +141,6 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     }, 500);
   };
 
-  // Cuando el usuario edita directamente el campo Usuario
   const handleUsuarioBlur = async () => {
     if (formData.usuarioLogin) {
       await verificarDisponibilidad(formData.usuarioLogin);
@@ -184,27 +195,28 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
         <h2 className="text-xl font-bold mb-4 text-yellow-400">Registrarse</h2>
 
         <div className="flex flex-col gap-3 pb-6">
-          {/* campos comunes */}
+          {/* Nombre completo */}
           <div>
             <label className="text-sm text-white">Nombre Completo</label>
             <input
               type="text"
               name="nombreUsuario"
               value={formData.nombreUsuario}
-              onChange={handleNombreChange} // 👈 genera el usuarioLogin
+              onChange={handleNombreChange}
               className="w-full px-4 py-2 rounded bg-white text-black"
             />
           </div>
 
-          {/* UsuarioLogin con validación */}
+          {/* Usuario */}
           <div>
             <label className="text-sm text-white">Usuario</label>
             <input
               type="text"
               name="usuarioLogin"
-              value={formData.usuarioLogin || ""}
-              onChange={handleUsuarioChange} // 👈 ahora valida mientras escribe
-              onBlur={handleUsuarioBlur} // verifica disponibilidad al salir del campo
+              autoComplete="off" // 👈 evita inyección automática del login anterior
+              value={formData.usuarioLogin}
+              onChange={handleUsuarioChange}
+              onBlur={handleUsuarioBlur}
               className="w-full px-4 py-2 rounded bg-gray-200 text-black"
             />
             {checkingUsuario && (
@@ -219,27 +231,78 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
               <p className="text-red-400 text-xs mt-1">❌ Ya está en uso</p>
             )}
           </div>
-          {[
-            { label: "Email", name: "email" },
-            ...(formData.tipoLogin === "clasico"
-              ? [{ label: "Password", name: "clave" }]
-              : []),
-            { label: "Teléfono", name: "telefono" },
-            { label: "Ciudad", name: "ciudad" },
-            { label: "Dirección", name: "direccion" },
-          ].map(({ label, name }) => (
-            <div key={name}>
-              <label className="text-sm text-white">{label}</label>
-              <input
-                type="text"
-                name={name}
-                value={(formData as any)[name]}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded bg-white text-black"
-              />
-            </div>
-          ))}
 
+          {/* Email */}
+          <div>
+            <label className="text-sm text-white">Email</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Password (solo si tipoLogin = clasico) */}
+          {formData.tipoLogin === "clasico" && (
+            <div className="relative">
+              <label className="text-sm text-white">Password</label>
+              <input
+                type={mostrarClave ? "text" : "password"}
+                name="clave"
+                autoComplete="new-password" // 👈 Chrome entiende que es una nueva clave, no la guardada
+                value={formData.clave}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded bg-white text-black pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarClave(!mostrarClave)}
+                className="absolute right-3 top-8 text-gray-600 hover:text-yellow-400"
+              >
+                {mostrarClave ? "🙈" : "👁️"}
+              </button>
+            </div>
+          )}
+
+          {/* Teléfono */}
+          <div>
+            <label className="text-sm text-white">Teléfono</label>
+            <input
+              type="text"
+              name="telefono"
+              value={formData.telefono}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Ciudad */}
+          <div>
+            <label className="text-sm text-white">Ciudad</label>
+            <input
+              type="text"
+              name="ciudad"
+              value={formData.ciudad}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Dirección */}
+          <div>
+            <label className="text-sm text-white">Dirección</label>
+            <input
+              type="text"
+              name="direccion"
+              value={formData.direccion}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            />
+          </div>
+
+          {/* Checkbox vendedor */}
           <label className="inline-flex items-center mt-2">
             <input
               type="checkbox"
@@ -250,6 +313,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
             Deseo vender productos en la plataforma
           </label>
 
+          {/* Campos adicionales si es vendedor */}
           {esVendedor && (
             <>
               {[

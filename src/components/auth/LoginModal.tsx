@@ -43,7 +43,14 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       const data: LoginResponseData = await login(payload);
 
       if (data?.esNuevo) {
-        onSwitchToRegister(data.datosPrevios);
+        // 🔹 Solo pasamos datosPrevios si vienen realmente del proveedor (Google)
+        const tieneDatosPrevios =
+          data.datosPrevios && data.datosPrevios.tipoLogin === "google";
+        console.log(
+          "Datos previos para registro:",
+          tieneDatosPrevios ? data.datosPrevios : null
+        );
+        onSwitchToRegister(tieneDatosPrevios ? data.datosPrevios : null);
         return;
       }
 
@@ -52,10 +59,9 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         localStorage.setItem("usuario", data?.parUsuario?.nombreUsuario || "");
         localStorage.setItem("fotoUrl", ""); // clásico no trae foto
 
-        // 🧠 Intentamos con Roles (mayúscula) o roles (minúscula) por compatibilidad
-        const rol = data?.parUsuario?.roles?.[0] || "Comprador";
-
-        localStorage.setItem("rol", rol);
+        // ✅ Guardamos todos los roles, no solo el primero
+        const roles = data?.parUsuario?.roles || ["Comprador"];
+        localStorage.setItem("roles", JSON.stringify(roles));
       }
 
       // 👇 Guardar en contexto
@@ -112,10 +118,10 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         localStorage.setItem("token", data.parTokens?.bearerToken || "");
         localStorage.setItem("usuario", nombre);
         localStorage.setItem("fotoUrl", fotoUrl);
-        localStorage.setItem(
-          "rol",
-          data?.parUsuario?.roles?.[0] || "Comprador"
-        );
+
+        // ✅ Guardamos todos los roles, no solo el primero
+        const roles = data?.parUsuario?.roles || ["Comprador"];
+        localStorage.setItem("roles", JSON.stringify(roles));
 
         // 👇 Guardar en contexto
         setUsuario({
@@ -162,6 +168,8 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
             <label className="text-sm text-white">Correo o usuario</label>
             <input
               type="text"
+              autoComplete="username" // 👈 permite que autocomplete funcione bien pero aislado
+              name="usuarioLogin"
               value={loginInput}
               onChange={(e) => setLoginInput(e.target.value)}
               className="w-full px-4 py-2 rounded bg-white text-black"
@@ -171,6 +179,8 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
             <label className="text-sm text-white">Contraseña</label>
             <input
               type="password"
+              autoComplete="current-password" // 👈 para campos de login
+              name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-2 rounded bg-white text-black"
@@ -206,7 +216,10 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
           <p className="text-sm text-center mt-2">
             ¿No tenés cuenta?{" "}
             <span
-              onClick={() => onSwitchToRegister()}
+              onClick={() => {
+                onClose(); // 🔹 Cierra el modal de login
+                onSwitchToRegister(null); // 🔹 Abre el registro limpio
+              }}
               className="text-yellow-400 cursor-pointer font-medium"
             >
               Registrate

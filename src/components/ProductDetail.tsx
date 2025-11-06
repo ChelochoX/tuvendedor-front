@@ -52,6 +52,13 @@ const ProductDetail: React.FC<Props> = ({
   const currentUrl = producto.imagenes[selectedImageIndex].mainUrl;
   const isVideo = currentUrl?.toLowerCase().endsWith(".mp4");
 
+  const handleContactarVendedor = () => {
+    const numero = "59598121269"; // ✅ tu número en formato internacional sin +
+    const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
+  };
+
   return (
     <Box
       position="relative"
@@ -342,10 +349,9 @@ const ProductDetail: React.FC<Props> = ({
               backgroundColor: "#FFD700",
               color: "#000",
               fontWeight: "bold",
-              "&:hover": {
-                backgroundColor: "#e6c200",
-              },
+              "&:hover": { backgroundColor: "#e6c200" },
             }}
+            onClick={handleContactarVendedor}
           >
             Contactar vendedor
           </Button>

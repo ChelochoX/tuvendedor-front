@@ -53,7 +53,7 @@ const ProductDetail: React.FC<Props> = ({
   const isVideo = currentUrl?.toLowerCase().endsWith(".mp4");
 
   const handleContactarVendedor = () => {
-    const numero = "59598121269"; // ✅ tu número en formato internacional sin +
+    const numero = "595982121269"; // ✅ tu número en formato internacional sin +
     const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");

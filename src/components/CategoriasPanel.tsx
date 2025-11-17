@@ -5,7 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import { useNavigate } from "react-router-dom";
-import { useUsuario } from "../context/UsuarioContext"; // 👈 Ahora usamos los helpers centralizados
+import { useUsuario } from "../context/UsuarioContext";
 
 interface Props {
   categorias: Categoria[];
@@ -21,16 +21,46 @@ const CategoriasPanel: React.FC<Props> = ({
   onCrearPublicacion,
 }) => {
   const navigate = useNavigate();
-  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario(); // ✅ Todo el control de roles viene del contexto
-
-  const irAClientes = () => navigate("/clientes");
+  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
 
   return (
-    <div className="flex flex-col gap-2">
-      {/* 🟡 Botón Crear publicación */}
+    <div className="flex flex-col gap-3">
+      {/* 🟨 Título */}
+      <h3 className="text-lg font-semibold text-yellow-400 px-1">Categorías</h3>
+
+      <hr className="border-yellow-400 opacity-40" />
+
+      {/* 🟦 LISTA DE CATEGORÍAS CON SCROLL */}
+      <div className="flex flex-col gap-1 overflow-y-auto max-h-[300px] pr-2">
+        {categorias.map((cat) => {
+          const esSel = categoriaSeleccionada?.id === cat.id;
+
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelect(cat)}
+              className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-all
+                ${
+                  esSel
+                    ? "bg-yellow-400 text-black font-semibold"
+                    : "text-white hover:bg-[#3b3b3b]"
+                }
+              `}
+            >
+              <span className="text-lg">{cat.icono}</span>
+              <span className="truncate">{cat.nombre}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 🟨 Separador */}
+      <hr className="border-yellow-400 opacity-40 mt-2" />
+
+      {/* 🟡 Crear publicación (debajo de la lista) */}
       {puedePublicar && (
         <button
-          className="flex items-center gap-2 justify-center px-4 py-2 mb-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
+          className="flex items-center gap-2 justify-center px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
           onClick={onCrearPublicacion}
         >
           <AddIcon fontSize="small" />
@@ -38,63 +68,40 @@ const CategoriasPanel: React.FC<Props> = ({
         </button>
       )}
 
-      {/* 🟨 Separador */}
-      <hr className="border-t-2 border-yellow-400 opacity-60 my-2" />
-
-      {/* 🌐 Listado de categorías */}
-      {categorias.map((cat) => {
-        const esSeleccionada = categoriaSeleccionada?.id === cat.id;
-        return (
-          <button
-            key={cat.id}
-            onClick={() => onSelect(cat)}
-            className={`flex items-center gap-2 px-4 py-2 rounded transition-all duration-200 font-medium 
-              ${
-                esSeleccionada
-                  ? "bg-yellow-400 text-black"
-                  : "text-white hover:bg-yellow-500 hover:text-black"
-              }`}
-          >
-            <span className="text-lg">{cat.icono}</span>
-            <span>{cat.nombre}</span>
-          </button>
-        );
-      })}
-
-      {/* 🟨 Separador */}
-      <hr className="border-t-2 border-yellow-400 opacity-60 my-3" />
-
-      {/* 📚 Mis publicaciones (solo si puede publicar: vendedor o admin) */}
+      {/* 📚 Mis publicaciones */}
       {!esVisitante && puedePublicar && (
-        <button
-          onClick={() =>
-            window.dispatchEvent(new Event("ver-mis-publicaciones"))
-          }
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
-               text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
-               transition-all duration-300"
-        >
-          <LibraryBooksIcon fontSize="small" />
-          Mis publicaciones
-        </button>
+        <>
+          <hr className="border-yellow-400 opacity-40" />
+
+          <button
+            onClick={() =>
+              window.dispatchEvent(new Event("ver-mis-publicaciones"))
+            }
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
+              transition-all duration-300"
+          >
+            <LibraryBooksIcon fontSize="small" />
+            Mis publicaciones
+          </button>
+        </>
       )}
 
-      {/* 🟨 Separador (solo si se muestran botones de permisos) */}
+      {/* 👤 Gestionar Clientes */}
       {puedeVerClientes && (
-        <hr className="border-t-2 border-yellow-400 opacity-60 my-3" />
-      )}
+        <>
+          <hr className="border-yellow-400 opacity-40" />
 
-      {/* 👤 Gestionar Clientes (solo si es administrador) */}
-      {puedeVerClientes && (
-        <button
-          onClick={irAClientes}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
-                     text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
-                     transition-all duration-300"
-        >
-          <PersonIcon fontSize="small" />
-          Gestionar Clientes
-        </button>
+          <button
+            onClick={() => navigate("/clientes")}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
+              transition-all duration-300"
+          >
+            <PersonIcon fontSize="small" />
+            Gestionar Clientes
+          </button>
+        </>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import instance from "./axiosInstance";
 import { Producto } from "../types/producto";
 import { ApiResponse } from "../types/api";
+import { Categoria } from "../types/categoria";
 
 const API_URL = "/Publicaciones";
 
@@ -149,4 +150,15 @@ export const obtenerMisPublicaciones = async (): Promise<Producto[]> => {
       imagen: imagenes[0]?.mainUrl || "",
     } as Producto;
   });
+};
+
+export const obtenerCategorias = async (): Promise<Categoria[]> => {
+  const response = await instance.get("/Publicaciones/listar-categorias");
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Message || "Error al obtener categorías");
+  }
+
+  return result.Data;
 };

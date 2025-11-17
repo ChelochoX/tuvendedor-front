@@ -10,18 +10,13 @@ import RegisterModal from "../components/auth/RegisterModal";
 import {
   obtenerPublicaciones,
   obtenerMisPublicaciones,
+  obtenerCategorias,
 } from "../api/publicacionesService";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import { useUsuario } from "../context/UsuarioContext";
 import CambiarClaveModal from "../components/auth/CambiarClaveModal";
-
-const categorias: Categoria[] = [
-  { id: "0", nombre: "Todos", icono: "🌐" },
-  { id: "1", nombre: "Vehículos/Motos", icono: "🚗" },
-  { id: "2", nombre: "Propiedades", icono: "🏠" },
-  { id: "3", nombre: "Electrodomésticos", icono: "💡" },
-];
+import { obtenerIconoCategoria } from "../utils/categoriaIconos";
 
 const Marketplace: React.FC = () => {
   const navigate = useNavigate();
@@ -40,6 +35,34 @@ const Marketplace: React.FC = () => {
   const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
   const { usuario } = useUsuario();
   const [openRecuperar, setOpenRecuperar] = useState(false);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+
+  // ==============================================================
+  // 0️⃣ Cargar categorías desde el backend y preparar lista completa
+  // ==============================================================
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      try {
+        const data = await obtenerCategorias();
+
+        // Asignamos iconos automáticamente
+        const categoriasConIconos = data.map((c) => ({
+          ...c,
+          icono: obtenerIconoCategoria(c.nombre),
+        }));
+
+        // Insertamos "Todos" como primera categoría fija
+        setCategorias([
+          { id: "0", nombre: "Todos", icono: "🌐" },
+          ...categoriasConIconos,
+        ]);
+      } catch (error) {
+        console.error("Error al cargar categorías:", error);
+      }
+    };
+
+    cargarCategorias();
+  }, []);
 
   // ==============================================================
   // 1️⃣ Cargar publicaciones según categoría, búsqueda o usuario

@@ -30,6 +30,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     telefono: "",
     ciudad: "",
     direccion: "",
+    sexo: "",
     nombreNegocio: "",
     ruc: "",
     rubro: "",
@@ -53,6 +54,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
         telefono: "",
         ciudad: "",
         direccion: "",
+        sexo: "",
         nombreNegocio: "",
         ruc: "",
         rubro: "",
@@ -80,7 +82,9 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     }
   }, [open, datosPrevios]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -300,6 +304,21 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
               onChange={handleChange}
               className="w-full px-4 py-2 rounded bg-white text-black"
             />
+          </div>
+
+          {/* Sexo */}
+          <div>
+            <label className="text-sm text-white">Sexo</label>
+            <select
+              name="sexo"
+              value={(formData as any).sexo || ""}
+              onChange={handleChange}
+              className="w-full px-4 py-2 rounded bg-white text-black"
+            >
+              <option value="">Seleccioná una opción</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
           </div>
 
           {/* Checkbox vendedor */}

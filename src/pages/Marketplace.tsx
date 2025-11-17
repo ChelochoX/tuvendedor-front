@@ -45,13 +45,11 @@ const Marketplace: React.FC = () => {
       try {
         const data = await obtenerCategorias();
 
-        // Asignamos iconos automáticamente
         const categoriasConIconos = data.map((c) => ({
           ...c,
           icono: obtenerIconoCategoria(c.nombre),
         }));
 
-        // Insertamos "Todos" como primera categoría fija
         setCategorias([
           { id: "0", nombre: "Todos", icono: "🌐" },
           ...categoriasConIconos,
@@ -96,7 +94,7 @@ const Marketplace: React.FC = () => {
   }, [categoriaSeleccionada, busqueda, mostrarSoloMias, usuario]);
 
   // ==============================================================
-  // 2️⃣ Abrir modal de login desde otros componentes
+  // 2️⃣ Eventos globales (login, recuperar, mis publicaciones...)
   // ==============================================================
   useEffect(() => {
     const handleAbrirLogin = () => setOpenLogin(true);
@@ -104,9 +102,6 @@ const Marketplace: React.FC = () => {
     return () => window.removeEventListener("abrir-login", handleAbrirLogin);
   }, []);
 
-  // ==============================================================
-  // 3️⃣ Abrir modal de recuperar contraseña
-  // ==============================================================
   useEffect(() => {
     const handleAbrirRecuperar = () => setOpenRecuperar(true);
     window.addEventListener("abrir-recuperar", handleAbrirRecuperar);
@@ -114,9 +109,6 @@ const Marketplace: React.FC = () => {
       window.removeEventListener("abrir-recuperar", handleAbrirRecuperar);
   }, []);
 
-  // ==============================================================
-  // 4️⃣ Detectar login exitoso (por ejemplo, si quería publicar)
-  // ==============================================================
   useEffect(() => {
     const handleLoginExitoso = () => {
       if (quierePublicar) {
@@ -129,9 +121,6 @@ const Marketplace: React.FC = () => {
       window.removeEventListener("login-exitoso", handleLoginExitoso);
   }, [quierePublicar]);
 
-  // ==============================================================
-  // 5️⃣ Mostrar "Mis publicaciones" desde evento global
-  // ==============================================================
   useEffect(() => {
     const handleVerMisPublicaciones = () => setMostrarSoloMias(true);
     window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
@@ -143,19 +132,16 @@ const Marketplace: React.FC = () => {
   }, []);
 
   // ==============================================================
-  // 6️⃣ 🔥 Sincronizar el usuario al cambiar de ruta (soluciona el F5)
+  // Fix F5 (sincronizar usuario al cambiar ruta)
   // ==============================================================
   useEffect(() => {
     const handleLocationChange = () => {
-      // Pequeño delay para esperar a que la ruta cambie completamente
       setTimeout(() => {
         window.dispatchEvent(new Event("usuario-actualizado"));
       }, 50);
     };
 
-    // Escuchar cambio de ruta (emitido por patchHistory.ts)
     window.addEventListener("locationchange", handleLocationChange);
-
     return () => {
       window.removeEventListener("locationchange", handleLocationChange);
     };
@@ -165,16 +151,15 @@ const Marketplace: React.FC = () => {
     const token = localStorage.getItem("token");
 
     if (token) {
-      setModalOpen(true); // abre modal de publicación
+      setModalOpen(true);
     } else {
-      setQuierePublicar(true); // guarda intención
-      setOpenLogin(true); // abre modal login
+      setQuierePublicar(true);
+      setOpenLogin(true);
     }
   };
 
-  const handlePublicar = async (nuevaPublicacion: any) => {
+  const handlePublicar = async () => {
     setModalOpen(false);
-    // ✅ Refrescar publicaciones inmediatamente
     const data = await obtenerPublicaciones(
       categoriaSeleccionada?.nombre !== "Todos"
         ? categoriaSeleccionada?.nombre
@@ -184,49 +169,49 @@ const Marketplace: React.FC = () => {
     setProductos(data);
   };
 
+  // ==============================================================
+  // RENDER
+  // ==============================================================
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
       <Cabecera />
 
-      {/* Categorías scrollable en móvil */}
-      <div className="md:hidden overflow-x-auto whitespace-nowrap px-4 py-2 flex gap-2 bg-[#1f2937] border-b border-gray-700">
-        {/* 🧭 Botones de categorías */}
+      {/* CATEGORÍAS EN MÓVIL (compactado) */}
+      <div className="md:hidden overflow-x-auto whitespace-nowrap px-2 py-1 flex gap-1 bg-[#1f2937] border-b border-gray-700">
         {categorias.map((cat) => (
           <button
             key={cat.id}
-            className={`px-4 py-1 rounded-full border text-sm transition ${
+            className={`px-3 py-1 rounded-full border text-sm transition ${
               categoriaSeleccionada?.id === cat.id
                 ? "bg-yellow-400 text-black font-semibold"
                 : "bg-[#2d3748] text-white"
             }`}
             onClick={() => {
               setCategoriaSeleccionada(cat);
-              setMostrarSoloMias(false); // ⚡ al tocar categoría, salimos del modo “mis publicaciones”
+              setMostrarSoloMias(false);
             }}
           >
             {cat.icono} {cat.nombre}
           </button>
         ))}
 
-        {/* 📚 Mis publicaciones */}
         {!esVisitante && puedePublicar && (
           <button
             onClick={() =>
               window.dispatchEvent(new Event("ver-mis-publicaciones"))
             }
-            className="px-4 py-1 rounded-full border text-sm font-semibold 
-         text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+            className="px-3 py-1 rounded-full border text-sm font-semibold 
+            text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
           >
             📚 Mis publicaciones
           </button>
         )}
 
-        {/* 👤 Gestionar Clientes */}
         {puedeVerClientes && (
           <button
             onClick={() => navigate("/clientes")}
-            className="px-4 py-1 rounded-full border text-sm font-semibold 
-         text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
+            className="px-3 py-1 rounded-full border text-sm font-semibold 
+            text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
           >
             <PersonIcon fontSize="small" className="mr-1" />
             Gestionar Clientes
@@ -235,11 +220,14 @@ const Marketplace: React.FC = () => {
       </div>
 
       <div className="flex">
-        {/* Sidebar */}
+        {/* SIDEBAR — ahora ancho, scroll vertical y sin romper nada */}
         <aside
-          className={`fixed top-[64px] md:static bg-[#1e1f23] text-white border-r-2 border-yellow-400 p-4 w-64 z-50 md:z-0 md:block h-[calc(100vh-64px)] md:h-auto transition-transform duration-300 ease-in-out ${
-            sidebarAbierto ? "block" : "hidden"
-          }`}
+          className={`fixed top-[64px] md:static bg-[#1e1f23] text-white 
+            border-r-2 border-yellow-400 p-4 w-72 z-50 md:z-0 md:block 
+            h-[calc(100vh-64px)] overflow-y-auto max-h-[calc(100vh-64px)]
+            transition-transform duration-300 ease-in-out ${
+              sidebarAbierto ? "block" : "hidden"
+            }`}
         >
           <CategoriasPanel
             categorias={categorias}
@@ -253,7 +241,7 @@ const Marketplace: React.FC = () => {
           />
         </aside>
 
-        {/* Zona de productos */}
+        {/* ZONA DE PRODUCTOS */}
         <main className="flex-1 p-4 mt-2 md:mt-4">
           <h2 className="text-2xl font-semibold mb-4 text-white">
             {categoriaSeleccionada?.nombre || "Todos los productos"}
@@ -299,7 +287,6 @@ const Marketplace: React.FC = () => {
         onPublicar={handlePublicar}
       />
 
-      {/* Botón flotante Crear publicación (solo visible en móvil y si el modal está cerrado) */}
       {!modalOpen && puedePublicar && (
         <button
           id="crear-publicacion-btn"
@@ -314,10 +301,7 @@ const Marketplace: React.FC = () => {
         open={openLogin}
         onClose={() => setOpenLogin(false)}
         onSwitchToRegister={(datos?: any) => {
-          // 🔥 Forzar limpieza inmediata antes de abrir el modal de registro
           setDatosPrevios(null);
-
-          // 🔹 Luego, si vienen datos (por ejemplo desde Google), los aplicamos
           setTimeout(() => {
             setDatosPrevios(datos || null);
             setOpenLogin(false);

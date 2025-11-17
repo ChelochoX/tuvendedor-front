@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { register, verificarUsuarioLogin } from "../../api/authService";
 import Swal from "sweetalert2";
+import { obtenerCategorias } from "../../api/publicacionesService";
 
 interface Props {
   open: boolean;
@@ -39,6 +40,9 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     fotoPerfil: "",
     tipoLogin: "clasico",
   });
+  const [categorias, setCategorias] = useState<
+    { id: number; nombre: string }[]
+  >([]);
 
   useEffect(() => {
     if (!open) return;
@@ -81,6 +85,22 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
       }));
     }
   }, [open, datosPrevios]);
+
+  // Cargar categorías al abrir modal
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      try {
+        const data = await obtenerCategorias();
+        setCategorias(data); // se espera { id, nombre, ... }
+      } catch (e) {
+        console.error("Error al cargar categorías", e);
+      }
+    };
+
+    if (open) {
+      fetchCategorias();
+    }
+  }, [open]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -335,22 +355,47 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
           {/* Campos adicionales si es vendedor */}
           {esVendedor && (
             <>
-              {[
-                { label: "Nombre del Negocio", name: "nombreNegocio" },
-                { label: "RUC", name: "ruc" },
-                { label: "Rubro", name: "rubro" },
-              ].map(({ label, name }) => (
-                <div key={name}>
-                  <label className="text-sm text-white">{label}</label>
-                  <input
-                    type="text"
-                    name={name}
-                    value={(formData as any)[name]}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 rounded bg-white text-black"
-                  />
-                </div>
-              ))}
+              {/* Nombre del negocio */}
+              <div>
+                <label className="text-sm text-white">Nombre del Negocio</label>
+                <input
+                  type="text"
+                  name="nombreNegocio"
+                  value={formData.nombreNegocio}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded bg-white text-black"
+                />
+              </div>
+
+              {/* RUC */}
+              <div>
+                <label className="text-sm text-white">RUC</label>
+                <input
+                  type="text"
+                  name="ruc"
+                  value={formData.ruc}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded bg-white text-black"
+                />
+              </div>
+
+              {/* Rubro como SELECT dinámico */}
+              <div>
+                <label className="text-sm text-white">Rubro</label>
+                <select
+                  name="rubro"
+                  value={formData.rubro}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 rounded bg-white text-black"
+                >
+                  <option value="">Seleccioná una categoría</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.id} value={cat.nombre}>
+                      {cat.nombre}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </>
           )}
 

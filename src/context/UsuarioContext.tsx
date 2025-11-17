@@ -11,8 +11,6 @@ interface UsuarioContextType {
   usuario: Usuario | null;
   setUsuario: (usuario: Usuario | null) => void;
   cerrarSesion: () => void;
-
-  // ✅ Helpers centralizados para roles y permisos
   esVisitante: boolean;
   esVendedor: boolean;
   esAdmin: boolean;
@@ -27,70 +25,53 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
-  // ✅ Cargar usuario desde localStorage y actualizar dinámicamente
+  // 🟡 AL MONTAR — FORZAR LOGOUT (no importa lo que haya en localStorage)
   useEffect(() => {
-    const cargarUsuarioDesdeLocalStorage = () => {
-      const token = localStorage.getItem("token");
-      const nombreUsuario = localStorage.getItem("usuario");
-      const fotoUrl = localStorage.getItem("fotoUrl");
-      const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    localStorage.removeItem("token");
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("fotoUrl");
+    localStorage.removeItem("roles");
 
-      if (token && nombreUsuario) {
-        setUsuario({
-          nombreUsuario,
-          fotoUrl: fotoUrl || undefined,
-          roles: roles,
-        });
-      } else {
-        setUsuario(null);
-      }
-    };
-
-    // 🔹 Ejecutar al montar
-    cargarUsuarioDesdeLocalStorage();
-
-    // 🔹 Escuchar actualizaciones manuales
-    window.addEventListener(
-      "usuario-actualizado",
-      cargarUsuarioDesdeLocalStorage
-    );
-
-    // 🔹 Escuchar cambios del storage (por ejemplo, en otra pestaña)
-    window.addEventListener("storage", cargarUsuarioDesdeLocalStorage);
-
-    // 🔹 Escuchar cuando cambia la ruta (evento emitido por patchHistory)
-    window.addEventListener("locationchange", cargarUsuarioDesdeLocalStorage);
-
-    // 🔹 Limpieza
-    return () => {
-      window.removeEventListener(
-        "usuario-actualizado",
-        cargarUsuarioDesdeLocalStorage
-      );
-      window.removeEventListener("storage", cargarUsuarioDesdeLocalStorage);
-      window.removeEventListener(
-        "locationchange",
-        cargarUsuarioDesdeLocalStorage
-      );
-    };
+    setUsuario(null);
   }, []);
 
-  // ✅ Permite cerrar sesión globalmente
+  // 🔄 Recibir login desde LoginModal
+  useEffect(() => {
+    const actualizar = () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setUsuario(null);
+        return;
+      }
+
+      const nombreUsuario = localStorage.getItem("usuario") || "";
+      const fotoUrl = localStorage.getItem("fotoUrl") || "";
+      const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+
+      setUsuario({
+        nombreUsuario,
+        fotoUrl,
+        roles,
+      });
+    };
+
+    window.addEventListener("usuario-actualizado", actualizar);
+    return () => window.removeEventListener("usuario-actualizado", actualizar);
+  }, []);
+
+  // 🔴 Logout global
   const cerrarSesion = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
     localStorage.removeItem("fotoUrl");
-    localStorage.removeItem("rol");
+    localStorage.removeItem("roles");
     setUsuario(null);
   };
 
-  // 🔹 Helpers globales (evita duplicar lógica en los componentes)
-  const esVisitante = !usuario;
   const roles = usuario?.roles || [];
-
+  const esVisitante = !usuario;
   const esVendedor = roles.includes("Vendedor");
   const esAdmin = roles.includes("Administrador");
-
   const puedePublicar = esVendedor || esAdmin;
   const puedeVerClientes = esAdmin;
 
@@ -112,7 +93,6 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
-// ✅ Hook personalizado para acceder fácilmente
 export const useUsuario = (): UsuarioContextType => {
   const context = useContext(UsuarioContext);
   if (!context) {

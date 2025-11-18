@@ -162,3 +162,28 @@ export const obtenerCategorias = async (): Promise<Categoria[]> => {
 
   return result.Data;
 };
+
+export const destacarPublicacion = async (
+  idPublicacion: number,
+  duracionDias: number = 7
+): Promise<void> => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/destacar-publicacion",
+      { idPublicacion, duracionDias }
+    );
+
+    if (!data.Success) {
+      throw new Error(data.Message || data.Errors?.[0] || "Error al destacar");
+    }
+  } catch (error: any) {
+    // ⬅️ AQUÍ interpretamos el error del backend REAL
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      error.message ||
+      "Error desconocido";
+
+    throw new Error(backendMsg);
+  }
+};

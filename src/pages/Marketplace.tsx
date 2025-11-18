@@ -51,7 +51,7 @@ const Marketplace: React.FC = () => {
         }));
 
         setCategorias([
-          { id: "0", nombre: "Todos", icono: "🌐" },
+          { id: 0, nombre: "Todos", icono: "🌐" },
           ...categoriasConIconos,
         ]);
       } catch (error) {
@@ -132,19 +132,18 @@ const Marketplace: React.FC = () => {
   }, []);
 
   // ==============================================================
-  // Fix F5 (sincronizar usuario al cambiar ruta)
+  // 🔄 6️⃣ Escuchar actualización global de publicaciones
   // ==============================================================
   useEffect(() => {
-    const handleLocationChange = () => {
-      setTimeout(() => {
-        window.dispatchEvent(new Event("usuario-actualizado"));
-      }, 50);
+    const actualizar = () => {
+      // 🔁 Le damos un pequeño delay para asegurar que el backend actualizó antes del reload
+      setTimeout(() => window.location.reload(), 200);
     };
 
-    window.addEventListener("locationchange", handleLocationChange);
-    return () => {
-      window.removeEventListener("locationchange", handleLocationChange);
-    };
+    window.addEventListener("actualizar-publicaciones", actualizar);
+
+    return () =>
+      window.removeEventListener("actualizar-publicaciones", actualizar);
   }, []);
 
   const handleCrearPublicacion = () => {

@@ -12,10 +12,13 @@ export interface Producto {
   categoria: string;
   ubicacion: string;
   descripcion?: string;
+  esDestacada?: boolean;
+  fechaFinDestacado?: string;
 
   vendedor: {
     nombre: string;
     avatar: string;
+    telefono: string;
   };
 
   planCredito?: {

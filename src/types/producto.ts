@@ -12,6 +12,7 @@ export interface Producto {
   categoria: string;
   ubicacion: string;
   descripcion?: string;
+  // ⭐ Destacado
   esDestacada?: boolean;
   fechaFinDestacado?: string;
 
@@ -29,6 +30,11 @@ export interface Producto {
   };
 
   imagenes: Imagen[];
-
   mostrarBotonesCompra?: boolean;
+
+  // 🎉 TEMPORADA → AGREGAR ESTO
+  esTemporada?: boolean;
+  badgeTexto?: string;
+  badgeColor?: string;
+  fechaFinTemporada?: string;
 }

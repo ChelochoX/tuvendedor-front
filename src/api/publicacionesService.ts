@@ -187,3 +187,64 @@ export const destacarPublicacion = async (
     throw new Error(backendMsg);
   }
 };
+
+// ⭐ Obtener lista de temporadas activas
+export const obtenerTemporadas = async () => {
+  const response = await instance.get<ApiResponse<any[]>>(
+    "/Publicaciones/listar-temporadas"
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Message || "Error al obtener temporadas.");
+  }
+
+  return result.Data; // array de TemporadaDto
+};
+
+// ⭐ Activar temporada
+export const activarTemporada = async (
+  idPublicacion: number,
+  idTemporada: number
+) => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/activar-temporada",
+      {
+        idPublicacion,
+        idTemporada,
+      }
+    );
+
+    if (!data.Success) {
+      throw new Error(data.Message || data.Errors?.[0]);
+    }
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      "Error al activar temporada";
+
+    throw new Error(backendMsg);
+  }
+};
+
+// ⛔ Desactivar temporada
+export const desactivarTemporada = async (idPublicacion: number) => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/desactivar-temporada",
+      { idPublicacion }
+    );
+
+    if (!data.Success) throw new Error(data.Message || data.Errors?.[0]);
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      "Error al desactivar temporada";
+
+    throw new Error(backendMsg);
+  }
+};

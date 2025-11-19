@@ -1,0 +1,35 @@
+.swiper {
+  overflow: hidden !important;
+}
+
+.swiper-slide {
+  height: auto !important;
+}
+
+/* Flechas */
+.custom-nav-btn {
+  position: absolute;
+  top: 45%;
+  z-index: 30;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.swiper-prev {
+  left: -5px;
+}
+.swiper-next {
+  right: -5px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

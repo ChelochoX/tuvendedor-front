@@ -243,8 +243,8 @@ const Marketplace: React.FC = () => {
         </aside>
 
         {/* ZONA DE PRODUCTOS */}
-        <main className="flex-1 p-4 mt-2 md:mt-4 md:ml-72">
-          <div className="max-w-screen-xl mx-auto">
+        <main className="flex-1 p-4 mt-2 md:mt-4 md:ml-72 overflow-x-hidden">
+          <div className="w-full max-w-[1280px] mx-auto px-2">
             <h2 className="text-2xl font-semibold mb-4 text-white">
               {categoriaSeleccionada?.nombre || "Todos los productos"}
             </h2>
@@ -266,28 +266,25 @@ const Marketplace: React.FC = () => {
                 setProductos((prev) => prev.filter((x) => x.id !== id))
               }
             />
-
-            <div className="max-w-screen-xl mx-auto">
-              {cargando ? (
-                <div className="flex justify-center items-center py-10 text-yellow-400">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-70 mr-3"></div>
-                  Cargando publicaciones...
-                </div>
-              ) : (
-                <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-                  {productosNormales.map((p) => (
-                    <ProductoCard
-                      key={p.id}
-                      producto={p}
-                      onEliminado={(id) =>
-                        setProductos((prev) => prev.filter((x) => x.id !== id))
-                      }
-                      mostrarAcciones={mostrarSoloMias}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            {cargando ? (
+              <div className="flex justify-center items-center py-10 text-yellow-400">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-70 mr-3"></div>
+                Cargando publicaciones...
+              </div>
+            ) : (
+              <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+                {productosNormales.map((p) => (
+                  <ProductoCard
+                    key={p.id}
+                    producto={p}
+                    onEliminado={(id) =>
+                      setProductos((prev) => prev.filter((x) => x.id !== id))
+                    }
+                    mostrarAcciones={mostrarSoloMias}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </main>
       </div>

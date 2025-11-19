@@ -1,0 +1,93 @@
+/* Ocultar scrollbar cross-browser SOLO dentro de la pista */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE/Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  /* Chrome/Safari */
+  display: none;
+}
+
+/* Sección base: referencia para posicionar flechas */
+.carrusel-section {
+  position: relative;
+}
+
+/* Viewport: genera un stacking y nos deja poner fades sin tapar clics */
+.carrusel-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden; /* por si acaso */
+}
+
+/* Pista del carrusel */
+.carrusel-track {
+  max-width: 100%;
+  padding-bottom: 6px;
+  scroll-snap-type: x mandatory; /* mobile suave */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Fades laterales (solo estética) */
+.carrusel-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none; /* NO bloquear clics de flechas */
+  z-index: 4;
+}
+.carrusel-fade-left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(30, 31, 35, 1),
+    rgba(30, 31, 35, 0)
+  );
+}
+.carrusel-fade-right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(30, 31, 35, 1),
+    rgba(30, 31, 35, 0)
+  );
+}
+
+/* Flechas desktop */
+.carrusel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6; /* por encima de la pista y de los fades */
+  width: 42px;
+  height: 42px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 9999px;
+  background: #facc15; /* amarillo 400 */
+  color: #111827; /* gray-900 */
+  font-size: 24px;
+  line-height: 1;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.carrusel-arrow:hover {
+  transform: translateY(-50%) scale(1.06);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.32);
+}
+.carrusel-left {
+  left: 8px;
+}
+.carrusel-right {
+  right: 8px;
+}
+
+/* En móviles ocultamos flechas (ya están hidden md:flex, reforzamos) */
+@media (max-width: 767.98px) {
+  .carrusel-arrow {
+    display: none !important;
+  }
+}

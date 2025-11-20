@@ -64,8 +64,9 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
     const nombreUsuario = localStorage.getItem("usuario") || "";
     const fotoUrl = localStorage.getItem("fotoUrl") || "";
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    const permisos = JSON.parse(localStorage.getItem("permisos") || "[]");
 
-    setUsuario({ nombreUsuario, fotoUrl, roles });
+    setUsuario({ nombreUsuario, fotoUrl, roles, permisos });
   }, []);
 
   // ==============================================================

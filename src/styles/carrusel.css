@@ -38,13 +38,10 @@
   pointer-events: none; /* NO bloquear clics de flechas */
   z-index: 4;
 }
-.carrusel-fade-left {
-  left: 0;
-  background: linear-gradient(
-    to right,
-    rgba(30, 31, 35, 1),
-    rgba(30, 31, 35, 0)
-  );
+/* El fade puede quedar un toque más largo */
+.carrusel-fade-left,
+.carrusel-fade-right {
+  width: 72px; /* antes probablemente 56px */
 }
 .carrusel-fade-right {
   right: 0;
@@ -72,11 +69,11 @@
   font-size: 24px;
   line-height: 1;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-  transition: transform 120ms ease, box-shadow 120ms ease;
+  transition: transform 0.15s ease, filter 0.15s ease;
 }
 .carrusel-arrow:hover {
-  transform: translateY(-50%) scale(1.06);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.32);
+  transform: scale(1.05);
+  filter: brightness(1.05);
 }
 .carrusel-left {
   left: 8px;

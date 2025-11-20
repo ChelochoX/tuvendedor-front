@@ -300,6 +300,23 @@ const ProductoCard: React.FC<Props> = ({
             </div>
           )}
 
+          {/* 👇 NUEVO: badge de temporada (arriba/derecha) */}
+          {producto.esTemporada && producto.badgeTexto && (
+            <div
+              className={[
+                "absolute top-2 right-2 rounded-full shadow-md z-10 flex items-center gap-1",
+                isCompact ? "text-[10px] px-2 py-[2px]" : "text-xs px-3 py-1",
+              ].join(" ")}
+              style={{
+                backgroundColor: producto.badgeColor || "#ef4444",
+                color: "#fff",
+              }}
+              title={`Temporada: ${producto.badgeTexto}`}
+            >
+              🎊 {producto.badgeTexto}
+            </div>
+          )}
+
           {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
             <video
               src={producto.imagenes[0]?.mainUrl}

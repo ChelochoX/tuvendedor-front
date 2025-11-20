@@ -248,3 +248,61 @@ export const desactivarTemporada = async (idPublicacion: number) => {
     throw new Error(backendMsg);
   }
 };
+
+// ⬇️ pegá esto en publicacionesService.ts (debajo de tus helpers estaría bien)
+
+// Mapea y normaliza un item del backend a Producto con miniaturas
+const mapearProducto = (p: any): Producto => {
+  const imagenes = normalizeImagenes(p.imagenes);
+  return {
+    ...p,
+    imagenes,
+    imagen: imagenes[0]?.mainUrl || "",
+  } as Producto;
+};
+
+/**
+ * Obtiene SIEMPRE las publicaciones "especiales" (temporada) para el carrusel,
+ * independientemente de la categoría que esté seleccionada en la UI.
+ *
+ * 1) Intenta usar un endpoint opcional del backend (/Publicaciones/listar-especiales).
+ * 2) Si no existe, hace fallback a /Publicaciones/obtener-publicaciones y filtra en el cliente.
+ */
+export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
+  // 1) intento (silencioso) con endpoint dedicado
+  try {
+    const resp = await instance.get<ApiResponse<any[]>>(
+      `${API_URL}/listar-especiales`
+    );
+    if (resp.data?.Success && Array.isArray(resp.data.Data)) {
+      return (resp.data.Data || []).map(mapearProducto);
+    }
+  } catch {
+    // ignoramos y pasamos al fallback
+  }
+
+  // 2) fallback: traemos todo y filtramos en front por esTemporada + fecha vigente
+  const response = await instance.get<ApiResponse<any[]>>(
+    `${API_URL}/obtener-publicaciones`
+  );
+
+  const result = response.data;
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Error al obtener especiales");
+  }
+
+  const ahora = new Date();
+
+  const especiales = (result.Data || []).filter((p: any) => {
+    if (!p.esTemporada) return false;
+
+    // si el back envía fechaFinTemporada, validamos que siga vigente
+    if (p.fechaFinTemporada) {
+      const fin = new Date(p.fechaFinTemporada);
+      return fin >= ahora;
+    }
+    return true; // si no viene fecha, lo consideramos activo
+  });
+
+  return especiales.map(mapearProducto);
+};

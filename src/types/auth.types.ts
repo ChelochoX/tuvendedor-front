@@ -21,6 +21,7 @@ export interface LoginExitoso {
     estado: string;
     fotoPerfil?: string;
     roles: string[];
+    permisos: string[];
   };
 }
 

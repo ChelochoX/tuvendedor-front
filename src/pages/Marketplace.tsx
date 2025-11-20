@@ -172,6 +172,10 @@ const Marketplace: React.FC = () => {
     setProductos(data);
   };
 
+  const puedeActivarEspecial = !!usuario?.permisos?.includes(
+    "CrearPublicacionTemporada"
+  );
+
   // ==============================================================
   // RENDER
   // ==============================================================
@@ -281,6 +285,8 @@ const Marketplace: React.FC = () => {
                       setProductos((prev) => prev.filter((x) => x.id !== id))
                     }
                     mostrarAcciones={mostrarSoloMias}
+                    // 👇 sólo achicamos cuando el usuario ve “Mis publicaciones”
+                    variant={mostrarSoloMias ? "compact" : "default"}
                   />
                 ))}
               </div>

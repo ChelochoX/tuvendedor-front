@@ -15,14 +15,29 @@ interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
   mostrarAcciones?: boolean;
+  /** Tamaño de la card */
+  variant?: "default" | "compact";
+  /** ⬅️ Nuevo: permiso para activar “Especial” */
+  puedeActivarEspecial?: boolean;
 }
 
 const ProductoCard: React.FC<Props> = ({
   producto,
   onEliminado,
   mostrarAcciones = false,
+  variant = "default",
+  puedeActivarEspecial = false,
 }) => {
   const [eliminando, setEliminando] = useState(false);
+  const [operandoEspecial, setOperandoEspecial] = useState(false);
+  const [operandoDestacado, setOperandoDestacado] = useState(false);
+
+  const isCompact = variant === "compact";
+
+  // Si en tu modelo tienes fecha fin de temporada, úsala aquí.
+  // Por ahora tomamos el booleano tal cual.
+  const especialActivo = !!producto.esTemporada;
+  const destacadoActivo = !!producto.esDestacada;
 
   const handleEliminar = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -40,7 +55,6 @@ const ProductoCard: React.FC<Props> = ({
       background: "#1e1f23",
       color: "#fff",
     });
-
     if (!confirm.isConfirmed) return;
 
     try {
@@ -61,18 +75,18 @@ const ProductoCard: React.FC<Props> = ({
       Swal.fire({
         icon: "success",
         title: "Publicación eliminada",
-        timer: 2000,
+        timer: 1600,
         showConfirmButton: false,
         background: "#1e1f23",
         color: "#fff",
       });
 
-      if (onEliminado) onEliminado(producto.id);
+      onEliminado?.(producto.id);
     } catch (error: any) {
       Swal.fire({
         icon: "error",
         title: "Error al eliminar",
-        text: error.message,
+        text: error?.message ?? "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
@@ -81,19 +95,207 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
+  const pedirDiasDestacado = async (): Promise<number | null> => {
+    const res = await Swal.fire({
+      title: "⭐ Destacar publicación",
+      html: `
+        <p style="color:#ddd">Elegí cuántos días querés destacar.</p>
+        <select id="dias" class="swal2-input" style="color:black;">
+          <option value="7">7 días</option>
+          <option value="15">15 días</option>
+          <option value="30">30 días</option>
+        </select>`,
+      showCancelButton: true,
+      confirmButtonText: "Destacar",
+      background: "#1e1f23",
+      color: "#fff",
+      preConfirm: () =>
+        Number((document.getElementById("dias") as HTMLSelectElement).value),
+    });
+    return res.isConfirmed ? (res.value as number) : null;
+  };
+
+  const activarEspecialFlow = async () => {
+    // 1) No permiso → aviso y fuera
+    if (!puedeActivarEspecial) {
+      await Swal.fire({
+        icon: "info",
+        title: "Función para cuentas Premium",
+        html:
+          `<p style="color:#ddd;margin-top:6px">` +
+          `“Publicación especial” está disponible para usuarios con permiso Premium.<br/>` +
+          `Contactá con soporte para habilitarlo.` +
+          `</p>`,
+        background: "#1e1f23",
+        color: "#fff",
+        confirmButtonColor: "#facc15",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+
+    // 2) Ya activo → ofrecer desactivar
+    if (especialActivo) {
+      const confirm = await Swal.fire({
+        title: "¿Quitar de publicación especial?",
+        icon: "warning",
+        showCancelButton: true,
+        background: "#1e1f23",
+        color: "#fff",
+        confirmButtonColor: "#ef4444",
+        confirmButtonText: "Quitar",
+        cancelButtonText: "Cancelar",
+      });
+      if (!confirm.isConfirmed) return;
+
+      try {
+        setOperandoEspecial(true);
+        await desactivarTemporada(producto.id);
+
+        Swal.fire({
+          icon: "success",
+          title: "Quitado de publicaciones especiales",
+          timer: 1400,
+          showConfirmButton: false,
+          background: "#1e1f23",
+          color: "#fff",
+        });
+
+        window.dispatchEvent(new Event("actualizar-publicaciones"));
+      } catch (err: any) {
+        Swal.fire({
+          icon: "error",
+          title: "No se pudo quitar",
+          text: err?.message ?? "Ocurrió un error",
+          background: "#1e1f23",
+          color: "#fff",
+        });
+      } finally {
+        setOperandoEspecial(false);
+      }
+      return;
+    }
+
+    // 3) Activar → elegir temporada
+    try {
+      const temporadas = await obtenerTemporadas();
+      if (!temporadas || temporadas.length === 0) {
+        await Swal.fire({
+          icon: "info",
+          title: "Sin temporadas",
+          text: "El administrador no configuró temporadas.",
+          background: "#1e1f23",
+          color: "#fff",
+        });
+        return;
+      }
+
+      const opciones = temporadas
+        .map((t) => `<option value="${t.id}">${t.nombre}</option>`)
+        .join("");
+
+      const res = await Swal.fire({
+        title: "🎉 Publicación especial",
+        html: `
+          <p style="color:#ccc;">Seleccioná la temporada:</p>
+          <select id="temporada" class="swal2-input" style="color:black;">
+            ${opciones}
+          </select>`,
+        showCancelButton: true,
+        background: "#1e1f23",
+        color: "#fff",
+        confirmButtonText: "Activar",
+        preConfirm: () =>
+          Number(
+            (document.getElementById("temporada") as HTMLSelectElement).value
+          ),
+      });
+      if (!res.isConfirmed) return;
+
+      setOperandoEspecial(true);
+      await activarTemporada(producto.id, res.value);
+
+      Swal.fire({
+        icon: "success",
+        title: "🎉 Activado como publicación especial",
+        timer: 1500,
+        showConfirmButton: false,
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+
+      window.dispatchEvent(new Event("actualizar-publicaciones"));
+    } catch (err: any) {
+      // Muestra exactamente el mensaje del backend (ej: “No tienes permiso…”)
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo activar",
+        text: err?.message ?? "Ocurrió un error",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+    } finally {
+      setOperandoEspecial(false);
+    }
+  };
+
+  const destacarFlow = async () => {
+    if (destacadoActivo) return;
+
+    const dias = await pedirDiasDestacado();
+    if (dias == null) return;
+
+    try {
+      setOperandoDestacado(true);
+      await destacarPublicacion(producto.id, dias);
+
+      Swal.fire({
+        icon: "success",
+        title: "⭐ Publicación destacada",
+        timer: 1400,
+        showConfirmButton: false,
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+
+      window.dispatchEvent(new Event("actualizar-publicaciones"));
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo destacar",
+        text: err?.message ?? "Ocurrió un error",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+    } finally {
+      setOperandoDestacado(false);
+    }
+  };
+
   return (
     <Link to={`/producto/${producto.id}`} className="block">
       <div
-        className={`
-          bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer 
-          overflow-hidden flex flex-col h-full ring-1 ring-transparent hover:ring-yellow-500
-          ${producto.esDestacada ? "ring-2 ring-yellow-400" : ""}
-        `}
+        className={[
+          "bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer",
+          "overflow-hidden flex flex-col h-full ring-1 ring-transparent hover:ring-yellow-500",
+          destacadoActivo ? "ring-2 ring-yellow-400" : "",
+          isCompact ? "text-[13px]" : "text-sm",
+        ].join(" ")}
       >
         {/* Imagen */}
-        <div className="w-full aspect-[4/3] relative overflow-hidden rounded-t-lg bg-black">
-          {producto.esDestacada && (
-            <div className="absolute top-2 left-2 bg-yellow-300 text-black text-xs font-semibold px-3 py-1 rounded-full shadow-md z-10 flex items-center gap-1">
+        <div
+          className={[
+            "w-full relative overflow-hidden rounded-t-lg bg-black",
+            isCompact ? "aspect-[16/10]" : "aspect-[4/3]",
+          ].join(" ")}
+        >
+          {destacadoActivo && (
+            <div
+              className={[
+                "absolute top-2 left-2 bg-yellow-300 text-black font-semibold rounded-full shadow-md z-10 flex items-center gap-1",
+                isCompact ? "text-[10px] px-2 py-[2px]" : "text-xs px-3 py-1",
+              ].join(" ")}
+            >
               ⭐ Publicación destacada
             </div>
           )}
@@ -119,46 +321,71 @@ const ProductoCard: React.FC<Props> = ({
         </div>
 
         {/* Contenido */}
-        <div className="p-3 text-sm flex flex-col flex-1">
-          <h3 className="text-sm font-semibold text-gray-800 leading-snug mb-1 line-clamp-2">
+        <div
+          className={
+            isCompact ? "p-2 flex flex-col flex-1" : "p-3 flex flex-col flex-1"
+          }
+        >
+          <h3
+            className={[
+              "font-semibold text-gray-800 leading-snug mb-1 line-clamp-2",
+              isCompact ? "text-[13px]" : "text-sm",
+            ].join(" ")}
+          >
             {producto.nombre}
           </h3>
 
-          <p className="text-green-600 font-bold text-sm mb-1">
+          <p
+            className={[
+              "text-green-600 font-bold mb-1",
+              isCompact ? "text-[13px]" : "text-sm",
+            ].join(" ")}
+          >
             {producto.precio.toLocaleString()} ₲
           </p>
 
-          <p className="text-xs text-gray-500">{producto.ubicacion}</p>
+          <p
+            className={
+              isCompact ? "text-[11px] text-gray-500" : "text-xs text-gray-500"
+            }
+          >
+            {producto.ubicacion}
+          </p>
 
-          {/* Fila: vendedor + editar + eliminar */}
+          {/* Vendedor + acciones */}
           <div className="flex items-center justify-between mt-3">
             <div className="flex items-center gap-2">
               <img
                 src={producto.vendedor.avatar}
                 alt={producto.vendedor.nombre}
-                className="w-5 h-5 rounded-full object-cover"
+                className={
+                  isCompact
+                    ? "w-4 h-4 rounded-full object-cover"
+                    : "w-5 h-5 rounded-full object-cover"
+                }
               />
-              <span className="text-xs text-gray-500">
+              <span
+                className={
+                  isCompact
+                    ? "text-[11px] text-gray-500"
+                    : "text-xs text-gray-500"
+                }
+              >
                 {producto.vendedor.nombre}
               </span>
             </div>
 
             {mostrarAcciones && (
               <div className="flex items-center gap-2">
-                {/* Editar */}
                 <button
                   className="text-gray-400 hover:text-blue-500 transition"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-
                     Swal.fire({
                       icon: "info",
                       title: "✨ ¡Estamos trabajando en ello!",
-                      html: `
-                        <p style="color: #ddd; font-size: 15px; margin-top: 8px;">
-                          La edición de publicaciones estará disponible pronto.
-                        </p>`,
+                      html: `<p style="color: #ddd; font-size: 15px; margin-top: 8px;">La edición de publicaciones estará disponible pronto.</p>`,
                       background: "#1e1f23",
                       color: "#fff",
                       confirmButtonColor: "#22c55e",
@@ -167,10 +394,11 @@ const ProductoCard: React.FC<Props> = ({
                     });
                   }}
                 >
-                  <PencilSquareIcon className="w-5 h-5" />
+                  <PencilSquareIcon
+                    className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+                  />
                 </button>
 
-                {/* Eliminar */}
                 <button
                   disabled={eliminando}
                   className={`transition ${
@@ -180,166 +408,69 @@ const ProductoCard: React.FC<Props> = ({
                   }`}
                   onClick={handleEliminar}
                 >
-                  <TrashIcon className="w-5 h-5" />
+                  <TrashIcon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
                 </button>
               </div>
             )}
           </div>
 
-          {/* 📌 FILA NUEVA: botones especiales */}
+          {/* Botones inferiores */}
           {mostrarAcciones && (
             <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-gray-200">
-              {/* ⭐ DESTACAR */}
+              {/* ⭐ Destacar */}
               <button
-                disabled={producto.esDestacada}
-                className={`
-                  w-full text-xs py-2 rounded-md font-semibold transition flex items-center justify-center gap-1
-                  ${
-                    producto.esDestacada
-                      ? "bg-yellow-300 text-black cursor-not-allowed"
-                      : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                  }
-                `}
+                disabled={destacadoActivo || operandoDestacado}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-
-                  if (producto.esDestacada) return;
-
-                  Swal.fire({
-                    title: "⭐ Destacar publicación",
-                    html: `
-                      <p style="color:#ddd">Elegí cuántos días querés destacar.</p>
-                      <select id="dias" class="swal2-input" style="color:black;">
-                        <option value="7">7 días</option>
-                        <option value="15">15 días</option>
-                        <option value="30">30 días</option>
-                      </select>
-                    `,
-                    showCancelButton: true,
-                    confirmButtonText: "Destacar",
-                    background: "#1e1f23",
-                    color: "#fff",
-                    preConfirm: () => {
-                      const select = document.getElementById(
-                        "dias"
-                      ) as HTMLSelectElement;
-                      return Number(select.value);
-                    },
-                  }).then(async (res) => {
-                    if (!res.isConfirmed) return;
-
-                    try {
-                      await destacarPublicacion(producto.id, res.value);
-
-                      Swal.fire({
-                        icon: "success",
-                        title: "⭐ Publicación destacada",
-                        background: "#1e1e1e",
-                        color: "#fff",
-                        timer: 1800,
-                        showConfirmButton: false,
-                      });
-
-                      window.dispatchEvent(
-                        new Event("actualizar-publicaciones")
-                      );
-                    } catch (err: any) {
-                      Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: err.message,
-                        background: "#1e1e1e",
-                        color: "#fff",
-                      });
-                    }
-                  });
+                  destacarFlow();
                 }}
+                className={[
+                  "w-full rounded-md font-semibold transition flex items-center justify-center gap-1",
+                  isCompact
+                    ? "text-[10px] py-[5px] px-2"
+                    : "text-[12px] py-[6px] px-3",
+                  destacadoActivo || operandoDestacado
+                    ? "bg-yellow-300 text-black cursor-not-allowed"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
+                ].join(" ")}
+                title={
+                  destacadoActivo ? "Ya está destacado" : "Destacar publicación"
+                }
               >
                 ⭐ Destacar
               </button>
 
-              {/* 🎉 PUBLICACIÓN ESPECIAL */}
+              {/* 🎉 Especial (con permiso + estado) */}
               <button
-                className="
-                    flex-1 text-xs font-semibold px-3 py-2 rounded-md
-                    bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white
-                    shadow-md hover:shadow-lg transition
-                  "
-                onClick={async (e) => {
+                disabled={
+                  operandoEspecial || (!puedeActivarEspecial && !especialActivo)
+                }
+                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-
-                  if (producto.esTemporada) {
-                    const confirm = await Swal.fire({
-                      title: "¿Quitar de publicación especial?",
-                      icon: "warning",
-                      showCancelButton: true,
-                      background: "#1e1f23",
-                      color: "#fff",
-                    });
-
-                    if (!confirm.isConfirmed) return;
-
-                    await desactivarTemporada(producto.id);
-                    window.dispatchEvent(new Event("actualizar-publicaciones"));
-                    return;
-                  }
-
-                  const temporadas = await obtenerTemporadas();
-
-                  if (temporadas.length === 0) {
-                    Swal.fire({
-                      icon: "info",
-                      title: "Sin temporadas",
-                      text: "El administrador no configuró temporadas.",
-                      background: "#1e1f23",
-                      color: "#fff",
-                    });
-                    return;
-                  }
-
-                  const opciones = temporadas
-                    .map((t) => `<option value="${t.id}">${t.nombre}</option>`)
-                    .join("");
-
-                  const res = await Swal.fire({
-                    title: "🎉 Publicación especial",
-                    html: `
-                      <p style="color:#ccc;">Seleccioná la temporada:</p>
-                      <select id="temporada" class="swal2-input" style="color:black;">
-                        ${opciones}
-                      </select>
-                    `,
-                    showCancelButton: true,
-                    background: "#1e1f23",
-                    color: "#fff",
-                    confirmButtonText: "Activar",
-                    preConfirm: () => {
-                      const select = document.getElementById(
-                        "temporada"
-                      ) as HTMLSelectElement;
-                      return Number(select.value);
-                    },
-                  });
-
-                  if (!res.isConfirmed) return;
-
-                  await activarTemporada(producto.id, res.value);
-
-                  Swal.fire({
-                    icon: "success",
-                    title: "🎉 Activado como publicación especial",
-                    background: "#1e1e1e",
-                    color: "#fff",
-                    timer: 1800,
-                    showConfirmButton: false,
-                  });
-
-                  window.dispatchEvent(new Event("actualizar-publicaciones"));
+                  activarEspecialFlow();
                 }}
+                className={[
+                  "flex-1 font-semibold rounded-md shadow-md transition",
+                  isCompact
+                    ? "text-[10px] py-[5px] px-2"
+                    : "text-[12px] py-[6px] px-3",
+                  especialActivo
+                    ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
+                    : puedeActivarEspecial
+                    ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-lg"
+                    : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                ].join(" ")}
+                title={
+                  especialActivo
+                    ? "Quitar de publicación especial"
+                    : puedeActivarEspecial
+                    ? "Activar como publicación especial"
+                    : "Función Premium"
+                }
               >
-                🎉 Especial
+                🎉 {especialActivo ? "Especial (activo)" : "Especial"}
               </button>
             </div>
           )}

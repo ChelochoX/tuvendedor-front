@@ -162,3 +162,147 @@ export const obtenerCategorias = async (): Promise<Categoria[]> => {
 
   return result.Data;
 };
+
+export const destacarPublicacion = async (
+  idPublicacion: number,
+  duracionDias: number = 7
+): Promise<void> => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/destacar-publicacion",
+      { idPublicacion, duracionDias }
+    );
+
+    if (!data.Success) {
+      throw new Error(data.Message || data.Errors?.[0] || "Error al destacar");
+    }
+  } catch (error: any) {
+    // ⬅️ AQUÍ interpretamos el error del backend REAL
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      error.message ||
+      "Error desconocido";
+
+    throw new Error(backendMsg);
+  }
+};
+
+// ⭐ Obtener lista de temporadas activas
+export const obtenerTemporadas = async () => {
+  const response = await instance.get<ApiResponse<any[]>>(
+    "/Publicaciones/listar-temporadas"
+  );
+
+  const result = response.data;
+
+  if (!result.Success) {
+    throw new Error(result.Message || "Error al obtener temporadas.");
+  }
+
+  return result.Data; // array de TemporadaDto
+};
+
+// ⭐ Activar temporada
+export const activarTemporada = async (
+  idPublicacion: number,
+  idTemporada: number
+) => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/activar-temporada",
+      {
+        idPublicacion,
+        idTemporada,
+      }
+    );
+
+    if (!data.Success) {
+      throw new Error(data.Message || data.Errors?.[0]);
+    }
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      "Error al activar temporada";
+
+    throw new Error(backendMsg);
+  }
+};
+
+// ⛔ Desactivar temporada
+export const desactivarTemporada = async (idPublicacion: number) => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/desactivar-temporada",
+      { idPublicacion }
+    );
+
+    if (!data.Success) throw new Error(data.Message || data.Errors?.[0]);
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      "Error al desactivar temporada";
+
+    throw new Error(backendMsg);
+  }
+};
+
+// ⬇️ pegá esto en publicacionesService.ts (debajo de tus helpers estaría bien)
+
+// Mapea y normaliza un item del backend a Producto con miniaturas
+const mapearProducto = (p: any): Producto => {
+  const imagenes = normalizeImagenes(p.imagenes);
+  return {
+    ...p,
+    imagenes,
+    imagen: imagenes[0]?.mainUrl || "",
+  } as Producto;
+};
+
+/**
+ * Obtiene SIEMPRE las publicaciones "especiales" (temporada) para el carrusel,
+ * independientemente de la categoría que esté seleccionada en la UI.
+ *
+ * 1) Intenta usar un endpoint opcional del backend (/Publicaciones/listar-especiales).
+ * 2) Si no existe, hace fallback a /Publicaciones/obtener-publicaciones y filtra en el cliente.
+ */
+export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
+  // 1) intento (silencioso) con endpoint dedicado
+  try {
+    const resp = await instance.get<ApiResponse<any[]>>(
+      `${API_URL}/listar-especiales`
+    );
+    if (resp.data?.Success && Array.isArray(resp.data.Data)) {
+      return (resp.data.Data || []).map(mapearProducto);
+    }
+  } catch {
+    // ignoramos y pasamos al fallback
+  }
+
+  // 2) fallback: traemos todo y filtramos en front por esTemporada + fecha vigente
+  const response = await instance.get<ApiResponse<any[]>>(
+    `${API_URL}/obtener-publicaciones`
+  );
+
+  const result = response.data;
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Error al obtener especiales");
+  }
+
+  const ahora = new Date();
+
+  const especiales = (result.Data || []).filter((p: any) => {
+    if (!p.esTemporada) return false;
+
+    // si el back envía fechaFinTemporada, validamos que siga vigente
+    if (p.fechaFinTemporada) {
+      const fin = new Date(p.fechaFinTemporada);
+      return fin >= ahora;
+    }
+    return true; // si no viene fecha, lo consideramos activo
+  });
+
+  return especiales.map(mapearProducto);
+};

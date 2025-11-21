@@ -15,6 +15,7 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import { Producto } from "../types/producto";
+import Swal from "sweetalert2";
 
 interface Props {
   producto: Producto;
@@ -53,8 +54,37 @@ const ProductDetail: React.FC<Props> = ({
   const isVideo = currentUrl?.toLowerCase().endsWith(".mp4");
 
   const handleContactarVendedor = () => {
-    const numero = "595982121269"; // ✅ tu número en formato internacional sin +
+    const numeroCrudo = producto.vendedor.telefono?.trim();
+
+    if (!numeroCrudo) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "info",
+        title: "El vendedor no configuró un número de WhatsApp.",
+        background: "#1e1e1e",
+        color: "#fff",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+      return;
+    }
+
+    // 🟡 Normalización automática a formato WhatsApp
+    // Si empieza con 0 → quitamos el 0 y agregamos +595
+    let numero = numeroCrudo;
+
+    if (numero.startsWith("0")) {
+      numero = "595" + numero.slice(1);
+    }
+
+    // Si ya empieza con 595 → lo usamos directo
+    if (!numero.startsWith("595")) {
+      numero = "595" + numero;
+    }
+
     const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
+
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
   };

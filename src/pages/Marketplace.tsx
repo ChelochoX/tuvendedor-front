@@ -11,12 +11,15 @@ import {
   obtenerPublicaciones,
   obtenerMisPublicaciones,
   obtenerCategorias,
+  // 👇 NUEVO: import de los especiales globales
+  obtenerPublicacionesEspeciales,
 } from "../api/publicacionesService";
 import { useNavigate } from "react-router-dom";
 import PersonIcon from "@mui/icons-material/Person";
 import { useUsuario } from "../context/UsuarioContext";
 import CambiarClaveModal from "../components/auth/CambiarClaveModal";
 import { obtenerIconoCategoria } from "../utils/categoriaIconos";
+import CarruselEspeciales from "../components/CarruselEspeciales";
 
 const Marketplace: React.FC = () => {
   const navigate = useNavigate();
@@ -37,6 +40,13 @@ const Marketplace: React.FC = () => {
   const [openRecuperar, setOpenRecuperar] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
+  // 👇 NUEVO: lista de especiales globales (independiente del filtro actual)
+  const [especialesGlobales, setEspecialesGlobales] = useState<Producto[]>([]);
+
+  const productosEspeciales = productos.filter((p) => p.esTemporada);
+  const productosNormales = productos.filter((p) => !p.esTemporada);
+  const itemsEnGrid = mostrarSoloMias ? productos : productosNormales;
+
   // ==============================================================
   // 0️⃣ Cargar categorías desde el backend y preparar lista completa
   // ==============================================================
@@ -51,7 +61,7 @@ const Marketplace: React.FC = () => {
         }));
 
         setCategorias([
-          { id: "0", nombre: "Todos", icono: "🌐" },
+          { id: 0, nombre: "Todos", icono: "🌐" },
           ...categoriasConIconos,
         ]);
       } catch (error) {
@@ -60,6 +70,26 @@ const Marketplace: React.FC = () => {
     };
 
     cargarCategorias();
+  }, []);
+
+  // 👇 NUEVO: 0.5️⃣ Cargar ESPECIALES GLOBALES una sola vez
+  useEffect(() => {
+    let cancelado = false;
+
+    const cargarEspeciales = async () => {
+      try {
+        const data = await obtenerPublicacionesEspeciales();
+        if (!cancelado) setEspecialesGlobales(data);
+      } catch (e) {
+        console.error("Error al cargar especiales globales:", e);
+        if (!cancelado) setEspecialesGlobales([]);
+      }
+    };
+
+    cargarEspeciales();
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
   // ==============================================================
@@ -123,28 +153,30 @@ const Marketplace: React.FC = () => {
 
   useEffect(() => {
     const handleVerMisPublicaciones = () => setMostrarSoloMias(true);
-    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
+    window.addEventListener("ver-mis-publicaciones", handleVerMisPubliciciones);
+    function handleVerMisPubliciciones() {
+      setMostrarSoloMias(true);
+    }
     return () =>
       window.removeEventListener(
         "ver-mis-publicaciones",
-        handleVerMisPublicaciones
+        handleVerMisPubliciciones
       );
   }, []);
 
   // ==============================================================
-  // Fix F5 (sincronizar usuario al cambiar ruta)
+  // 🔄 6️⃣ Escuchar actualización global de publicaciones
   // ==============================================================
   useEffect(() => {
-    const handleLocationChange = () => {
-      setTimeout(() => {
-        window.dispatchEvent(new Event("usuario-actualizado"));
-      }, 50);
+    const actualizar = () => {
+      // 🔁 Le damos un pequeño delay para asegurar que el backend actualizó antes del reload
+      setTimeout(() => window.location.reload(), 200);
     };
 
-    window.addEventListener("locationchange", handleLocationChange);
-    return () => {
-      window.removeEventListener("locationchange", handleLocationChange);
-    };
+    window.addEventListener("actualizar-publicaciones", actualizar);
+
+    return () =>
+      window.removeEventListener("actualizar-publicaciones", actualizar);
   }, []);
 
   const handleCrearPublicacion = () => {
@@ -168,6 +200,12 @@ const Marketplace: React.FC = () => {
     );
     setProductos(data);
   };
+
+  const puedeActivarEspecial = !!usuario?.permisos?.includes(
+    "CrearPublicacionTemporada"
+  );
+
+  const showFab = !modalOpen && puedePublicar;
 
   // ==============================================================
   // RENDER
@@ -222,12 +260,10 @@ const Marketplace: React.FC = () => {
       <div className="flex">
         {/* SIDEBAR — ahora ancho, scroll vertical y sin romper nada */}
         <aside
-          className={`fixed top-[64px] md:static bg-[#1e1f23] text-white 
-            border-r-2 border-yellow-400 p-4 w-72 z-50 md:z-0 md:block 
-            h-[calc(100vh-64px)] overflow-y-auto max-h-[calc(100vh-64px)]
-            transition-transform duration-300 ease-in-out ${
-              sidebarAbierto ? "block" : "hidden"
-            }`}
+          className={`fixed md:fixed md:left-0 top-[64px] bg-[#1e1f23] text-white 
+    border-r-2 border-yellow-400 p-4 w-72 z-50 
+    h-[calc(100vh-64px)] overflow-y-auto
+    ${sidebarAbierto ? "block" : "hidden md:block"}`}
         >
           <CategoriasPanel
             categorias={categorias}
@@ -242,21 +278,45 @@ const Marketplace: React.FC = () => {
         </aside>
 
         {/* ZONA DE PRODUCTOS */}
-        <main className="flex-1 p-4 mt-2 md:mt-4">
-          <h2 className="text-2xl font-semibold mb-4 text-white">
-            {categoriaSeleccionada?.nombre || "Todos los productos"}
-          </h2>
+        <main
+          className={`flex-1 p-4 mt-2 md:mt-4 md:ml-72 overflow-x-hidden
+          ${showFab ? "pb-28 md:pb-0" : ""}`}
+        >
+          <div
+            className="w-full max-w-[1280px] mx-auto px-2"
+            style={{
+              // asegura margen extra en móviles con notch cuando el FAB está
+              paddingBottom: showFab
+                ? "calc(7rem + env(safe-area-inset-bottom, 0px))"
+                : undefined,
+            }}
+          >
+            <h2 className="text-2xl font-semibold mb-4 text-white">
+              {mostrarSoloMias
+                ? "Mis publicaciones"
+                : categoriaSeleccionada?.nombre || "Todos los productos"}
+            </h2>
 
-          {mostrarSoloMias && (
-            <button
-              onClick={() => setMostrarSoloMias(false)}
-              className="mb-3 text-yellow-400 hover:text-yellow-500 underline"
-            >
-              ← Volver al marketplace
-            </button>
-          )}
+            {mostrarSoloMias && (
+              <button
+                onClick={() => setMostrarSoloMias(false)}
+                className="mb-3 text-yellow-400 hover:text-yellow-500 underline"
+              >
+                ← Volver al marketplace
+              </button>
+            )}
 
-          <div className="max-w-screen-xl mx-auto">
+            {/* 🚀 CARRUSEL DE PUBLICACIONES ESPECIALES — SIEMPRE visible (salvo en mis publicaciones) */}
+            {!mostrarSoloMias && especialesGlobales.length > 0 && (
+              <CarruselEspeciales
+                productos={especialesGlobales}
+                mostrarAcciones={false} // en el home no mostramos acciones
+                onEliminarProducto={(id) =>
+                  setProductos((prev) => prev.filter((x) => x.id !== id))
+                }
+              />
+            )}
+
             {cargando ? (
               <div className="flex justify-center items-center py-10 text-yellow-400">
                 <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-70 mr-3"></div>
@@ -264,7 +324,7 @@ const Marketplace: React.FC = () => {
               </div>
             ) : (
               <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-                {productos.map((p) => (
+                {itemsEnGrid.map((p) => (
                   <ProductoCard
                     key={p.id}
                     producto={p}
@@ -272,8 +332,15 @@ const Marketplace: React.FC = () => {
                       setProductos((prev) => prev.filter((x) => x.id !== id))
                     }
                     mostrarAcciones={mostrarSoloMias}
+                    variant={mostrarSoloMias ? "compact" : "default"}
+                    puedeActivarEspecial={puedeActivarEspecial}
                   />
                 ))}
+
+                {/* Spacer para que el FAB no tape la última card en móvil */}
+                {showFab && (
+                  <div className="h-28 md:hidden" aria-hidden="true" />
+                )}
               </div>
             )}
           </div>

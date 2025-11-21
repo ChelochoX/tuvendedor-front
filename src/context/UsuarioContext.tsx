@@ -5,6 +5,7 @@ export interface Usuario {
   nombreUsuario: string;
   fotoUrl?: string;
   roles?: string[];
+  permisos?: string[];
 }
 
 interface UsuarioContextType {
@@ -25,17 +26,53 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
 
-  // 🟡 AL MONTAR — FORZAR LOGOUT (no importa lo que haya en localStorage)
-  useEffect(() => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    localStorage.removeItem("fotoUrl");
-    localStorage.removeItem("roles");
+  // ==============================================================
+  // 🟡 DETECCIÓN FIABLE:
+  // Si sessionStorage está vacío → la pestaña anterior se cerró.
+  // ==============================================================
 
-    setUsuario(null);
+  useEffect(() => {
+    const flag = sessionStorage.getItem("ventana-activa");
+
+    if (!flag) {
+      // ❌ La pestaña anterior se cerró → BORRAR SESIÓN
+      console.log("🚪 Se cerró la pestaña anterior → limpiando sesión");
+      localStorage.removeItem("token");
+      localStorage.removeItem("usuario");
+      localStorage.removeItem("fotoUrl");
+      localStorage.removeItem("roles");
+    }
+
+    // 🟢 Registrar esta pestaña como activa
+    sessionStorage.setItem("ventana-activa", "1");
+
+    // Cuando la pestaña se cierra, sessionStorage se borra automáticamente
   }, []);
 
-  // 🔄 Recibir login desde LoginModal
+  // ==============================================================
+  // 🟢 1) Restaurar usuario desde localStorage al montar (F5 OK)
+  // ==============================================================
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setUsuario(null);
+      return;
+    }
+
+    const nombreUsuario = localStorage.getItem("usuario") || "";
+    const fotoUrl = localStorage.getItem("fotoUrl") || "";
+    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    const permisos = JSON.parse(localStorage.getItem("permisos") || "[]");
+
+    setUsuario({ nombreUsuario, fotoUrl, roles, permisos });
+  }, []);
+
+  // ==============================================================
+  // 🔄 2) Escuchar login
+  // ==============================================================
+
   useEffect(() => {
     const actualizar = () => {
       const token = localStorage.getItem("token");
@@ -47,19 +84,19 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
       const nombreUsuario = localStorage.getItem("usuario") || "";
       const fotoUrl = localStorage.getItem("fotoUrl") || "";
       const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+      const permisos = JSON.parse(localStorage.getItem("permisos") || "[]");
 
-      setUsuario({
-        nombreUsuario,
-        fotoUrl,
-        roles,
-      });
+      setUsuario({ nombreUsuario, fotoUrl, roles, permisos });
     };
 
     window.addEventListener("usuario-actualizado", actualizar);
     return () => window.removeEventListener("usuario-actualizado", actualizar);
   }, []);
 
-  // 🔴 Logout global
+  // ==============================================================
+  // 🔴 3) Logout manual
+  // ==============================================================
+
   const cerrarSesion = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
@@ -67,6 +104,10 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("roles");
     setUsuario(null);
   };
+
+  // ==============================================================
+  // 🎭 Roles
+  // ==============================================================
 
   const roles = usuario?.roles || [];
   const esVisitante = !usuario;

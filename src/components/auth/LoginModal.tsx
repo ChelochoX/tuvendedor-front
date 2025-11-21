@@ -61,13 +61,17 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
 
         // ✅ Guardamos todos los roles, no solo el primero
         const roles = data?.parUsuario?.roles || ["Comprador"];
+        const permisos = data?.parUsuario?.permisos || [];
         localStorage.setItem("roles", JSON.stringify(roles));
+        localStorage.setItem("permisos", JSON.stringify(permisos));
       }
 
       // 👇 Guardar en contexto
       setUsuario({
         nombreUsuario: data?.parUsuario?.nombreUsuario || "",
         fotoUrl: undefined, // clásico no trae foto
+        roles: data?.parUsuario?.roles || ["Comprador"], // 👈
+        permisos: data?.parUsuario?.permisos || [],
       });
       window.dispatchEvent(new Event("usuario-actualizado"));
 
@@ -121,12 +125,16 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
 
         // ✅ Guardamos todos los roles, no solo el primero
         const roles = data?.parUsuario?.roles || ["Comprador"];
+        const permisos = data?.parUsuario?.permisos || [];
         localStorage.setItem("roles", JSON.stringify(roles));
+        localStorage.setItem("permisos", JSON.stringify(permisos));
 
         // 👇 Guardar en contexto
         setUsuario({
           nombreUsuario: nombre,
           fotoUrl: fotoUrl,
+          roles,
+          permisos,
         });
 
         window.dispatchEvent(new Event("usuario-actualizado"));

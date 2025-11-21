@@ -82,6 +82,10 @@
   right: 8px;
 }
 
+.carrusel-track {
+  -webkit-overflow-scrolling: touch;
+} /* inercia iOS */
+
 /* En móviles ocultamos flechas (ya están hidden md:flex, reforzamos) */
 @media (max-width: 767.98px) {
   .carrusel-arrow {

@@ -22,16 +22,28 @@ const CarruselEspeciales: React.FC<Props> = ({
   const trackRef = useRef<HTMLDivElement>(null);
   const [paused, setPaused] = useState(false);
 
-  // Detectamos el nombre de la temporada (si existe) para el encabezado
-  const temporadaActual =
-    productos.find((p) => p.esTemporada && p.badgeTexto)?.badgeTexto ||
-    "Especiales";
+  // Nombre de temporada (toma la más frecuente si hay varias)
+  const temporadaActual = useMemo(() => {
+    const nombres = productos
+      .filter((p) => p.esTemporada && p.badgeTexto)
+      .map((p) => p.badgeTexto!.trim());
+    if (nombres.length === 0) return "Especiales";
+    const freq = new Map<string, number>();
+    for (const n of nombres) freq.set(n, (freq.get(n) || 0) + 1);
+    let best = nombres[0],
+      bestCount = 0;
+    for (const [k, v] of freq)
+      if (v > bestCount) {
+        best = k;
+        bestCount = v;
+      }
+    return best;
+  }, [productos]);
 
-  // Duplicamos para loop suave
+  // Duplicamos si hay ≥2 para permitir loop suave
   const loopItems = useMemo(() => {
     if (!productos || productos.length === 0) return [];
-    if (productos.length < 3) return productos;
-    return [...productos, ...productos];
+    return productos.length >= 2 ? [...productos, ...productos] : productos;
   }, [productos]);
 
   const scrollByDir = (dir: "left" | "right") => {
@@ -45,18 +57,23 @@ const CarruselEspeciales: React.FC<Props> = ({
     window.setTimeout(() => setPaused(false), 400);
   };
 
+  // Auto-scroll en desktop y móvil si hay overflow
   useEffect(() => {
     const el = trackRef.current;
-    if (!el || loopItems.length < 3) return;
+    if (!el) return;
+
+    const hasOverflow = el.scrollWidth > el.clientWidth;
+    const shouldAutoScroll = hasOverflow && loopItems.length > 1;
+    if (!shouldAutoScroll) return;
 
     let raf = 0;
-    const speed = 0.6;
+    const speed = 0.5; // velocidad suave
 
     const tick = () => {
       if (!paused) {
         el.scrollLeft += speed;
         const half = el.scrollWidth / 2;
-        if (el.scrollLeft >= half) el.scrollLeft -= half;
+        if (half > 0 && el.scrollLeft >= half) el.scrollLeft -= half;
       }
       raf = requestAnimationFrame(tick);
     };
@@ -69,10 +86,8 @@ const CarruselEspeciales: React.FC<Props> = ({
 
   return (
     <section className="carrusel-section mb-8 w-full">
-      {/* HEADER — responsive */}
       <div className="rounded-2xl p-3 md:p-4 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] border border-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
-          {/* Título + subtítulo */}
           <div className="flex items-start gap-2">
             <span className="text-2xl md:text-3xl">🎊</span>
             <div>
@@ -89,7 +104,7 @@ const CarruselEspeciales: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* FLECHAS (solo desktop) */}
+        {/* Flechas (desktop) */}
         <button
           type="button"
           onClick={() => scrollByDir("left")}
@@ -107,13 +122,15 @@ const CarruselEspeciales: React.FC<Props> = ({
           ›
         </button>
 
-        {/* VIEWPORT + TRACK */}
+        {/* Viewport + Track */}
         <div className="carrusel-viewport mt-3 md:mt-4">
           <div
             ref={trackRef}
             className="carrusel-track no-scrollbar flex gap-4 overflow-x-auto w-full"
+            // 🖱️ Pausa por hover (escritorio)
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
+            // ☝️ Pausa mientras se mantiene el dedo (móvil)
             onTouchStart={() => setPaused(true)}
             onTouchEnd={() => setPaused(false)}
           >

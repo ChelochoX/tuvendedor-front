@@ -1,48 +1,52 @@
-/* Ocultar scrollbar cross-browser SOLO dentro de la pista */
+/* Ocultar scrollbar */
 .no-scrollbar {
-  -ms-overflow-style: none; /* IE/Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 .no-scrollbar::-webkit-scrollbar {
-  /* Chrome/Safari */
   display: none;
 }
 
-/* Sección base: referencia para posicionar flechas */
+/* Sección base */
 .carrusel-section {
   position: relative;
 }
 
-/* Viewport: genera un stacking y nos deja poner fades sin tapar clics */
+/* Viewport */
 .carrusel-viewport {
   position: relative;
   width: 100%;
-  overflow: hidden; /* por si acaso */
+  overflow: hidden;
 }
 
-/* Pista del carrusel */
+/* Pista */
 .carrusel-track {
   max-width: 100%;
   padding-bottom: 6px;
-  scroll-snap-type: x mandatory; /* mobile suave */
+  scroll-snap-type: none;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
 }
 
-/* Fades laterales (solo estética) */
+/* Fades laterales */
 .carrusel-fade {
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 28px;
-  pointer-events: none; /* NO bloquear clics de flechas */
+  width: 72px;
+  pointer-events: none;
   z-index: 4;
 }
-/* El fade puede quedar un toque más largo */
-.carrusel-fade-left,
-.carrusel-fade-right {
-  width: 72px; /* antes probablemente 56px */
+
+.carrusel-fade-left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(30, 31, 35, 1),
+    rgba(30, 31, 35, 0)
+  );
 }
+
 .carrusel-fade-right {
   right: 0;
   background: linear-gradient(
@@ -57,36 +61,27 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  z-index: 6; /* por encima de la pista y de los fades */
+  z-index: 6;
   width: 42px;
   height: 42px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
   border-radius: 9999px;
-  background: #facc15; /* amarillo 400 */
-  color: #111827; /* gray-900 */
+  background: #facc15;
+  color: #111827;
   font-size: 24px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, filter 0.15s ease;
 }
-.carrusel-arrow:hover {
-  transform: scale(1.05);
-  filter: brightness(1.05);
-}
+
 .carrusel-left {
   left: 8px;
 }
+
 .carrusel-right {
   right: 8px;
 }
 
-.carrusel-track {
-  -webkit-overflow-scrolling: touch;
-} /* inercia iOS */
-
-/* En móviles ocultamos flechas (ya están hidden md:flex, reforzamos) */
 @media (max-width: 767.98px) {
   .carrusel-arrow {
     display: none !important;

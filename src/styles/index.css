@@ -29,7 +29,7 @@ body {
   max-height: calc(
     100vh - 40px
   ); /* Para asegurarse de que no sea más alto que la ventana */
-  overflow-y: auto; /* Permite desplazamiento si hay muchos elementos */
+  overflow-y: hidden; /* Permite desplazamiento si hay muchos elementos */
 }
 
 /* Sombra opcional para darle un efecto flotante */
@@ -244,4 +244,31 @@ body {
 .custom-number-input::-moz-number-spin-down {
   filter: invert(75%) sepia(85%) saturate(700%) hue-rotate(5deg)
     brightness(110%) contrast(105%);
+}
+
+/* 🎨 Scroll elegante exclusivo del panel de categorías */
+.scroll-elegante::-webkit-scrollbar {
+  width: 1px;
+}
+
+.scroll-elegante::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-elegante::-webkit-scrollbar-thumb {
+  background-color: rgba(250, 204, 21, 0.7); /* amarillo TuVendedor */
+  border-radius: 10px;
+  /* TRUCO: el thumb real mide 2px y está centrado */
+  border-left: 2px solid transparent;
+  border-right: 2px solid transparent;
+}
+
+.scroll-elegante::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(250, 204, 21, 1);
+}
+
+/* Firefox */
+.scroll-elegante {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(250, 204, 21, 0.7) transparent;
 }

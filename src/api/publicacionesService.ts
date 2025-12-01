@@ -306,3 +306,31 @@ export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
 
   return especiales.map(mapearProducto);
 };
+
+export const enviarSugerencia = async (comentario: string): Promise<void> => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      `${API_URL}/crear-sugerencia`,
+      { comentario }
+    );
+
+    if (!data.Success) {
+      const mensaje =
+        data.Message || data.Errors?.[0] || "No se pudo enviar la sugerencia.";
+      throw new Error(mensaje);
+    }
+  } catch (error: any) {
+    console.error(
+      "Error en petición API:",
+      error.response?.data || error.message || error
+    );
+
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      error.message ||
+      "Error al enviar la sugerencia.";
+
+    throw new Error(backendMsg);
+  }
+};

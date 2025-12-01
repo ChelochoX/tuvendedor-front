@@ -1,11 +1,14 @@
 // src/components/CategoriasPanel.tsx
-import React from "react";
+import React, { useState } from "react";
 import { Categoria } from "../types/categoria";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import { useNavigate } from "react-router-dom";
 import { useUsuario } from "../context/UsuarioContext";
+import Swal from "sweetalert2";
+import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacionesService";
+import SugerenciaModal from "./SugerenciaModal";
 
 interface Props {
   categorias: Categoria[];
@@ -22,6 +25,28 @@ const CategoriasPanel: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
   const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
+  const [abrirSugerencia, setAbrirSugerencia] = useState(false);
+
+  // ⚠️ MANTENGO TU FUNCIÓN – SOLO LA ARREGLO
+  const enviarSugerencia = async (comentario: string) => {
+    try {
+      await enviarSugerenciaService(comentario);
+
+      Swal.fire({
+        title: "¡Gracias por tu aporte! 💛",
+        text: "Tu sugerencia fue enviada correctamente.",
+        icon: "success",
+        confirmButtonColor: "#facc15",
+      });
+    } catch (error) {
+      Swal.fire({
+        title: "Error",
+        text: "No se pudo enviar la sugerencia.",
+        icon: "error",
+        confirmButtonColor: "#dc2626",
+      });
+    }
+  };
 
   return (
     // 🔥 Nueva estructura: header + contenido + footer fijo
@@ -111,15 +136,38 @@ const CategoriasPanel: React.FC<Props> = ({
       </div>
 
       {/* 🏁 Footer corporativo fijo al pie */}
-      <div className="mt-4 pt-3 border-t border-yellow-400 opacity-40 text-center text-xs text-gray-400">
-        <span>Desarrollado por </span>
+      <div className="mt-4 pt-3 border-t border-yellow-400 opacity-40 text-center text-xs text-gray-400 flex flex-col gap-1">
+        <span>
+          Desarrollado por{" "}
+          <a
+            href="https://www.graciatech.com.py"
+            target="_blank"
+            className="text-yellow-400 font-semibold hover:underline"
+          >
+            Gracia Tech
+          </a>
+        </span>
+
         <a
-          href="https://www.graciatech.com.py"
-          target="_blank"
-          className="text-yellow-400 font-semibold hover:underline"
+          href="mailto:soporte@tuvendedor.com.py"
+          className="text-gray-400 hover:text-yellow-400 hover:underline"
         >
-          Gracia Tech
+          soporte@tuvendedor.com.py
         </a>
+
+        <button
+          onClick={() => setAbrirSugerencia(true)}
+          className="text-center w-full mt-2 text-yellow-400 hover:text-yellow-300 text-sm underline"
+        >
+          Enviar sugerencia
+        </button>
+
+        {/* MODAL */}
+        <SugerenciaModal
+          abierto={abrirSugerencia}
+          onClose={() => setAbrirSugerencia(false)}
+          onEnviar={enviarSugerencia}
+        />
       </div>
     </div>
   );

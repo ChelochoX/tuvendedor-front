@@ -11,7 +11,6 @@ interface Props {
 
 const CARD_WIDTH = 260;
 const GAP = 16;
-const STEP = CARD_WIDTH + GAP;
 
 const CarruselEspeciales: React.FC<Props> = ({
   productos,
@@ -19,11 +18,10 @@ const CarruselEspeciales: React.FC<Props> = ({
   onEliminarProducto,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [paused, setPaused] = useState(false);
 
-  /** -----------------------------------------
-   *  🔥 Temporada más frecuente
-   * ----------------------------------------- */
+  /* ---------------------------------
+   * 🔥 Temporada más frecuente
+   * --------------------------------- */
   const temporadaActual = useMemo(() => {
     const nombres = productos
       .filter((p) => p.esTemporada && p.badgeTexto)
@@ -32,80 +30,58 @@ const CarruselEspeciales: React.FC<Props> = ({
     if (nombres.length === 0) return "Especiales";
 
     const freq = new Map<string, number>();
-    for (const n of nombres) freq.set(n, (freq.get(n) || 0) + 1);
+    for (const n of nombres) {
+      freq.set(n, (freq.get(n) || 0) + 1);
+    }
 
-    let best = nombres[0],
-      bestCount = 0;
+    let best = nombres[0];
+    let bestCount = 0;
 
-    for (const [k, v] of freq)
+    for (const [k, v] of freq) {
       if (v > bestCount) {
         best = k;
         bestCount = v;
       }
+    }
 
     return best;
   }, [productos]);
 
-  /** -----------------------------------------
-   *  🔁 Duplicación TRIPLE para loop perfecto
-   * ----------------------------------------- */
+  /* ---------------------------------
+   * 🔁 Duplicación interna (no visible)
+   * --------------------------------- */
   const loopItems = useMemo(() => {
     if (!productos || productos.length === 0) return [];
-
-    // 🔥 TRIPLE duplicación → overflow garantizado SIEMPRE
-    return [...productos, ...productos, ...productos];
+    return [...productos, ...productos]; // duplicación técnica
   }, [productos]);
 
-  /** -----------------------------------------
-   *  ⬅️➡️ Scroll manual con flechas
-   * ----------------------------------------- */
-  const scrollByDir = (dir: "left" | "right") => {
-    const el = trackRef.current;
-    if (!el) return;
-
-    setPaused(true);
-    el.scrollTo({
-      left: el.scrollLeft + (dir === "left" ? -STEP : STEP),
-      behavior: "smooth",
-    });
-
-    setTimeout(() => setPaused(false), 500);
-  };
-
-  /** -----------------------------------------
-   *  🔁 Auto-scroll INFINITO real (desktop + mobile)
-   * ----------------------------------------- */
+  /* ---------------------------------
+   * 🔁 Movimiento continuo perfecto
+   * --------------------------------- */
   useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
+    const track = trackRef.current;
+    if (!track) return;
 
-    const speed = 0.6;
-    let raf = 0;
+    if (productos.length <= 1) return; // no mover si solo hay 1
 
-    const tick = () => {
-      if (!paused) {
-        el.scrollLeft += speed;
+    let x = 0;
+    const speed = 0.4; // velocidad suave
+    const totalWidth = productos.length * (CARD_WIDTH + GAP);
 
-        const oneBlock = el.scrollWidth / 3;
+    const animate = () => {
+      x -= speed;
 
-        // 🔄 Loop perfecto, sin saltos
-        if (el.scrollLeft >= oneBlock * 2) {
-          el.scrollLeft -= oneBlock;
-        }
+      // cuando pasamos el primer set → reseteamos sin que se note
+      if (Math.abs(x) >= totalWidth) {
+        x = 0;
       }
 
-      raf = requestAnimationFrame(tick);
+      track.style.transform = `translateX(${x}px)`;
+      requestAnimationFrame(animate);
     };
 
-    raf = requestAnimationFrame(tick);
-
-    return () => cancelAnimationFrame(raf);
-  }, [paused, loopItems.length]);
-
-  /** -----------------------------------------
-   *  🖱️ Pausa si usuario interactúa
-   * ----------------------------------------- */
-  const handleMouseMove = () => setPaused(true);
+    animate();
+  }, [productos]);
 
   if (!productos || productos.length === 0) return null;
 
@@ -130,32 +106,12 @@ const CarruselEspeciales: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Flechas */}
-        <button
-          type="button"
-          onClick={() => scrollByDir("left")}
-          className="hidden md:flex carrusel-arrow carrusel-left"
-        >
-          ‹
-        </button>
-
-        <button
-          type="button"
-          onClick={() => scrollByDir("right")}
-          className="hidden md:flex carrusel-arrow carrusel-right"
-        >
-          ›
-        </button>
-
         {/* Carrusel */}
-        <div className="carrusel-viewport mt-3 md:mt-4">
+        <div className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full">
           <div
             ref={trackRef}
-            className="carrusel-track no-scrollbar flex gap-4 overflow-x-auto w-full"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={() => setPaused(false)}
-            onTouchStart={() => setPaused(true)}
-            onTouchEnd={() => setPaused(false)}
+            className="flex gap-4 will-change-transform"
+            style={{ width: "max-content" }}
           >
             {loopItems.map((p, idx) => (
               <div key={`${p.id}-${idx}`} className="shrink-0 w-[260px]">
@@ -168,8 +124,12 @@ const CarruselEspeciales: React.FC<Props> = ({
             ))}
           </div>
 
-          <div className="carrusel-fade carrusel-fade-left" />
-          <div className="carrusel-fade carrusel-fade-right" />
+          {productos.length > 1 && (
+            <>
+              <div className="carrusel-fade carrusel-fade-left" />
+              <div className="carrusel-fade carrusel-fade-right" />
+            </>
+          )}
         </div>
       </div>
     </section>

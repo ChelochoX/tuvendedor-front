@@ -18,6 +18,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   onEliminarProducto,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
+  const [paused, setPaused] = useState(false); // ⬅️ NUEVO
 
   /* ---------------------------------
    * 🔥 Temporada más frecuente
@@ -30,19 +31,16 @@ const CarruselEspeciales: React.FC<Props> = ({
     if (nombres.length === 0) return "Especiales";
 
     const freq = new Map<string, number>();
-    for (const n of nombres) {
-      freq.set(n, (freq.get(n) || 0) + 1);
-    }
+    for (const n of nombres) freq.set(n, (freq.get(n) || 0) + 1);
 
-    let best = nombres[0];
-    let bestCount = 0;
+    let best = nombres[0],
+      bestCount = 0;
 
-    for (const [k, v] of freq) {
+    for (const [k, v] of freq)
       if (v > bestCount) {
         best = k;
         bestCount = v;
       }
-    }
 
     return best;
   }, [productos]);
@@ -52,7 +50,7 @@ const CarruselEspeciales: React.FC<Props> = ({
    * --------------------------------- */
   const loopItems = useMemo(() => {
     if (!productos || productos.length === 0) return [];
-    return [...productos, ...productos]; // duplicación técnica
+    return [...productos, ...productos];
   }, [productos]);
 
   /* ---------------------------------
@@ -62,26 +60,56 @@ const CarruselEspeciales: React.FC<Props> = ({
     const track = trackRef.current;
     if (!track) return;
 
-    if (productos.length <= 1) return; // no mover si solo hay 1
+    if (productos.length <= 1) return;
 
     let x = 0;
-    const speed = 0.4; // velocidad suave
+    const speed = 0.4;
     const totalWidth = productos.length * (CARD_WIDTH + GAP);
 
-    const animate = () => {
-      x -= speed;
+    let frame: number;
 
-      // cuando pasamos el primer set → reseteamos sin que se note
-      if (Math.abs(x) >= totalWidth) {
-        x = 0;
+    const animate = () => {
+      if (!paused) {
+        x -= speed;
+
+        if (Math.abs(x) >= totalWidth) {
+          x = 0;
+        }
+
+        track.style.transform = `translateX(${x}px)`;
       }
 
-      track.style.transform = `translateX(${x}px)`;
-      requestAnimationFrame(animate);
+      frame = requestAnimationFrame(animate);
     };
 
     animate();
-  }, [productos]);
+
+    return () => cancelAnimationFrame(frame);
+  }, [productos, paused]);
+
+  /* ---------------------------------
+   * ⬅️➡️ Flechas MANUALES
+   * --------------------------------- */
+  const moveManual = (dir: "left" | "right") => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const distance = 300; // avanza un poco a cada clic
+
+    // Congelar movimiento automático por 1 segundo
+    setPaused(true);
+    setTimeout(() => setPaused(false), 1000);
+
+    let currentX =
+      parseFloat(
+        track.style.transform.replace("translateX(", "").replace("px)", "")
+      ) || 0;
+
+    if (dir === "left") currentX += distance;
+    else currentX -= distance;
+
+    track.style.transform = `translateX(${currentX}px)`;
+  };
 
   if (!productos || productos.length === 0) return null;
 
@@ -106,8 +134,31 @@ const CarruselEspeciales: React.FC<Props> = ({
           </div>
         </div>
 
+        {/* FLECHAS */}
+        {productos.length > 1 && (
+          <>
+            <button
+              onClick={() => moveManual("left")}
+              className="hidden md:flex carrusel-arrow carrusel-left"
+            >
+              ‹
+            </button>
+
+            <button
+              onClick={() => moveManual("right")}
+              className="hidden md:flex carrusel-arrow carrusel-right"
+            >
+              ›
+            </button>
+          </>
+        )}
+
         {/* Carrusel */}
-        <div className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full">
+        <div
+          className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full"
+          onMouseEnter={() => setPaused(true)} // ⬅️ Pausar
+          onMouseLeave={() => setPaused(false)} // ⬅️ Reanudar
+        >
           <div
             ref={trackRef}
             className="flex gap-4 will-change-transform"

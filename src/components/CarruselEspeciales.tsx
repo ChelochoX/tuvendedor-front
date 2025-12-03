@@ -18,7 +18,16 @@ const CarruselEspeciales: React.FC<Props> = ({
   onEliminarProducto,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-  const [paused, setPaused] = useState(false); // ⬅️ NUEVO
+
+  const [paused, setPaused] = useState(false);
+
+  // 🔧 Nueva referencia para la posición actual del carrusel
+  const positionRef = useRef(0);
+
+  // 🔧 Refs para manejo de touch en móvil
+  const isDraggingRef = useRef(false);
+  const touchStartXRef = useRef(0);
+  const dragStartXRef = useRef(0);
 
   /* ---------------------------------
    * 🔥 Temporada más frecuente
@@ -62,20 +71,23 @@ const CarruselEspeciales: React.FC<Props> = ({
 
     if (productos.length <= 1) return;
 
-    let x = 0;
     const speed = 0.4;
     const totalWidth = productos.length * (CARD_WIDTH + GAP);
 
     let frame: number;
 
     const animate = () => {
-      if (!paused) {
+      // No mover si está pausado o si el usuario está arrastrando con el dedo
+      if (!paused && !isDraggingRef.current) {
+        let x = positionRef.current;
+
         x -= speed;
 
         if (Math.abs(x) >= totalWidth) {
           x = 0;
         }
 
+        positionRef.current = x;
         track.style.transform = `translateX(${x}px)`;
       }
 
@@ -88,7 +100,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos, paused]);
 
   /* ---------------------------------
-   * ⬅️➡️ Flechas MANUALES
+   * ⬅️➡️ Flechas MANUALES (solo escritorio)
    * --------------------------------- */
   const moveManual = (dir: "left" | "right") => {
     const track = trackRef.current;
@@ -100,15 +112,47 @@ const CarruselEspeciales: React.FC<Props> = ({
     setPaused(true);
     setTimeout(() => setPaused(false), 1000);
 
-    let currentX =
-      parseFloat(
-        track.style.transform.replace("translateX(", "").replace("px)", "")
-      ) || 0;
+    let currentX = positionRef.current;
 
     if (dir === "left") currentX += distance;
     else currentX -= distance;
 
+    positionRef.current = currentX;
     track.style.transform = `translateX(${currentX}px)`;
+  };
+
+  /* ---------------------------------
+   * 📱 Manejo de touch para móvil
+   * --------------------------------- */
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (productos.length <= 1) return;
+
+    const touch = e.touches[0];
+    isDraggingRef.current = true;
+    touchStartXRef.current = touch.clientX;
+    dragStartXRef.current = positionRef.current;
+
+    setPaused(true); // Pausar mientras el usuario toca/arrastra
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartXRef.current;
+
+    const newX = dragStartXRef.current + deltaX;
+    positionRef.current = newX;
+
+    const track = trackRef.current;
+    if (track) {
+      track.style.transform = `translateX(${newX}px)`;
+    }
+  };
+
+  const handleTouchEnd = () => {
+    isDraggingRef.current = false;
+    setPaused(false); // Reanudar cuando termina el gesto
   };
 
   if (!productos || productos.length === 0) return null;
@@ -156,8 +200,11 @@ const CarruselEspeciales: React.FC<Props> = ({
         {/* Carrusel */}
         <div
           className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full"
-          onMouseEnter={() => setPaused(true)} // ⬅️ Pausar
-          onMouseLeave={() => setPaused(false)} // ⬅️ Reanudar
+          onMouseEnter={() => setPaused(true)} // Pausar en escritorio
+          onMouseLeave={() => setPaused(false)} // Reanudar en escritorio
+          onTouchStart={handleTouchStart} // 📱 Pausar y empezar drag
+          onTouchMove={handleTouchMove} // 📱 Mover con el dedo
+          onTouchEnd={handleTouchEnd} // 📱 Soltar y reanudar
         >
           <div
             ref={trackRef}

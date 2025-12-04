@@ -15,6 +15,9 @@ import {
   obtenerTemporadas,
   marcarComoVendido,
 } from "../api/publicacionesService";
+import "tippy.js/dist/tippy.css";
+import "tippy.js/themes/light.css";
+import Tippy from "@tippyjs/react";
 
 interface Props {
   producto: Producto;
@@ -407,108 +410,127 @@ const ProductoCard: React.FC<Props> = ({
 
             {mostrarAcciones && (
               <div className="flex items-center gap-2">
-                <button
-                  disabled={producto.estado === "Vendido"}
-                  className={`transition ${
-                    producto.estado === "Vendido"
-                      ? "text-gray-300 cursor-not-allowed"
-                      : "text-gray-400 hover:text-blue-500"
-                  }`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    Swal.fire({
-                      icon: "info",
-                      title: "✨ ¡Estamos trabajando en ello!",
-                      html: `<p style="color: #ddd; font-size: 15px; margin-top: 8px;">La edición de publicaciones estará disponible pronto.</p>`,
-                      background: "#1e1f23",
-                      color: "#fff",
-                      confirmButtonColor: "#22c55e",
-                      confirmButtonText: "Entendido 💛",
-                      showCloseButton: true,
-                    });
-                  }}
+                <Tippy
+                  content="Editar publicación"
+                  theme="light"
+                  animation="scale"
+                  delay={[100, 0]}
                 >
-                  <PencilSquareIcon
-                    className={isCompact ? "w-4 h-4" : "w-5 h-5"}
-                  />
-                </button>
+                  <button
+                    disabled={producto.estado === "Vendido"}
+                    className={`transition ${
+                      producto.estado === "Vendido"
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-400 hover:text-blue-500"
+                    }`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      Swal.fire({
+                        icon: "info",
+                        title: "✨ ¡Estamos trabajando en ello!",
+                        html: `<p style="color: #ddd; font-size: 15px; margin-top: 8px;">La edición de publicaciones estará disponible pronto.</p>`,
+                        background: "#1e1f23",
+                        color: "#fff",
+                        confirmButtonColor: "#22c55e",
+                        confirmButtonText: "Entendido 💛",
+                        showCloseButton: true,
+                      });
+                    }}
+                  >
+                    <PencilSquareIcon
+                      className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+                    />
+                  </button>
+                </Tippy>
 
-                <button
-                  disabled={eliminando}
-                  className={`transition ${
-                    eliminando
-                      ? "text-gray-300 cursor-not-allowed"
-                      : "text-gray-400 hover:text-red-500"
-                  }`}
-                  onClick={handleEliminar}
+                <Tippy
+                  content="Eliminar publicación"
+                  theme="light"
+                  animation="scale"
+                  delay={[100, 0]}
                 >
-                  <TrashIcon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
-                </button>
+                  <button
+                    disabled={eliminando}
+                    className={`transition ${
+                      eliminando
+                        ? "text-gray-300 cursor-not-allowed"
+                        : "text-gray-400 hover:text-red-500"
+                    }`}
+                    onClick={handleEliminar}
+                  >
+                    <TrashIcon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
+                  </button>
+                </Tippy>
 
                 {/* ✔ Marcar como vendido */}
-                <button
-                  className={`transition ${
-                    producto.estado === "Vendido"
-                      ? "text-green-400 cursor-not-allowed"
-                      : "text-gray-400 hover:text-green-500"
-                  }`}
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    if (producto.estado === "Vendido") return;
-
-                    const confirm = await Swal.fire({
-                      title: "¿Marcar como vendido?",
-                      text: "La publicación mostrará un badge de VENDIDO y no podrá ser editada.",
-                      icon: "question",
-                      showCancelButton: true,
-                      confirmButtonColor: "#22c55e",
-                      cancelButtonColor: "#6b7280",
-                      confirmButtonText: "Sí, marcar como vendido",
-                      cancelButtonText: "Cancelar",
-                      background: "#1e1f23",
-                      color: "#fff",
-                    });
-
-                    if (!confirm.isConfirmed) return;
-
-                    try {
-                      await marcarComoVendido(producto.id);
-
-                      Swal.fire({
-                        icon: "success",
-                        title: "Marcado como vendido",
-                        timer: 1500,
-                        showConfirmButton: false,
-                        background: "#1e1f23",
-                        color: "#fff",
-                      });
-
-                      window.dispatchEvent(
-                        new Event("actualizar-publicaciones")
-                      );
-                    } catch (err: any) {
-                      Swal.fire({
-                        icon: "error",
-                        title: "Error",
-                        text: err?.message ?? "No se pudo marcar como vendido",
-                        background: "#1e1f23",
-                        color: "#fff",
-                      });
-                    }
-                  }}
-                  title={
+                <Tippy
+                  content={
                     producto.estado === "Vendido"
                       ? "Ya está vendido"
                       : "Marcar como vendido"
                   }
+                  theme="light"
+                  animation="scale"
+                  delay={[100, 0]}
                 >
-                  <CheckBadgeIcon
-                    className={isCompact ? "w-4 h-4" : "w-5 h-5"}
-                  />
-                </button>
+                  <button
+                    className={`transition ${
+                      producto.estado === "Vendido"
+                        ? "text-green-400 cursor-not-allowed"
+                        : "text-gray-400 hover:text-green-500"
+                    }`}
+                    onClick={async (e) => {
+                      // 👉 TU LÓGICA ORIGINAL intacta:
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (producto.estado === "Vendido") return;
+
+                      const confirm = await Swal.fire({
+                        title: "¿Marcar como vendido?",
+                        text: "La publicación mostrará un badge de VENDIDO y no podrá ser editada.",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonColor: "#22c55e",
+                        cancelButtonColor: "#6b7280",
+                        confirmButtonText: "Sí, marcar como vendido",
+                        cancelButtonText: "Cancelar",
+                        background: "#1e1f23",
+                        color: "#fff",
+                      });
+
+                      if (!confirm.isConfirmed) return;
+
+                      try {
+                        await marcarComoVendido(producto.id);
+                        Swal.fire({
+                          icon: "success",
+                          title: "Marcado como vendido",
+                          timer: 1500,
+                          showConfirmButton: false,
+                          background: "#1e1f23",
+                          color: "#fff",
+                        });
+                        window.dispatchEvent(
+                          new Event("actualizar-publicaciones")
+                        );
+                      } catch (err: any) {
+                        Swal.fire({
+                          icon: "error",
+                          title: "Error",
+                          text:
+                            err?.message ?? "No se pudo marcar como vendido",
+                          background: "#1e1f23",
+                          color: "#fff",
+                        });
+                      }
+                    }}
+                  >
+                    <CheckBadgeIcon
+                      className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+                    />
+                  </button>
+                </Tippy>
               </div>
             )}
           </div>

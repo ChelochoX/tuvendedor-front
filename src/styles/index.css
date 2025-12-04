@@ -300,3 +300,16 @@ body {
 .animate-popup {
   animation: popup 0.25s ease-out;
 }
+
+.tippy-box[data-theme~="light"] {
+  background-color: white;
+  color: #1e1e1e;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 13px;
+  padding: 4px 8px;
+}
+
+.tippy-arrow {
+  color: white;
+}

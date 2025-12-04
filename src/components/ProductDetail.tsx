@@ -148,7 +148,6 @@ const ProductDetail: React.FC<Props> = ({
             <video
               key={currentUrl} // fuerza reinicio si cambiás de video
               src={currentUrl}
-              muted
               autoPlay
               loop
               playsInline
@@ -256,7 +255,6 @@ const ProductDetail: React.FC<Props> = ({
                 {isVid ? (
                   <video
                     src={img.mainUrl}
-                    muted
                     playsInline
                     className="w-full h-full object-cover"
                     style={{ opacity: 0.85 }}

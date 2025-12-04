@@ -1,7 +1,11 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Producto } from "../types/producto";
-import { PencilSquareIcon, TrashIcon } from "@heroicons/react/24/outline";
+import {
+  PencilSquareIcon,
+  TrashIcon,
+  CheckBadgeIcon,
+} from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import {
   eliminarPublicacion,
@@ -9,6 +13,7 @@ import {
   activarTemporada,
   desactivarTemporada,
   obtenerTemporadas,
+  marcarComoVendido,
 } from "../api/publicacionesService";
 
 interface Props {
@@ -317,6 +322,14 @@ const ProductoCard: React.FC<Props> = ({
             </div>
           )}
 
+          {/* 👇 NUEVO: badge de Vendido */}
+          {producto.estado === "Vendido" && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xl font-bold z-20">
+              🔥 VENDIDO
+            </div>
+          )}
+
+          {/* 👇 … imagen o video … */}
           {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
             <video
               src={producto.imagenes[0]?.mainUrl}
@@ -395,7 +408,12 @@ const ProductoCard: React.FC<Props> = ({
             {mostrarAcciones && (
               <div className="flex items-center gap-2">
                 <button
-                  className="text-gray-400 hover:text-blue-500 transition"
+                  disabled={producto.estado === "Vendido"}
+                  className={`transition ${
+                    producto.estado === "Vendido"
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-400 hover:text-blue-500"
+                  }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -427,6 +445,70 @@ const ProductoCard: React.FC<Props> = ({
                 >
                   <TrashIcon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
                 </button>
+
+                {/* ✔ Marcar como vendido */}
+                <button
+                  className={`transition ${
+                    producto.estado === "Vendido"
+                      ? "text-green-400 cursor-not-allowed"
+                      : "text-gray-400 hover:text-green-500"
+                  }`}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (producto.estado === "Vendido") return;
+
+                    const confirm = await Swal.fire({
+                      title: "¿Marcar como vendido?",
+                      text: "La publicación mostrará un badge de VENDIDO y no podrá ser editada.",
+                      icon: "question",
+                      showCancelButton: true,
+                      confirmButtonColor: "#22c55e",
+                      cancelButtonColor: "#6b7280",
+                      confirmButtonText: "Sí, marcar como vendido",
+                      cancelButtonText: "Cancelar",
+                      background: "#1e1f23",
+                      color: "#fff",
+                    });
+
+                    if (!confirm.isConfirmed) return;
+
+                    try {
+                      await marcarComoVendido(producto.id);
+
+                      Swal.fire({
+                        icon: "success",
+                        title: "Marcado como vendido",
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: "#1e1f23",
+                        color: "#fff",
+                      });
+
+                      window.dispatchEvent(
+                        new Event("actualizar-publicaciones")
+                      );
+                    } catch (err: any) {
+                      Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: err?.message ?? "No se pudo marcar como vendido",
+                        background: "#1e1f23",
+                        color: "#fff",
+                      });
+                    }
+                  }}
+                  title={
+                    producto.estado === "Vendido"
+                      ? "Ya está vendido"
+                      : "Marcar como vendido"
+                  }
+                >
+                  <CheckBadgeIcon
+                    className={isCompact ? "w-4 h-4" : "w-5 h-5"}
+                  />
+                </button>
               </div>
             )}
           </div>
@@ -436,7 +518,11 @@ const ProductoCard: React.FC<Props> = ({
             <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-gray-200">
               {/* ⭐ Destacar */}
               <button
-                disabled={destacadoActivo || operandoDestacado}
+                disabled={
+                  producto.estado === "Vendido" ||
+                  destacadoActivo ||
+                  operandoDestacado
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -461,7 +547,9 @@ const ProductoCard: React.FC<Props> = ({
               {/* 🎉 Especial (con permiso + estado) */}
               <button
                 disabled={
-                  operandoEspecial || (!puedeActivarEspecial && !especialActivo)
+                  producto.estado === "Vendido" ||
+                  operandoEspecial ||
+                  (!puedeActivarEspecial && !especialActivo)
                 }
                 onClick={(e) => {
                   e.preventDefault();

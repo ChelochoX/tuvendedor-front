@@ -105,6 +105,7 @@ export const obtenerPublicaciones = async (
     const imagenes = normalizeImagenes(p.imagenes);
     return {
       ...p,
+      estado: p.estado,
       imagenes,
       imagen: imagenes[0]?.mainUrl || "", // compatibilidad
     } as Producto;
@@ -330,6 +331,30 @@ export const enviarSugerencia = async (comentario: string): Promise<void> => {
       error.response?.data?.Errors?.[0] ||
       error.message ||
       "Error al enviar la sugerencia.";
+
+    throw new Error(backendMsg);
+  }
+};
+
+export const marcarComoVendido = async (
+  idPublicacion: number
+): Promise<void> => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/marcar-vendido",
+      { idPublicacion }
+    );
+
+    if (!data.Success) {
+      throw new Error(
+        data.Message || data.Errors?.[0] || "No se pudo marcar como vendido."
+      );
+    }
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      error.message;
 
     throw new Error(backendMsg);
   }

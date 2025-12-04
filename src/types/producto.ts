@@ -37,4 +37,7 @@ export interface Producto {
   badgeTexto?: string;
   badgeColor?: string;
   fechaFinTemporada?: string;
+
+  // 🔥 NUEVO: estado de la publicación
+  estado: "Activo" | "Vendido" | "Pausado" | string;
 }

@@ -1,4 +1,3 @@
-// src/components/CategoriasPanel.tsx
 import React, { useState } from "react";
 import { Categoria } from "../types/categoria";
 import AddIcon from "@mui/icons-material/Add";
@@ -27,142 +26,145 @@ const CategoriasPanel: React.FC<Props> = ({
   const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
   const [abrirSugerencia, setAbrirSugerencia] = useState(false);
 
-  // ⚠️ MANTENGO TU FUNCIÓN – SOLO LA ARREGLO
   const enviarSugerencia = async (comentario: string) => {
     try {
       await enviarSugerenciaService(comentario);
-
       Swal.fire({
-        title: "¡Gracias por tu aporte! 💛",
-        text: "Tu sugerencia fue enviada correctamente.",
+        title: "¡Gracias por tu aporte!",
+        text: "Tu sugerencia fue enviada.",
         icon: "success",
         confirmButtonColor: "#facc15",
       });
-    } catch (error) {
+    } catch {
       Swal.fire({
         title: "Error",
-        text: "No se pudo enviar la sugerencia.",
+        text: "No se pudo enviar.",
         icon: "error",
-        confirmButtonColor: "#dc2626",
       });
     }
   };
 
   return (
-    // 🔥 Nueva estructura: header + contenido + footer fijo
-    <div className="flex flex-col h-full justify-between">
-      {/* 🌟 Contenido superior */}
-      <div className="flex flex-col gap-3">
-        {/* 🟨 Título */}
-        <h3 className="text-lg font-semibold text-yellow-400 px-1">
-          Categorías
-        </h3>
-
-        <hr className="border-yellow-400 opacity-40" />
-
-        {/* 🟦 LISTA DE CATEGORÍAS CON SCROLL */}
-        <div className="scroll-elegante flex flex-col gap-1 overflow-y-auto h-[300px] pr-2">
-          {categorias.map((cat) => {
-            const esSel = categoriaSeleccionada?.id === cat.id;
-
-            return (
-              <button
-                key={cat.id}
-                onClick={() => onSelect(cat)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-all
-                ${
-                  esSel
-                    ? "bg-yellow-400 text-black font-semibold"
-                    : "text-white hover:bg-[#3b3b3b]"
-                }
-              `}
-              >
-                <span className="text-lg">{cat.icono}</span>
-                <span className="truncate">{cat.nombre}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* 🟨 Separador */}
-        <hr className="border-yellow-400 opacity-40 mt-2" />
-
-        {/* 🟡 Crear publicación */}
+    <div className="flex flex-col h-full">
+      {/* 🔥 SOLO EN MOVIL ACCIONES RÁPIDAS */}
+      <div className="flex flex-col gap-2 mb-3 md:hidden">
         {puedePublicar && (
           <button
-            className="flex items-center gap-2 justify-center px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
+            className="px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold"
             onClick={onCrearPublicacion}
           >
-            <AddIcon fontSize="small" />
-            Crear publicación
+            <AddIcon fontSize="small" /> Crear publicación
           </button>
         )}
 
-        {/* 📚 Mis publicaciones */}
         {!esVisitante && puedePublicar && (
-          <>
-            <hr className="border-yellow-400 opacity-40" />
-
-            <button
-              onClick={() =>
-                window.dispatchEvent(new Event("ver-mis-publicaciones"))
-              }
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
-                transition-all duration-300"
-            >
-              <LibraryBooksIcon fontSize="small" />
-              Mis publicaciones
-            </button>
-          </>
+          <button
+            onClick={() =>
+              window.dispatchEvent(new Event("ver-mis-publicaciones"))
+            }
+            className="px-4 py-2 rounded-full border border-yellow-400 text-yellow-400 font-semibold"
+          >
+            <LibraryBooksIcon fontSize="small" /> Mis publicaciones
+          </button>
         )}
 
-        {/* 👤 Gestionar Clientes */}
         {puedeVerClientes && (
-          <>
-            <hr className="border-yellow-400 opacity-40" />
-
-            <button
-              onClick={() => navigate("/clientes")}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black 
-                transition-all duration-300"
-            >
-              <PersonIcon fontSize="small" />
-              Gestionar Clientes
-            </button>
-          </>
+          <button
+            onClick={() => navigate("/clientes")}
+            className="px-4 py-2 rounded-full border border-yellow-400 text-yellow-400 font-semibold"
+          >
+            <PersonIcon fontSize="small" /> Gestionar Clientes
+          </button>
         )}
+
+        {/* 🔥 CERRAR PANEL */}
+        <button
+          className="text-center py-1 text-yellow-400 underline"
+          onClick={() => window.dispatchEvent(new Event("cerrar-sidebar"))}
+        >
+          Cerrar
+        </button>
+
+        <hr className="border-yellow-400 opacity-40" />
       </div>
 
-      {/* 🏁 Footer corporativo fijo al pie */}
-      <div className="mt-4 pt-3 border-t border-yellow-400 opacity-40 text-center text-xs text-gray-400 flex flex-col gap-1">
-        <span>
+      {/* 🔥 LISTA DE CATEGORÍAS */}
+      <h3 className="text-lg font-semibold text-yellow-400 px-1">Categorías</h3>
+
+      <div className="scroll-elegante flex flex-col gap-1 overflow-y-auto mt-2 h-[300px] pr-2">
+        {categorias.map((cat) => {
+          const esSel = categoriaSeleccionada?.id === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => onSelect(cat)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
+                esSel ? "bg-yellow-400 text-black font-semibold" : "text-white"
+              }`}
+            >
+              <span className="text-lg">{cat.icono}</span>
+              <span>{cat.nombre}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-auto pt-4">
+        {/* FOOTER SOLO ESCRITORIO */}
+        <div className="hidden md:block text-xs text-gray-400 mt-4 border-t border-yellow-400 pt-3">
           Desarrollado por{" "}
           <a
             href="https://www.graciatech.com.py"
             target="_blank"
-            className="text-yellow-400 font-semibold hover:underline"
+            className="text-yellow-400 font-semibold"
           >
             Gracia Tech
           </a>
-        </span>
+          <br />
+          <a
+            href="mailto:soporte@tuvendedor.com.py"
+            className="text-gray-400 hover:text-yellow-400"
+          >
+            soporte@tuvendedor.com.py
+          </a>
+          <button
+            onClick={() => setAbrirSugerencia(true)}
+            className="block mt-2 text-yellow-400 underline"
+          >
+            Enviar sugerencia
+          </button>
+        </div>
 
-        <a
-          href="mailto:soporte@tuvendedor.com.py"
-          className="text-gray-400 hover:text-yellow-400 hover:underline"
-        >
-          soporte@tuvendedor.com.py
-        </a>
+        {/* FOOTER SOLO MÓVIL */}
+        <div className="md:hidden text-xs text-gray-400 mt-2">
+          <div className="border-t border-yellow-400 pt-3">
+            <span>
+              Desarrollado por{" "}
+              <a
+                href="https://www.graciatech.com.py"
+                target="_blank"
+                className="text-yellow-400 font-semibold"
+              >
+                Gracia Tech
+              </a>
+            </span>
+            <br />
+            <a
+              href="mailto:soporte@tuvendedor.com.py"
+              className="text-yellow-400 underline"
+            >
+              soporte@tuvendedor.com.py
+            </a>
+            <button
+              onClick={() => setAbrirSugerencia(true)}
+              className="block mt-2 text-yellow-400 underline"
+            >
+              Enviar sugerencia
+            </button>
+          </div>
+        </div>
 
-        <button
-          onClick={() => setAbrirSugerencia(true)}
-          className="text-center w-full mt-2 text-yellow-400 hover:text-yellow-300 text-sm underline"
-        >
-          Enviar sugerencia
-        </button>
-
-        {/* MODAL */}
+        {/* Modal */}
         <SugerenciaModal
           abierto={abrirSugerencia}
           onClose={() => setAbrirSugerencia(false)}

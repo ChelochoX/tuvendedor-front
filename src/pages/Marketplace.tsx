@@ -207,74 +207,47 @@ const Marketplace: React.FC = () => {
 
   const showFab = !modalOpen && puedePublicar;
 
+  // 🔥 Listener para abrir Sidebar desde Cabecera
+  useEffect(() => {
+    const abrir = () => setSidebarAbierto(true);
+    const cerrar = () => setSidebarAbierto(false);
+
+    window.addEventListener("abrir-sidebar", abrir);
+    window.addEventListener("cerrar-sidebar", cerrar);
+
+    return () => {
+      window.removeEventListener("abrir-sidebar", abrir);
+      window.removeEventListener("cerrar-sidebar", cerrar);
+    };
+  }, []);
+
   // ==============================================================
   // RENDER
   // ==============================================================
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
       <Cabecera />
-
-      {/* CATEGORÍAS EN MÓVIL (compactado) */}
-      <div className="md:hidden overflow-x-auto whitespace-nowrap px-2 py-1 flex gap-1 bg-[#1f2937] border-b border-gray-700">
-        {categorias.map((cat) => (
-          <button
-            key={cat.id}
-            className={`px-3 py-1 rounded-full border text-sm transition ${
-              categoriaSeleccionada?.id === cat.id
-                ? "bg-yellow-400 text-black font-semibold"
-                : "bg-[#2d3748] text-white"
-            }`}
-            onClick={() => {
-              setCategoriaSeleccionada(cat);
-              setMostrarSoloMias(false);
-            }}
-          >
-            {cat.icono} {cat.nombre}
-          </button>
-        ))}
-
-        {!esVisitante && puedePublicar && (
-          <button
-            onClick={() =>
-              window.dispatchEvent(new Event("ver-mis-publicaciones"))
-            }
-            className="px-3 py-1 rounded-full border text-sm font-semibold 
-            text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
-          >
-            📚 Mis publicaciones
-          </button>
-        )}
-
-        {puedeVerClientes && (
-          <button
-            onClick={() => navigate("/clientes")}
-            className="px-3 py-1 rounded-full border text-sm font-semibold 
-            text-yellow-400 border-yellow-400 hover:bg-yellow-400 hover:text-black transition"
-          >
-            <PersonIcon fontSize="small" className="mr-1" />
-            Gestionar Clientes
-          </button>
-        )}
-      </div>
-
       <div className="flex">
-        {/* SIDEBAR — ahora ancho, scroll vertical y sin romper nada */}
+        {/* ===== SIDEBAR ===== */}
         <aside
           className={`fixed md:fixed md:left-0 top-[64px] bg-[#1e1f23] text-white 
     border-r-2 border-yellow-400 p-4 w-72 z-50 
     h-[calc(100vh-64px)] overflow-y-auto
     ${sidebarAbierto ? "block" : "hidden md:block"}`}
         >
-          <CategoriasPanel
-            categorias={categorias}
-            categoriaSeleccionada={categoriaSeleccionada}
-            onSelect={(cat) => {
-              setCategoriaSeleccionada(cat);
-              setSidebarAbierto(false);
-              setMostrarSoloMias(false);
-            }}
-            onCrearPublicacion={handleCrearPublicacion}
-          />
+          {/* 🔥 FIX: El panel se estira y footer aparece bien */}
+          <div className="h-full flex flex-col">
+            <CategoriasPanel
+              categorias={categorias}
+              categoriaSeleccionada={categoriaSeleccionada}
+              onSelect={(cat) => {
+                setCategoriaSeleccionada(cat);
+                setSidebarAbierto(false);
+                setMostrarSoloMias(false);
+              }}
+              onCrearPublicacion={handleCrearPublicacion}
+            />
+          </div>
         </aside>
 
         {/* ZONA DE PRODUCTOS */}

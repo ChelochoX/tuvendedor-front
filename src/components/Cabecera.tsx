@@ -5,58 +5,70 @@ const Cabecera: React.FC = () => {
   const { usuario, cerrarSesion } = useUsuario();
 
   return (
-    <header className="w-full bg-[#1a1a1a] text-white border-b-2 border-[#facc15] shadow-md sticky top-0 z-50 px-4 py-3">
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-        {/* 🔥 AGREGADO: BOTÓN MENÚ SOLO EN MÓVIL */}
-        <div className="flex items-center gap-2 w-full md:w-auto justify-between md:justify-start">
+    <header className="w-full bg-[#1a1a1a] text-white border-b-2 border-[#facc15] shadow-md sticky top-0 z-50 px-4 py-2 md:py-3">
+      <div className="flex items-center justify-between">
+        {/* IZQUIERDA - MENU + MARCA */}
+        <div className="flex items-center gap-3">
           <button
             className="md:hidden text-white text-2xl"
-            onClick={() => window.dispatchEvent(new Event("abrir-sidebar"))}
+            onClick={() => window.dispatchEvent(new Event("toggle-sidebar"))}
           >
             ☰
           </button>
 
-          {/* Título ORIGINAL (no se toca) */}
-          <h1 className="text-xl font-bold text-white">Tu Vendedor</h1>
+          <h1 className="text-lg md:text-xl font-bold leading-tight whitespace-nowrap">
+            Tu Vendedor
+          </h1>
         </div>
 
-        {/* 🔥 TU BUSCADOR ORIGINAL — NO SE TOCA */}
-        <input
-          type="text"
-          placeholder="Buscar productos..."
-          className="w-full md:w-[400px] px-4 py-2 bg-white text-black border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
-        />
-
-        {/* 🔥 TU LÓGICA ORIGINAL — NO SE TOCA */}
+        {/* DERECHA - USUARIO */}
         {usuario ? (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Avatar */}
             <img
               src={
-                usuario.fotoUrl && usuario.fotoUrl.trim() !== ""
+                usuario.fotoUrl?.trim()
                   ? usuario.fotoUrl
                   : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
               }
-              alt="Perfil"
-              className="w-8 h-8 rounded-full object-cover"
+              className="w-7 h-7 md:w-8 md:h-8 rounded-full object-cover"
             />
-            <span className="text-sm font-semibold">
+
+            {/* Nombre SOLO en escritorio */}
+            <span className="hidden md:block text-sm font-medium">
               {usuario.nombreUsuario}
             </span>
+
+            {/* Nombre SOLO en mobile debajo del avatar */}
+            <span className="block md:hidden text-xs text-right leading-tight">
+              {usuario.nombreUsuario}
+            </span>
+
+            {/* BOTÓN CERRAR */}
             <button
               onClick={cerrarSesion}
-              className="text-sm bg-red-500 hover:bg-red-400 text-white font-bold py-2 px-4 rounded-full"
+              className="text-xs md:text-sm bg-red-500 hover:bg-red-400 text-white px-3 py-1 md:px-4 md:py-2 rounded-full"
             >
-              Cerrar sesión
+              Cerrar
             </button>
           </div>
         ) : (
           <button
             onClick={() => window.dispatchEvent(new Event("abrir-login"))}
-            className="text-sm bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-2 px-4 rounded-full"
+            className="text-xs md:text-sm bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1 md:px-4 md:py-2 rounded-full"
           >
             Iniciar sesión
           </button>
         )}
+      </div>
+
+      {/* BUSCADOR — CENTRADO EN ESCRITORIO */}
+      <div className="w-full flex justify-center">
+        <input
+          type="text"
+          placeholder="Buscar productos..."
+          className="mt-2 w-full md:w-[400px] px-4 py-2 bg-white text-black border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        />
       </div>
     </header>
   );

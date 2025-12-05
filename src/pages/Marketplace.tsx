@@ -205,21 +205,29 @@ const Marketplace: React.FC = () => {
     "CrearPublicacionTemporada"
   );
 
-  const showFab = !modalOpen && puedePublicar;
-
-  // 🔥 Listener para abrir Sidebar desde Cabecera
+  // 🔥 TOGGLE SIDEBAR GLOBAL
   useEffect(() => {
-    const abrir = () => setSidebarAbierto(true);
-    const cerrar = () => setSidebarAbierto(false);
+    const toggle = () => {
+      if (window.innerWidth < 768) {
+        setSidebarAbierto((prev) => !prev);
+      }
+    };
 
-    window.addEventListener("abrir-sidebar", abrir);
-    window.addEventListener("cerrar-sidebar", cerrar);
+    const close = () => {
+      setSidebarAbierto(false);
+    };
+
+    window.addEventListener("toggle-sidebar", toggle);
+    window.addEventListener("cerrar-sidebar", close);
 
     return () => {
-      window.removeEventListener("abrir-sidebar", abrir);
-      window.removeEventListener("cerrar-sidebar", cerrar);
+      window.removeEventListener("toggle-sidebar", toggle);
+      window.removeEventListener("cerrar-sidebar", close);
     };
   }, []);
+
+  // ocultar FAB si sidebar abierto
+  const showFab = !modalOpen && puedePublicar && !sidebarAbierto;
 
   // ==============================================================
   // RENDER

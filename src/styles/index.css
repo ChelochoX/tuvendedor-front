@@ -313,3 +313,15 @@ body {
 .tippy-arrow {
   color: white;
 }
+
+/* 🔥 Ajuste general para móvil — NO rompe nada */
+@media (max-width: 640px) {
+  html {
+    font-size: 14px; /* antes 16px */
+  }
+
+  body {
+    --padding-mobile: 0.75rem;
+    --radius-mobile: 0.6rem;
+  }
+}

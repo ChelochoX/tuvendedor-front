@@ -54,18 +54,8 @@ const CategoriasPanel: React.FC<Props> = ({
 
   return (
     <div className="flex flex-col h-full justify-between">
-      {/* 🔥 ENCABEZADO MOBILE: acciones rápidas con tamaño reducido */}
-      <div className="flex flex-col gap-2 mb-2 md:hidden px-1">
-        {puedePublicar && (
-          <button
-            className="flex items-center gap-2 justify-center px-3 py-1.5 rounded-full bg-yellow-400 text-black font-semibold text-sm shadow hover:bg-yellow-300 transition-all"
-            onClick={onCrearPublicacion}
-          >
-            <AddIcon fontSize="small" />
-            Crear publicación
-          </button>
-        )}
-
+      {/* 🔥 ENCABEZADO MOBILE */}
+      <div className="flex flex-col gap-2 mb-0 md:hidden px-1">
         {!esVisitante && puedePublicar && (
           <button
             onClick={() =>
@@ -93,13 +83,14 @@ const CategoriasPanel: React.FC<Props> = ({
         <hr className="border-yellow-400 opacity-40" />
       </div>
 
-      {/* 🔥 LISTA COMPLETA DE CATEGORÍAS — EXACTAMENTE IGUAL AL ORIGINAL */}
-      <div className="flex flex-col gap-3">
+      {/* 🔥 LISTA DE CATEGORÍAS */}
+      <div className="flex flex-col gap-1 md:gap-3">
         <h3 className="text-lg font-semibold text-yellow-400 px-1">
           Categorías
         </h3>
 
-        <hr className="border-yellow-400 opacity-40" />
+        {/* Ocultar en móvil */}
+        <hr className="border-yellow-400 opacity-40 hidden md:block" />
 
         <div className="scroll-elegante flex flex-col gap-1 overflow-y-auto h-[400px] pr-2">
           {categorias.map((cat) => {
@@ -109,24 +100,29 @@ const CategoriasPanel: React.FC<Props> = ({
               <button
                 key={cat.id}
                 onClick={() => onSelect(cat)}
-                className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm transition-all
-                ${
-                  esSel
-                    ? "bg-yellow-400 text-black font-semibold"
-                    : "text-white hover:bg-[#3b3b3b]"
-                }
-              `}
+                className={`flex items-center 
+                  gap-1 md:gap-2
+                  px-2 md:px-3
+                  py-0.5 md:py-1
+                  rounded-md text-xs md:text-sm transition-all
+                  ${
+                    esSel
+                      ? "bg-yellow-400 text-black font-semibold"
+                      : "text-white hover:bg-[#3b3b3b]"
+                  }
+                `}
               >
-                <span className="text-lg">{cat.icono}</span>
+                <span className="text-base md:text-lg">{cat.icono}</span>
                 <span className="truncate">{cat.nombre}</span>
               </button>
             );
           })}
         </div>
 
-        <hr className="border-yellow-400 opacity-40 mt-2" />
+        {/* Ocultar en móvil */}
+        <hr className="border-yellow-400 opacity-40 mt-2 hidden md:block" />
 
-        {/* BOTONES ORIGINALES ESCRITORIO – NO SE TOCAN */}
+        {/* ESCRITORIO — NO SE TOCA NADA */}
         <div className="hidden md:flex flex-col gap-3">
           {puedePublicar && (
             <button
@@ -170,7 +166,7 @@ const CategoriasPanel: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* FOOTER ORIGINAL – NO SE MODIFICA NADA */}
+      {/* FOOTER — NO SE TOCA */}
       <div className="mt-4 pt-3 border-t border-yellow-400 opacity-40 text-center text-xs text-gray-400 flex flex-col gap-1">
         <span>
           Desarrollado por{" "}

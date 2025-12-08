@@ -325,3 +325,10 @@ body {
     --radius-mobile: 0.6rem;
   }
 }
+
+/* 🔥 Ajuste de alto SOLO para móvil en el panel de categorías */
+@media (max-width: 768px) {
+  .categorias-mobile-altura {
+    height: 55vh !important;
+  }
+}

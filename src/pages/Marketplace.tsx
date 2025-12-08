@@ -254,6 +254,7 @@ const Marketplace: React.FC = () => {
                 setMostrarSoloMias(false);
               }}
               onCrearPublicacion={handleCrearPublicacion}
+              onCerrarSidebar={() => setSidebarAbierto(false)}
             />
           </div>
         </aside>
@@ -335,7 +336,7 @@ const Marketplace: React.FC = () => {
         onPublicar={handlePublicar}
       />
 
-      {!modalOpen && puedePublicar && (
+      {showFab && (
         <button
           id="crear-publicacion-btn"
           onClick={handleCrearPublicacion}

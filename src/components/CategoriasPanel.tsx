@@ -15,6 +15,7 @@ interface Props {
   categoriaSeleccionada: Categoria | null;
   onSelect: (categoria: Categoria) => void;
   onCrearPublicacion: () => void;
+  onCerrarSidebar?: () => void;
 }
 
 const CategoriasPanel: React.FC<Props> = ({
@@ -22,6 +23,7 @@ const CategoriasPanel: React.FC<Props> = ({
   categoriaSeleccionada,
   onSelect,
   onCrearPublicacion,
+  onCerrarSidebar,
 }) => {
   const navigate = useNavigate();
   const {
@@ -58,9 +60,10 @@ const CategoriasPanel: React.FC<Props> = ({
       <div className="flex flex-col gap-2 mb-0 md:hidden px-1">
         {!esVisitante && puedePublicar && (
           <button
-            onClick={() =>
-              window.dispatchEvent(new Event("ver-mis-publicaciones"))
-            }
+            onClick={() => {
+              window.dispatchEvent(new Event("ver-mis-publicaciones"));
+              onCerrarSidebar?.(); // 🔥 cerrar panel si está definido
+            }}
             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
               text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
           >
@@ -71,7 +74,10 @@ const CategoriasPanel: React.FC<Props> = ({
 
         {puedeVerClientes && (
           <button
-            onClick={() => navigate("/clientes")}
+            onClick={() => {
+              navigate("/clientes");
+              onCerrarSidebar?.(); // 🔥 cerrar panel
+            }}
             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
             text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
           >
@@ -99,7 +105,10 @@ const CategoriasPanel: React.FC<Props> = ({
             return (
               <button
                 key={cat.id}
-                onClick={() => onSelect(cat)}
+                onClick={() => {
+                  onSelect(cat);
+                  onCerrarSidebar?.(); // 🔥 cerrar panel
+                }}
                 className={`flex items-center 
                   gap-1 md:gap-2
                   px-2 md:px-3
@@ -172,6 +181,7 @@ const CategoriasPanel: React.FC<Props> = ({
           Desarrollado por{" "}
           <a
             href="https://www.graciatech.com.py"
+            onClick={onCerrarSidebar}
             target="_blank"
             className="text-yellow-400 font-semibold hover:underline"
           >
@@ -181,13 +191,17 @@ const CategoriasPanel: React.FC<Props> = ({
 
         <a
           href="mailto:soporte@tuvendedor.com.py"
+          onClick={onCerrarSidebar}
           className="text-gray-400 hover:text-yellow-400 hover:underline"
         >
           soporte@tuvendedor.com.py
         </a>
 
         <button
-          onClick={() => setAbrirSugerencia(true)}
+          onClick={() => {
+            setAbrirSugerencia(true);
+            onCerrarSidebar?.();
+          }}
           className="text-center w-full mt-2 text-yellow-400 hover:text-yellow-300 text-sm underline"
         >
           Enviar sugerencia

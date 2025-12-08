@@ -55,7 +55,7 @@ const CategoriasPanel: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col h-full justify-between">
+    <div className="flex flex-col h-full justify-start">
       {/* 🔥 ENCABEZADO MOBILE */}
       <div className="flex flex-col gap-2 mb-0 md:hidden px-1">
         {!esVisitante && puedePublicar && (

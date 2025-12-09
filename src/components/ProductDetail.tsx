@@ -356,34 +356,79 @@ const ProductDetail: React.FC<Props> = ({
           </Box>
         )}
 
-        {/* 🔸 Vendedor */}
-        <Box mt={4} display="flex" alignItems="center" gap={2}>
-          <img
-            src={producto.vendedor.avatar}
-            alt={producto.vendedor.nombre}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-          <Typography variant="body2" color="#ccc">
-            Vendedor: <strong>{producto.vendedor.nombre}</strong>
-          </Typography>
-        </Box>
-
         {/* 🔸 Botón de contacto */}
-        <Box mt={4}>
+        <Box
+          mt={4}
+          mb={isMobile ? 4 : 0} // 🔥 espacio adicional debajo del vendedor
+          display="flex"
+          alignItems="center"
+          gap={2}
+        >
           <Button
-            fullWidth
             variant="contained"
             sx={{
-              backgroundColor: "#FFD700",
-              color: "#000",
-              fontWeight: "bold",
-              "&:hover": { backgroundColor: "#e6c200" },
+              width: "90%",
+              maxWidth: "350px",
+              margin: "10px auto 0 auto",
+              backgroundColor: "#25D366",
+              color: "#fff",
+              fontWeight: "600",
+              padding: "10px 14px",
+              fontSize: "0.9rem",
+              borderRadius: "40px",
+              display: isMobile ? "none" : "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              "&:hover": { backgroundColor: "#1ebe5d" },
             }}
             onClick={handleContactarVendedor}
           >
-            Contactar vendedor
+            <svg width="18" height="18" viewBox="0 0 32 32" fill="white">
+              <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.1 6.9L4 29l7.3-2.1c1.9 1 4.1 1.5 6.7 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22.5c-2.2 0-4.2-.6-5.9-1.7l-.4-.2-4.3 1.2 1.2-4.2-.3-.4C5.2 18.5 4.5 16.8 4.5 15c0-6.2 5-11.3 11.5-11.3S27.5 8.8 27.5 15 22.5 25.5 16 25.5zm6-7.8c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.1-.8 1-.9 1.1-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.4.1-.5.1-.1.3-.3.4-.4.1-.1.2-.2.3-.4.1-.2.1-.3.2-.5.1-.2.1-.4 0-.6s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.2c.2.3 2.2 3.4 5.5 4.7.8.3 1.4.5 1.9.6.8.3 1.5.2 2 .1.6-.1 1.8-.8 2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.3z" />
+            </svg>
+            CONTACTAR POR WHATSAPP
           </Button>
         </Box>
+        {isMobile && (
+          <Box
+            sx={{
+              position: "fixed",
+              bottom: 40, // 🔥 más arriba todavía
+              left: 0,
+              right: 0,
+              zIndex: 200,
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <Button
+              variant="contained"
+              sx={{
+                width: "70%", // 🔥 mucho más corto
+                maxWidth: "300px", // 🔥 límite profesional
+                backgroundColor: "#25D366",
+                color: "#fff",
+                fontWeight: "600",
+                padding: "10px 14px",
+                fontSize: "0.9rem",
+                borderRadius: "40px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                boxShadow: "0px 4px 8px rgba(0,0,0,0.25)",
+                "&:hover": { backgroundColor: "#1ebe5d" },
+              }}
+              onClick={handleContactarVendedor}
+            >
+              <svg width="18" height="18" viewBox="0 0 32 32" fill="white">
+                <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.1 6.9L4 29l7.3-2.1c1.9 1 4.1 1.5 6.7 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22.5c-2.2 0-4.2-.6-5.9-1.7l-.4-.2-4.3 1.2 1.2-4.2-.3-.4C5.2 18.5 4.5 16.8 4.5 15c0-6.2 5-11.3 11.5-11.3S27.5 8.8 27.5 15 22.5 25.5 16 25.5zm6-7.8c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.1-.8 1-.9 1.1-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.4.1-.5.1-.1.3-.3.4-.4.1-.1.2-.2.3-.4.1-.2.1-.3.2-.5.1-.2.1-.4 0-.6s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.2c.2.3 2.2 3.4 5.5 4.7.8.3 1.4.5 1.9.6.8.3 1.5.2 2 .1.6-.1 1.8-.8 2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.3z" />
+              </svg>
+              CONTACTAR POR WHATSAPP
+            </Button>
+          </Box>
+        )}
       </Box>
     </Box>
   );

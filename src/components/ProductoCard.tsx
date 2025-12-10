@@ -479,9 +479,8 @@ const ProductoCard: React.FC<Props> = ({
                 }}
                 className={[
                   "w-full rounded-md font-semibold transition flex items-center justify-center gap-1",
-                  isCompact
-                    ? "text-[10px] py-[5px] px-2"
-                    : "text-[12px] py-[6px] px-3",
+                  // 👇 NUEVO: más finito + compacto
+                  "text-[12px] py-[4px] px-2",
                   destacadoActivo || operandoDestacado
                     ? "bg-yellow-300 text-black cursor-not-allowed"
                     : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
@@ -506,14 +505,13 @@ const ProductoCard: React.FC<Props> = ({
                   activarEspecialFlow();
                 }}
                 className={[
-                  "flex-1 font-semibold rounded-md shadow-md transition",
-                  isCompact
-                    ? "text-[10px] py-[5px] px-2"
-                    : "text-[12px] py-[6px] px-3",
+                  "w-full rounded-md font-semibold transition shadow-sm flex items-center justify-center gap-1",
+                  // 👇 NUEVO: más finito + compacto
+                  "text-[12px] py-[4px] px-2",
                   especialActivo
                     ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
                     : puedeActivarEspecial
-                    ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-lg"
+                    ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed",
                 ].join(" ")}
                 title={

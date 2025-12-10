@@ -94,7 +94,7 @@ const ProductDetail: React.FC<Props> = ({
       position="relative"
       display="flex"
       flexDirection={isMobile ? "column" : "row"}
-      gap={4}
+      gap={isMobile ? 0 : 4}
       padding={isMobile ? 2 : 4}
       bgcolor="#111"
       color="#fff"
@@ -355,6 +355,18 @@ const ProductDetail: React.FC<Props> = ({
             </Typography>
           </Box>
         )}
+
+        {/* 🔸 Vendedor */}
+        <Box mt={4} display="flex" alignItems="center" gap={2}>
+          <img
+            src={producto.vendedor.avatar}
+            alt={producto.vendedor.nombre}
+            className="w-10 h-10 rounded-full object-cover"
+          />
+          <Typography variant="body2" color="#ccc">
+            Vendedor: <strong>{producto.vendedor.nombre}</strong>
+          </Typography>
+        </Box>
 
         {/* 🔸 Botón de contacto */}
         <Box

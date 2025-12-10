@@ -305,7 +305,7 @@ const Marketplace: React.FC = () => {
                 Cargando publicaciones...
               </div>
             ) : (
-              <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
                 {itemsEnGrid.map((p) => (
                   <ProductoCard
                     key={p.id}

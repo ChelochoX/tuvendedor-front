@@ -385,159 +385,86 @@ const ProductoCard: React.FC<Props> = ({
             {producto.ubicacion}
           </p>
 
-          {/* Vendedor + acciones */}
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-2">
-              <img
-                src={producto.vendedor.avatar}
-                alt={producto.vendedor.nombre}
-                className={
-                  isCompact
-                    ? "w-4 h-4 rounded-full object-cover"
-                    : "w-5 h-5 rounded-full object-cover"
-                }
-              />
-              <span
-                className={
-                  isCompact
-                    ? "text-[11px] text-gray-500"
-                    : "text-xs text-gray-500"
-                }
-              >
-                {producto.vendedor.nombre}
-              </span>
-            </div>
+          {/* 🟡 FILA COMPACTA: INFO + ACCIONES */}
+          <div className="flex items-center justify-between mt-2 mb-1">
+            {/* Nombre del producto + ubicación queda como está arriba */}
 
+            {/* 🔥 VENDEDOR A LA DERECHA */}
             {mostrarAcciones && (
-              <div className="flex items-center gap-2">
-                <Tippy
-                  content="Editar publicación"
-                  theme="light"
-                  animation="scale"
-                  delay={[100, 0]}
-                >
-                  <button
-                    disabled={producto.estado === "Vendido"}
-                    className={`transition ${
-                      producto.estado === "Vendido"
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-400 hover:text-blue-500"
-                    }`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      Swal.fire({
-                        icon: "info",
-                        title: "✨ ¡Estamos trabajando en ello!",
-                        html: `<p style="color: #ddd; font-size: 15px; margin-top: 8px;">La edición de publicaciones estará disponible pronto.</p>`,
-                        background: "#1e1f23",
-                        color: "#fff",
-                        confirmButtonColor: "#22c55e",
-                        confirmButtonText: "Entendido 💛",
-                        showCloseButton: true,
-                      });
-                    }}
-                  >
-                    <PencilSquareIcon
-                      className={isCompact ? "w-4 h-4" : "w-5 h-5"}
-                    />
-                  </button>
-                </Tippy>
-
-                <Tippy
-                  content="Eliminar publicación"
-                  theme="light"
-                  animation="scale"
-                  delay={[100, 0]}
-                >
-                  <button
-                    disabled={eliminando}
-                    className={`transition ${
-                      eliminando
-                        ? "text-gray-300 cursor-not-allowed"
-                        : "text-gray-400 hover:text-red-500"
-                    }`}
-                    onClick={handleEliminar}
-                  >
-                    <TrashIcon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
-                  </button>
-                </Tippy>
-
-                {/* ✔ Marcar como vendido */}
-                <Tippy
-                  content={
-                    producto.estado === "Vendido"
-                      ? "Ya está vendido"
-                      : "Marcar como vendido"
-                  }
-                  theme="light"
-                  animation="scale"
-                  delay={[100, 0]}
-                >
-                  <button
-                    className={`transition ${
-                      producto.estado === "Vendido"
-                        ? "text-green-400 cursor-not-allowed"
-                        : "text-gray-400 hover:text-green-500"
-                    }`}
-                    onClick={async (e) => {
-                      // 👉 TU LÓGICA ORIGINAL intacta:
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (producto.estado === "Vendido") return;
-
-                      const confirm = await Swal.fire({
-                        title: "¿Marcar como vendido?",
-                        text: "La publicación mostrará un badge de VENDIDO y no podrá ser editada.",
-                        icon: "question",
-                        showCancelButton: true,
-                        confirmButtonColor: "#22c55e",
-                        cancelButtonColor: "#6b7280",
-                        confirmButtonText: "Sí, marcar como vendido",
-                        cancelButtonText: "Cancelar",
-                        background: "#1e1f23",
-                        color: "#fff",
-                      });
-
-                      if (!confirm.isConfirmed) return;
-
-                      try {
-                        await marcarComoVendido(producto.id);
-                        Swal.fire({
-                          icon: "success",
-                          title: "Marcado como vendido",
-                          timer: 1500,
-                          showConfirmButton: false,
-                          background: "#1e1f23",
-                          color: "#fff",
-                        });
-                        window.dispatchEvent(
-                          new Event("actualizar-publicaciones")
-                        );
-                      } catch (err: any) {
-                        Swal.fire({
-                          icon: "error",
-                          title: "Error",
-                          text:
-                            err?.message ?? "No se pudo marcar como vendido",
-                          background: "#1e1f23",
-                          color: "#fff",
-                        });
-                      }
-                    }}
-                  >
-                    <CheckBadgeIcon
-                      className={isCompact ? "w-4 h-4" : "w-5 h-5"}
-                    />
-                  </button>
-                </Tippy>
+              <div className="flex items-center gap-1 mr-1">
+                <img
+                  src={producto.vendedor.avatar}
+                  alt={producto.vendedor.nombre}
+                  className="w-4 h-4 rounded-full object-cover"
+                />
+                <span className="text-[11px] text-gray-500">
+                  {producto.vendedor.nombre}
+                </span>
               </div>
             )}
           </div>
 
+          {/* 🟣 ACCIONES (EDITAR / ELIMINAR / VENDIDO) — compactados */}
+          {mostrarAcciones && (
+            <div className="flex items-center justify-end gap-2 mt-1 mb-1 pr-1">
+              {/* Editar */}
+              <button
+                disabled={producto.estado === "Vendido"}
+                className={`transition ${
+                  producto.estado === "Vendido"
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-400 hover:text-blue-500"
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  Swal.fire({
+                    icon: "info",
+                    title: "✨ ¡Estamos trabajando en ello!",
+                    html: `<p style="color:#ddd;font-size:14px;">La edición estará disponible pronto.</p>`,
+                    background: "#1e1f23",
+                    color: "#fff",
+                  });
+                }}
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+              </button>
+
+              {/* Eliminar */}
+              <button
+                disabled={eliminando}
+                className={`transition ${
+                  eliminando
+                    ? "text-gray-300 cursor-not-allowed"
+                    : "text-gray-400 hover:text-red-500"
+                }`}
+                onClick={handleEliminar}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </button>
+
+              {/* Vendido */}
+              <button
+                className={`transition ${
+                  producto.estado === "Vendido"
+                    ? "text-green-400 cursor-not-allowed"
+                    : "text-gray-400 hover:text-green-500"
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (producto.estado === "Vendido") return;
+                  marcarComoVendido(producto.id);
+                }}
+              >
+                <CheckBadgeIcon className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
           {/* Botones inferiores */}
           {mostrarAcciones && (
-            <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-gray-200">
+            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-200">
               {/* ⭐ Destacar */}
               <button
                 disabled={

@@ -3,6 +3,12 @@ import ProductoCard from "./ProductoCard";
 import { Producto } from "../types/producto";
 import "../styles/carrusel.css";
 
+import Lottie from "lottie-react";
+import snowAnimation from "../lottie/snow.json";
+import treeAnimation from "../lottie/tree.json";
+import santaAnimation from "../lottie/santa.json";
+import snowmanAnimation from "../lottie/snowman.json";
+
 interface Props {
   productos: Producto[];
   mostrarAcciones?: boolean;
@@ -18,19 +24,16 @@ const CarruselEspeciales: React.FC<Props> = ({
   onEliminarProducto,
 }) => {
   const trackRef = useRef<HTMLDivElement>(null);
-
   const [paused, setPaused] = useState(false);
 
-  // 🔧 Nueva referencia para la posición actual del carrusel
   const positionRef = useRef(0);
 
-  // 🔧 Refs para manejo de touch en móvil
   const isDraggingRef = useRef(false);
   const touchStartXRef = useRef(0);
   const dragStartXRef = useRef(0);
 
   /* ---------------------------------
-   * 🔥 Temporada más frecuente
+   * TEMPORADA MÁS FRECUENTE
    * --------------------------------- */
   const temporadaActual = useMemo(() => {
     const nombres = productos
@@ -55,7 +58,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos]);
 
   /* ---------------------------------
-   * 🔁 Duplicación interna (no visible)
+   * DUPLICACIÓN INTERNA
    * --------------------------------- */
   const loopItems = useMemo(() => {
     if (!productos || productos.length === 0) return [];
@@ -63,7 +66,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos]);
 
   /* ---------------------------------
-   * 🔁 Movimiento continuo perfecto
+   * MOVIMIENTO CONTINUO
    * --------------------------------- */
   useEffect(() => {
     const track = trackRef.current;
@@ -77,15 +80,11 @@ const CarruselEspeciales: React.FC<Props> = ({
     let frame: number;
 
     const animate = () => {
-      // No mover si está pausado o si el usuario está arrastrando con el dedo
       if (!paused && !isDraggingRef.current) {
         let x = positionRef.current;
-
         x -= speed;
 
-        if (Math.abs(x) >= totalWidth) {
-          x = 0;
-        }
+        if (Math.abs(x) >= totalWidth) x = 0;
 
         positionRef.current = x;
         track.style.transform = `translateX(${x}px)`;
@@ -95,25 +94,22 @@ const CarruselEspeciales: React.FC<Props> = ({
     };
 
     animate();
-
     return () => cancelAnimationFrame(frame);
   }, [productos, paused]);
 
   /* ---------------------------------
-   * ⬅️➡️ Flechas MANUALES (solo escritorio)
+   * FLECHAS MANUALES
    * --------------------------------- */
   const moveManual = (dir: "left" | "right") => {
     const track = trackRef.current;
     if (!track) return;
 
-    const distance = 300; // avanza un poco a cada clic
+    const distance = 300;
 
-    // Congelar movimiento automático por 1 segundo
     setPaused(true);
     setTimeout(() => setPaused(false), 1000);
 
     let currentX = positionRef.current;
-
     if (dir === "left") currentX += distance;
     else currentX -= distance;
 
@@ -122,7 +118,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   };
 
   /* ---------------------------------
-   * 📱 Manejo de touch para móvil
+   * TOUCH - MÓVIL
    * --------------------------------- */
   const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
     if (productos.length <= 1) return;
@@ -131,8 +127,7 @@ const CarruselEspeciales: React.FC<Props> = ({
     isDraggingRef.current = true;
     touchStartXRef.current = touch.clientX;
     dragStartXRef.current = positionRef.current;
-
-    setPaused(true); // Pausar mientras el usuario toca/arrastra
+    setPaused(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -145,25 +140,52 @@ const CarruselEspeciales: React.FC<Props> = ({
     positionRef.current = newX;
 
     const track = trackRef.current;
-    if (track) {
-      track.style.transform = `translateX(${newX}px)`;
-    }
+    if (track) track.style.transform = `translateX(${newX}px)`;
   };
 
   const handleTouchEnd = () => {
     isDraggingRef.current = false;
-    setPaused(false); // Reanudar cuando termina el gesto
+    setPaused(false);
   };
 
   if (!productos || productos.length === 0) return null;
 
   return (
-    <section className="carrusel-section mb-8 w-full">
-      <div className="rounded-2xl p-3 md:p-4 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] border border-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-        {/* Encabezado */}
+    <section className="relative carrusel-section mb-8 w-full">
+      {/* ❄️ NIEVE SOLO EN LA PARTE SUPERIOR */}
+      <div className="absolute top-0 left-0 w-full h-[110px] md:h-[150px] pointer-events-none z-0 overflow-hidden">
+        <Lottie animationData={snowAnimation} loop autoplay />
+      </div>
+
+      {/* ⛄ MUÑECO DE NIEVE RESPONSIVE */}
+      <div className="absolute bottom-[-10px] right-[-5px] pointer-events-none z-20">
+        <div className="block md:hidden w-[90px]">
+          <Lottie animationData={snowmanAnimation} loop autoplay />
+        </div>
+        <div className="hidden md:block w-[150px]">
+          <Lottie animationData={snowmanAnimation} loop autoplay />
+        </div>
+      </div>
+
+      {/* CONTENEDOR PRINCIPAL */}
+      <div className="relative rounded-2xl p-3 md:p-4 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] border border-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] z-10">
+        {/* ENCABEZADO */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
-          <div className="flex items-start gap-2">
-            <span className="text-2xl md:text-3xl">🎊</span>
+          <div className="flex items-start gap-3">
+            {/* 🎄 Árbol Responsive */}
+            <Lottie
+              animationData={treeAnimation}
+              loop
+              className="w-[45px] h-[45px] md:w-[70px] md:h-[70px]"
+            />
+
+            {/* 🎅 Santa Responsive */}
+            <Lottie
+              animationData={santaAnimation}
+              loop
+              className="w-[48px] h-[48px] md:w-[80px] md:h-[80px]"
+            />
+
             <div>
               <div className="text-sm md:text-base text-white/80">
                 Temporada:
@@ -171,7 +193,7 @@ const CarruselEspeciales: React.FC<Props> = ({
               <div className="text-lg md:text-2xl font-extrabold tracking-wide text-white">
                 {temporadaActual.toUpperCase()}
               </div>
-              <div className="text-[11px] md:text-sm text-white/60 -mt-0.5 md:mt-0">
+              <div className="text-[11px] md:text-sm text-white/60">
                 Ofertas por tiempo limitado
               </div>
             </div>
@@ -197,14 +219,14 @@ const CarruselEspeciales: React.FC<Props> = ({
           </>
         )}
 
-        {/* Carrusel */}
+        {/* CARRUSEL */}
         <div
           className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full"
-          onMouseEnter={() => setPaused(true)} // Pausar en escritorio
-          onMouseLeave={() => setPaused(false)} // Reanudar en escritorio
-          onTouchStart={handleTouchStart} // 📱 Pausar y empezar drag
-          onTouchMove={handleTouchMove} // 📱 Mover con el dedo
-          onTouchEnd={handleTouchEnd} // 📱 Soltar y reanudar
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div
             ref={trackRef}

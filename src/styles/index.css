@@ -332,3 +332,24 @@ body {
     height: 55vh !important;
   }
 }
+
+/* Estilos para resaltar texto en ProductoCard */
+.promo-glow {
+  animation: promoPulse 1.8s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(250, 204, 21, 0.8);
+}
+
+@keyframes promoPulse {
+  0% {
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(250, 204, 21, 1);
+    transform: scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 4px rgba(250, 204, 21, 0.4);
+    transform: scale(1);
+  }
+}

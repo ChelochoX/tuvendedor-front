@@ -280,6 +280,51 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
+  // Palabras clave para resaltar
+  const palabrasPromo = [
+    "promo",
+    "promoción",
+    "descuento",
+    "rebaja",
+    "oferta",
+    "black friday",
+    "black",
+    "viernes negro",
+    "navidad",
+    "sale",
+    "hot sale",
+    "2x1",
+    "3x2",
+  ];
+
+  // Función de resaltado
+  const resaltarPromo = (texto: string) => {
+    let resultado = texto;
+
+    palabrasPromo.forEach((palabra) => {
+      const regex = new RegExp(`(${palabra})`, "ig");
+
+      resultado = resultado.replace(
+        regex,
+        `
+      <span class="promo-glow" style="
+        padding: 2px 6px;
+        border-radius: 6px;
+        background: linear-gradient(90deg, #facc15, #f59e0b);
+        color: #000;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      ">
+        <span style="text-transform: uppercase;">$1</span> </span>
+      `
+      );
+    });
+
+    return resultado;
+  };
+
   return (
     <Link to={`/producto/${producto.id}`} className="block">
       <div
@@ -364,9 +409,10 @@ const ProductoCard: React.FC<Props> = ({
               "font-semibold text-gray-800 leading-snug mb-1 line-clamp-2",
               isCompact ? "text-[13px]" : "text-sm",
             ].join(" ")}
-          >
-            {producto.nombre}
-          </h3>
+            dangerouslySetInnerHTML={{
+              __html: resaltarPromo(producto.nombre),
+            }}
+          ></h3>
 
           <p
             className={[

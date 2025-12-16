@@ -359,3 +359,27 @@ export const marcarComoVendido = async (
     throw new Error(backendMsg);
   }
 };
+
+// ❌ Quitar destacado
+export const quitarDestacadoPublicacion = async (
+  idPublicacion: number
+): Promise<void> => {
+  try {
+    const { data } = await instance.post<ApiResponse<any>>(
+      "/Publicaciones/quitar-destacado-publicacion",
+      { idPublicacion }
+    );
+
+    if (!data.Success) {
+      throw new Error(data.Message || data.Errors?.[0]);
+    }
+  } catch (error: any) {
+    const backendMsg =
+      error.response?.data?.Message ||
+      error.response?.data?.Errors?.[0] ||
+      error.message ||
+      "Error al quitar destacado";
+
+    throw new Error(backendMsg);
+  }
+};

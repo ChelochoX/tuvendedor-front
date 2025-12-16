@@ -55,14 +55,6 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos]);
 
   /* ---------------------------------
-   * 🔁 Duplicación interna (no visible)
-   * --------------------------------- */
-  const loopItems = useMemo(() => {
-    if (!productos || productos.length === 0) return [];
-    return [...productos, ...productos];
-  }, [productos]);
-
-  /* ---------------------------------
    * 🔁 Movimiento continuo perfecto
    * --------------------------------- */
   useEffect(() => {
@@ -80,13 +72,7 @@ const CarruselEspeciales: React.FC<Props> = ({
       // No mover si está pausado o si el usuario está arrastrando con el dedo
       if (!paused && !isDraggingRef.current) {
         let x = positionRef.current;
-
         x -= speed;
-
-        if (Math.abs(x) >= totalWidth) {
-          x = 0;
-        }
-
         positionRef.current = x;
         track.style.transform = `translateX(${x}px)`;
       }
@@ -211,8 +197,8 @@ const CarruselEspeciales: React.FC<Props> = ({
             className="flex gap-4 will-change-transform"
             style={{ width: "max-content" }}
           >
-            {loopItems.map((p, idx) => (
-              <div key={`${p.id}-${idx}`} className="shrink-0 w-[260px]">
+            {productos.map((p) => (
+              <div key={p.id} className="shrink-0 w-[260px]">
                 <ProductoCard
                   producto={p}
                   mostrarAcciones={mostrarAcciones}

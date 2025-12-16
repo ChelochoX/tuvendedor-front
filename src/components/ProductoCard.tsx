@@ -10,23 +10,21 @@ import Swal from "sweetalert2";
 import {
   eliminarPublicacion,
   destacarPublicacion,
+  quitarDestacadoPublicacion,
   activarTemporada,
   desactivarTemporada,
   obtenerTemporadas,
   marcarComoVendido,
 } from "../api/publicacionesService";
+import { useUsuario } from "../context/UsuarioContext";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light.css";
 import Tippy from "@tippyjs/react";
-
 interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
   mostrarAcciones?: boolean;
-  /** Tamaño de la card */
   variant?: "default" | "compact";
-  /** ⬅️ Nuevo: permiso para activar “Especial” */
-  puedeActivarEspecial?: boolean;
 }
 
 const ProductoCard: React.FC<Props> = ({
@@ -34,18 +32,33 @@ const ProductoCard: React.FC<Props> = ({
   onEliminado,
   mostrarAcciones = false,
   variant = "default",
-  puedeActivarEspecial = false,
 }) => {
+  const { usuario } = useUsuario();
   const [eliminando, setEliminando] = useState(false);
   const [operandoEspecial, setOperandoEspecial] = useState(false);
   const [operandoDestacado, setOperandoDestacado] = useState(false);
 
   const isCompact = variant === "compact";
 
-  // Si en tu modelo tienes fecha fin de temporada, úsala aquí.
-  // Por ahora tomamos el booleano tal cual.
   const especialActivo = !!producto.esTemporada;
   const destacadoActivo = !!producto.esDestacada;
+
+  // 🔐 permisos existentes (NO TOCADOS)
+  const puedeCrearDestacado =
+    usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false;
+
+  const puedeQuitarDestacado =
+    usuario?.permisos?.includes("QuitarPublicacionDestacada") ?? false;
+
+  const puedeCrearEspecial =
+    usuario?.permisos?.includes("CrearPublicacionTemporada") ?? false;
+
+  const puedeQuitarEspecial =
+    usuario?.permisos?.includes("QuitarPublicacionTemporada") ?? false;
+
+  const puedeActivarEspecial =
+    (!especialActivo && puedeCrearEspecial) ||
+    (especialActivo && puedeQuitarEspecial);
 
   const handleEliminar = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -121,6 +134,48 @@ const ProductoCard: React.FC<Props> = ({
         Number((document.getElementById("dias") as HTMLSelectElement).value),
     });
     return res.isConfirmed ? (res.value as number) : null;
+  };
+
+  const quitarDestacadoFlow = async () => {
+    const confirm = await Swal.fire({
+      title: "¿Quitar publicación destacada?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#ef4444",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Quitar",
+      cancelButtonText: "Cancelar",
+      background: "#1e1f23",
+      color: "#fff",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      setOperandoDestacado(true);
+      await quitarDestacadoPublicacion(producto.id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Destacado quitado",
+        timer: 1400,
+        showConfirmButton: false,
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+
+      window.dispatchEvent(new Event("actualizar-publicaciones"));
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo quitar",
+        text: err?.message ?? "Ocurrió un error",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+    } finally {
+      setOperandoDestacado(false);
+    }
   };
 
   const activarEspecialFlow = async () => {
@@ -325,6 +380,46 @@ const ProductoCard: React.FC<Props> = ({
     return resultado;
   };
 
+  const marcarVendidoFlow = async () => {
+    const confirm = await Swal.fire({
+      title: "¿Marcar como vendido?",
+      text: "Esta acción indicará que el producto ya fue vendido.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#22c55e",
+      cancelButtonColor: "#6b7280",
+      confirmButtonText: "Sí, marcar como vendido",
+      cancelButtonText: "Cancelar",
+      background: "#1e1f23",
+      color: "#fff",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await marcarComoVendido(producto.id);
+
+      Swal.fire({
+        icon: "success",
+        title: "Producto marcado como vendido",
+        timer: 1400,
+        showConfirmButton: false,
+        background: "#1e1e1e",
+        color: "#fff",
+      });
+
+      window.dispatchEvent(new Event("actualizar-publicaciones"));
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo marcar como vendido",
+        text: err?.message ?? "Ocurrió un error",
+        background: "#1e1f23",
+        color: "#fff",
+      });
+    }
+  };
+
   return (
     <Link to={`/producto/${producto.id}`} className="block">
       <div
@@ -454,57 +549,63 @@ const ProductoCard: React.FC<Props> = ({
           {mostrarAcciones && (
             <div className="flex items-center justify-end gap-2 mt-1 mb-1 pr-1">
               {/* Editar */}
-              <button
-                disabled={producto.estado === "Vendido"}
-                className={`transition ${
-                  producto.estado === "Vendido"
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-400 hover:text-blue-500"
-                }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  Swal.fire({
-                    icon: "info",
-                    title: "✨ ¡Estamos trabajando en ello!",
-                    html: `<p style="color:#ddd;font-size:14px;">La edición estará disponible pronto.</p>`,
-                    background: "#1e1f23",
-                    color: "#fff",
-                  });
-                }}
-              >
-                <PencilSquareIcon className="w-4 h-4" />
-              </button>
+              <Tippy content="Editar publicación (próximamente)" theme="light">
+                <button
+                  disabled={producto.estado === "Vendido"}
+                  className={`transition ${
+                    producto.estado === "Vendido"
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-400 hover:text-blue-500"
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    Swal.fire({
+                      icon: "info",
+                      title: "✨ ¡Estamos trabajando en ello!",
+                      html: `<p style="color:#ddd;font-size:14px;">La edición estará disponible pronto.</p>`,
+                      background: "#1e1f23",
+                      color: "#fff",
+                    });
+                  }}
+                >
+                  <PencilSquareIcon className="w-4 h-4" />
+                </button>
+              </Tippy>
 
               {/* Eliminar */}
-              <button
-                disabled={eliminando}
-                className={`transition ${
-                  eliminando
-                    ? "text-gray-300 cursor-not-allowed"
-                    : "text-gray-400 hover:text-red-500"
-                }`}
-                onClick={handleEliminar}
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
+              <Tippy content="Eliminar publicación" theme="light">
+                <button
+                  disabled={eliminando}
+                  className={`transition ${
+                    eliminando
+                      ? "text-gray-300 cursor-not-allowed"
+                      : "text-gray-400 hover:text-red-500"
+                  }`}
+                  onClick={handleEliminar}
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+              </Tippy>
 
               {/* Vendido */}
-              <button
-                className={`transition ${
-                  producto.estado === "Vendido"
-                    ? "text-green-400 cursor-not-allowed"
-                    : "text-gray-400 hover:text-green-500"
-                }`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (producto.estado === "Vendido") return;
-                  marcarComoVendido(producto.id);
-                }}
-              >
-                <CheckBadgeIcon className="w-4 h-4" />
-              </button>
+              <Tippy content="Marcar como vendido" theme="light">
+                <button
+                  className={`transition ${
+                    producto.estado === "Vendido"
+                      ? "text-green-400 cursor-not-allowed"
+                      : "text-gray-400 hover:text-green-500"
+                  }`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (producto.estado === "Vendido") return;
+                    marcarVendidoFlow();
+                  }}
+                >
+                  <CheckBadgeIcon className="w-4 h-4" />
+                </button>
+              </Tippy>
             </div>
           )}
 
@@ -515,27 +616,29 @@ const ProductoCard: React.FC<Props> = ({
               <button
                 disabled={
                   producto.estado === "Vendido" ||
-                  destacadoActivo ||
-                  operandoDestacado
+                  operandoDestacado ||
+                  (destacadoActivo && !puedeQuitarDestacado) ||
+                  (!destacadoActivo && !puedeCrearDestacado)
                 }
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  destacarFlow();
+
+                  if (destacadoActivo) {
+                    quitarDestacadoFlow();
+                  } else {
+                    destacarFlow();
+                  }
                 }}
                 className={[
                   "w-full rounded-md font-semibold transition flex items-center justify-center gap-1",
-                  // 👇 NUEVO: más finito + compacto
                   "text-[12px] py-[4px] px-2",
-                  destacadoActivo || operandoDestacado
-                    ? "bg-yellow-300 text-black cursor-not-allowed"
+                  destacadoActivo
+                    ? "bg-yellow-300 text-black"
                     : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
                 ].join(" ")}
-                title={
-                  destacadoActivo ? "Ya está destacado" : "Destacar publicación"
-                }
               >
-                ⭐ Destacar
+                ⭐ {destacadoActivo ? "Quitar destacado" : "Destacar"}
               </button>
 
               {/* 🎉 Especial (con permiso + estado) */}

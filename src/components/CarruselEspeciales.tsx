@@ -59,20 +59,28 @@ const CarruselEspeciales: React.FC<Props> = ({
    * --------------------------------- */
   useEffect(() => {
     const track = trackRef.current;
-    if (!track) return;
+    const viewport = track?.parentElement;
+    if (!track || !viewport) return;
 
     if (productos.length <= 1) return;
 
     const speed = 0.4;
     const totalWidth = productos.length * (CARD_WIDTH + GAP);
+    const viewportWidth = viewport.offsetWidth;
+    const maxScroll = totalWidth - viewportWidth;
 
     let frame: number;
 
     const animate = () => {
-      // No mover si está pausado o si el usuario está arrastrando con el dedo
       if (!paused && !isDraggingRef.current) {
         let x = positionRef.current;
         x -= speed;
+
+        // 🔁 CUANDO LLEGA AL FINAL → VUELVE AL INICIO
+        if (Math.abs(x) >= maxScroll) {
+          x = 0;
+        }
+
         positionRef.current = x;
         track.style.transform = `translateX(${x}px)`;
       }

@@ -1,26 +1,41 @@
-// src/router/index.tsx
 import { Routes, Route, Navigate } from "react-router-dom";
-import Marketplace from "../pages/Marketplace";
-import ProductDetailWrapper from "../pages/ProductDetailWrapper";
+import { lazy, Suspense } from "react";
+
+// 🟡 Lazy imports (CLAVE)
+const Marketplace = lazy(() => import("../pages/Marketplace"));
+const ProductDetailWrapper = lazy(
+  () => import("../pages/ProductDetailWrapper")
+);
+const BridgeProduct = lazy(() => import("../pages/BridgeProduct"));
 
 // Clientes
-import Dashboard from "../pages/clientes/Dashboard";
-import CargaClientes from "../pages/clientes/CargaClientes";
+const Dashboard = lazy(() => import("../pages/clientes/Dashboard"));
+const CargaClientes = lazy(() => import("../pages/clientes/CargaClientes"));
+
+// Fallback ultra liviano
+const PageLoader = () => <div className="min-h-screen bg-black" />;
 
 const RoutesHandler = () => (
-  <Routes>
-    {/* 🏠 Marketplace principal */}
-    <Route path="/" element={<Marketplace />} />
-    <Route path="/producto/:id" element={<ProductDetailWrapper />} />
+  <Suspense fallback={<PageLoader />}>
+    <Routes>
+      {/* 🏠 Marketplace */}
+      <Route path="/" element={<Marketplace />} />
 
-    {/* 👥 Módulo de Clientes */}
-    <Route
-      path="/clientes"
-      element={<Navigate to="/clientes/dashboard" replace />}
-    />
-    <Route path="/clientes/dashboard" element={<Dashboard />} />
-    <Route path="/clientes/cargar" element={<CargaClientes />} />
-  </Routes>
+      {/* 📦 Producto */}
+      <Route path="/producto/:id" element={<ProductDetailWrapper />} />
+
+      {/* 🌉 Bridge (la más importante para Meta) */}
+      <Route path="/bridge/:id" element={<BridgeProduct />} />
+
+      {/* 👥 Módulo Clientes */}
+      <Route
+        path="/clientes"
+        element={<Navigate to="/clientes/dashboard" replace />}
+      />
+      <Route path="/clientes/dashboard" element={<Dashboard />} />
+      <Route path="/clientes/cargar" element={<CargaClientes />} />
+    </Routes>
+  </Suspense>
 );
 
 export default RoutesHandler;

@@ -487,6 +487,8 @@ const ProductoCard: React.FC<Props> = ({
               src={
                 producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
               }
+              loading="lazy"
+              decoding="async"
               alt={producto.nombre}
               className="w-full h-full object-cover absolute top-0 left-0"
             />
@@ -535,6 +537,8 @@ const ProductoCard: React.FC<Props> = ({
               <div className="flex items-center gap-1 mr-1">
                 <img
                   src={producto.vendedor.avatar}
+                  loading="lazy"
+                  decoding="async"
                   alt={producto.vendedor.nombre}
                   className="w-4 h-4 rounded-full object-cover"
                 />

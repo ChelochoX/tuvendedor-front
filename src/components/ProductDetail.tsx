@@ -23,6 +23,12 @@ interface Props {
   onToggleFavorite: () => void;
 }
 
+declare global {
+  interface Window {
+    fbq?: (...args: any[]) => void;
+  }
+}
+
 const ProductDetail: React.FC<Props> = ({
   producto,
   isFavorite,
@@ -84,6 +90,15 @@ const ProductDetail: React.FC<Props> = ({
     }
 
     const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
+
+    // 🔥 EVENTO META: contacto por WhatsApp
+    if (window.fbq) {
+      window.fbq("track", "Contact", {
+        content_name: producto.nombre,
+        content_id: producto.id,
+        content_type: "product",
+      });
+    }
 
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");

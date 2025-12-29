@@ -114,24 +114,6 @@ const ProductDetail: React.FC<Props> = ({
       bgcolor="#111"
       color="#fff"
     >
-      {/* 🔸 Botón Cerrar */}
-      <IconButton
-        onClick={() => navigate(-1)}
-        sx={{
-          position: "absolute",
-          top: 24,
-          left: 24,
-          color: "#FFD700",
-          zIndex: 20,
-          "&:hover": {
-            backgroundColor: "transparent",
-            transform: "scale(1.1)",
-          },
-        }}
-      >
-        <CloseIcon sx={{ fontSize: 32 }} />
-      </IconButton>
-
       {/* 🔸 Galería principal */}
       <Box flex={isMobile ? undefined : 2} position="relative">
         <Box
@@ -141,6 +123,45 @@ const ProductDetail: React.FC<Props> = ({
           borderRadius={2}
           overflow="hidden"
         >
+          {/* ✅ OVERLAY CORRECTO (ACÁ) */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              right: 12,
+              zIndex: 30,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <Button
+              onClick={() => navigate("/")}
+              sx={{
+                color: "#FFD700",
+                textTransform: "none",
+                fontSize: "0.9rem",
+                padding: "6px 10px",
+                borderRadius: 2,
+                backgroundColor: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              🏠 Ver todos los productos
+            </Button>
+
+            <IconButton
+              onClick={() => navigate(-1)}
+              sx={{
+                color: "#FFD700",
+                backgroundColor: "rgba(0,0,0,0.55)",
+              }}
+            >
+              <CloseIcon sx={{ fontSize: 30 }} />
+            </IconButton>
+          </Box>
+
           {/* Fondo difuminado solo si es imagen */}
           {!isVideo && (
             <Box

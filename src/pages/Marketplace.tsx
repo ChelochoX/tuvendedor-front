@@ -164,6 +164,20 @@ const Marketplace: React.FC = () => {
       );
   }, []);
 
+  // 🔍 Escuchar buscador global
+  useEffect(() => {
+    const handler = (e: any) => {
+      const texto = e.detail || "";
+
+      setBusqueda(texto);
+      setCategoriaSeleccionada(null); // 🔥 clave: el buscador manda
+      setMostrarSoloMias(false);
+    };
+
+    window.addEventListener("buscar-productos", handler);
+    return () => window.removeEventListener("buscar-productos", handler);
+  }, []);
+
   // ==============================================================
   // 🔄 6️⃣ Escuchar actualización global de publicaciones
   // ==============================================================
@@ -234,14 +248,14 @@ const Marketplace: React.FC = () => {
   // ==============================================================
   return (
     <div className="bg-[#1e1f23] min-h-screen text-white">
-      <Cabecera />
+      <Cabecera busqueda={busqueda} setBusqueda={setBusqueda} />
       <div className="flex">
         {/* ===== SIDEBAR ===== */}
         <aside
           className={`fixed md:fixed md:left-0 top-[64px] bg-[#1e1f23] text-white 
-    border-r-2 border-yellow-400 p-4 w-72 z-50 
-    h-[calc(100vh-64px)] overflow-y-auto
-    ${sidebarAbierto ? "block" : "hidden md:block"}`}
+            border-r-2 border-yellow-400 p-4 w-72 z-50 
+            h-[calc(100vh-64px)] overflow-y-auto
+            ${sidebarAbierto ? "block" : "hidden md:block"}`}
         >
           {/* 🔥 FIX: El panel se estira y footer aparece bien */}
           <div className="h-full flex flex-col">
@@ -315,7 +329,6 @@ const Marketplace: React.FC = () => {
                     }
                     mostrarAcciones={mostrarSoloMias}
                     variant={mostrarSoloMias ? "compact" : "default"}
-                    puedeActivarEspecial={puedeActivarEspecial}
                   />
                 ))}
 

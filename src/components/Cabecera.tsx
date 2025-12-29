@@ -1,7 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { useUsuario } from "../context/UsuarioContext";
 
-const Cabecera: React.FC = () => {
+interface CabeceraProps {
+  busqueda: string;
+  setBusqueda: (value: string) => void;
+}
+
+const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
   const { usuario, cerrarSesion } = useUsuario();
 
   return (
@@ -14,13 +19,26 @@ const Cabecera: React.FC = () => {
         <h1 className="text-xl font-bold">Tu Vendedor</h1>
 
         {/* Buscador centrado */}
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center relative">
           <input
             type="text"
             placeholder="Buscar productos..."
-            className="w-[400px] px-4 py-2 bg-white text-black border border-gray-300 rounded-full
-                       focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-[400px] px-4 py-2 pr-10 bg-white text-black border border-gray-300 rounded-full
+               focus:outline-none focus:ring-2 focus:ring-yellow-400"
           />
+
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda("")}
+              className="absolute right-[calc(50%-200px+12px)] top-1/2 -translate-y-1/2
+                 text-gray-500 hover:text-black transition"
+              aria-label="Limpiar búsqueda"
+            >
+              ❌
+            </button>
+          )}
         </div>
 
         {/* Usuario */}
@@ -110,12 +128,27 @@ const Cabecera: React.FC = () => {
         )}
 
         {/* Buscador mobile */}
-        <input
-          type="text"
-          placeholder="Buscar productos..."
-          className="w-full px-3 py-2 text-sm bg-white text-black border border-gray-300 rounded-full
-                     focus:outline-none focus:ring-2 focus:ring-yellow-400"
-        />
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Buscar productos..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full px-3 py-2 pr-9 text-sm bg-white text-black border border-gray-300 rounded-full
+               focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          />
+
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2
+                 text-gray-500 hover:text-black transition"
+              aria-label="Limpiar búsqueda"
+            >
+              ❌
+            </button>
+          )}
+        </div>
       </div>
     </header>
   );

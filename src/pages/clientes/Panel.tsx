@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import StoreIcon from "@mui/icons-material/Store";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
@@ -11,11 +13,11 @@ const Panel: React.FC = () => {
     <div className="flex flex-col justify-between h-full relative">
       {/* Sección superior */}
       <div className="flex flex-col gap-2 overflow-y-auto pb-20 md:pb-0">
+        {/* ================= CLIENTES ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mb-3">
           Clientes
         </h2>
 
-        {/* Dashboard general */}
         <button
           onClick={() => navigate("/clientes/dashboard")}
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
@@ -24,7 +26,6 @@ const Panel: React.FC = () => {
           Panel general
         </button>
 
-        {/* Registrar nuevo cliente */}
         <button
           onClick={() => navigate("/clientes/cargar")}
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
@@ -32,15 +33,31 @@ const Panel: React.FC = () => {
           <PersonAddIcon fontSize="small" />
           Registrar cliente
         </button>
+
+        {/* ================= GESTIÓN ================= */}
+        <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
+          Gestión
+        </h2>
+
+        <button
+          onClick={() => navigate("/clientes/marcas")}
+          className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
+        >
+          <StoreIcon fontSize="small" />
+          Marcas
+        </button>
+
+        <button
+          onClick={() => navigate("/clientes/precios")}
+          className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
+        >
+          <LocalOfferIcon fontSize="small" />
+          Precios
+        </button>
       </div>
 
-      {/* Botón volver al marketplace */}
-      <div
-        className="
-          hidden md:block
-          mt-4
-        "
-      >
+      {/* ================= BOTÓN MARKETPLACE (DESKTOP) ================= */}
+      <div className="hidden md:block mt-4">
         <button
           onClick={() => navigate("/")}
           className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-full font-semibold 
@@ -52,7 +69,7 @@ const Panel: React.FC = () => {
         </button>
       </div>
 
-      {/* Versión móvil fija del botón */}
+      {/* ================= BOTÓN MARKETPLACE (MOBILE) ================= */}
       <div
         className="
           md:hidden

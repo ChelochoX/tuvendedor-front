@@ -11,6 +11,7 @@ const Dashboard = lazy(() => import("pages/clientes/Dashboard"));
 const CargaClientes = lazy(() => import("pages/clientes/CargaClientes"));
 const GestionMarcas = lazy(() => import("pages/clientes/GestionMarcas"));
 const GestionPrecios = lazy(() => import("../pages/clientes/GestionPrecios"));
+const GestionModelos = lazy(() => import("pages/clientes/GestionModelos"));
 
 const PageLoader = () => <div className="min-h-screen bg-black" />;
 
@@ -28,6 +29,7 @@ const RoutesHandler = () => (
       <Route path="/clientes/dashboard" element={<Dashboard />} />
       <Route path="/clientes/cargar" element={<CargaClientes />} />
       <Route path="/clientes/marcas" element={<GestionMarcas />} />
+      <Route path="/clientes/modelos" element={<GestionModelos />} />
       <Route path="/clientes/precios" element={<GestionPrecios />} />
     </Routes>
   </Suspense>

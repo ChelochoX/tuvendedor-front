@@ -1,13 +1,3 @@
-// Representa un modelo de producto (ej: Blitz 110, City 125)
-export interface ModeloProducto {
-  id: number;
-  rubro: string;
-  codigo: string;
-  marca: string;
-  modelo: string;
-  estado: "Activo" | "Inactivo";
-}
-
 // Lista de precios (vigente o promo)
 export interface ListaPrecioProducto {
   id: number;

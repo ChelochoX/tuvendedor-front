@@ -1,17 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-
 import preciosService from "api/preciosProductosService";
 import marcasService from "api/marcasService";
-
 import {
-  ModeloProducto,
   PrecioBlock,
   PrecioModelo,
   emptyPrecioBlock,
 } from "types/precioProducto";
 import { Marca } from "types/marca";
+import { ModeloProducto } from "types/modeloProducto";
 
 /* =======================
    Helpers
@@ -32,7 +30,7 @@ const GestionPrecios: React.FC = () => {
   const [precios, setPrecios] = useState<Record<number, PrecioModelo>>({});
   const [loading, setLoading] = useState(false);
 
-  const [marcaSeleccionada, setMarcaSeleccionada] = useState<number | "ALL">(
+  const [marcaSeleccionada, setMarcaSeleccionada] = useState<string | "ALL">(
     "ALL"
   );
 
@@ -157,7 +155,7 @@ const GestionPrecios: React.FC = () => {
   const modelosFiltrados =
     marcaSeleccionada === "ALL"
       ? modelos
-      : modelos.filter((m) => m.idMarca === marcaSeleccionada);
+      : modelos.filter((m) => m.marca === marcaSeleccionada);
 
   /* =======================
      Render
@@ -188,22 +186,38 @@ const GestionPrecios: React.FC = () => {
 
           <select
             value={marcaSeleccionada}
-            onChange={(e) =>
-              setMarcaSeleccionada(
-                e.target.value === "ALL" ? "ALL" : Number(e.target.value)
-              )
-            }
-            className="w-full sm:w-72 bg-gray-900 text-white px-4 py-2 rounded-lg
-            border border-gray-600 focus:outline-none
-            focus:ring-2 focus:ring-yellow-400"
+            onChange={(e) => setMarcaSeleccionada(e.target.value)}
+            className={`
+              w-full sm:w-72 px-4 py-2 rounded-lg font-medium
+              transition-all duration-200
+              focus:outline-none focus:ring-2 focus:ring-yellow-400
+              ${
+                marcaSeleccionada === "ALL"
+                  ? "bg-gray-900 text-gray-300 border border-gray-600"
+                  : "bg-yellow-100 text-gray-900 border border-yellow-400"
+              }
+            `}
           >
-            <option value="ALL">Todas las marcas</option>
+            <option value="ALL" className="bg-gray-900 text-white">
+              Todas las marcas
+            </option>
+
             {marcas.map((m) => (
-              <option key={m.id} value={m.id}>
+              <option
+                key={m.id}
+                value={m.nombre}
+                className="bg-gray-900 text-white"
+              >
                 {m.nombre}
               </option>
             ))}
           </select>
+
+          {marcaSeleccionada !== "ALL" && (
+            <span className="text-xs text-yellow-300 mt-1">
+              Marca seleccionada para la carga de precios
+            </span>
+          )}
         </div>
       </div>
 
@@ -221,7 +235,7 @@ const GestionPrecios: React.FC = () => {
               className="mb-6 border border-gray-300/40 rounded-xl p-5"
             >
               <div className="text-gray-200 font-semibold mb-3">
-                {m.marca} – {m.modelo} ({m.codigo})
+                {m.marca} – {m.nombreModelo} ({m.codigoReferencia})
               </div>
 
               <PrecioUI
@@ -301,7 +315,7 @@ const PrecioUI: React.FC<PrecioUIProps> = ({
       ))}
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-3">
+    <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-3">
       <input
         placeholder="Entrega"
         className="bg-gray-800 text-white p-2 rounded"
@@ -320,10 +334,16 @@ const PrecioUI: React.FC<PrecioUIProps> = ({
         onChange={(e) => onChange("importeCuota", onlyDigits(e.target.value))}
       />
       <input
+        placeholder="Interés %"
+        className="bg-gray-800 text-white p-2 rounded"
+        value={block.interes}
+        onChange={(e) => onChange("interes", onlyDigits(e.target.value))}
+      />
+      <input
         placeholder="Código plan"
         className="bg-gray-800 text-white p-2 rounded"
         value={block.codigoPlan}
-        onChange={(e) => onChange("codigoPlan", e.target.value)}
+        onChange={(e) => onChange("codigoPlan", e.target.value.toUpperCase())}
       />
     </div>
 

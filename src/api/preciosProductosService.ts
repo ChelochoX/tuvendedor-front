@@ -1,6 +1,6 @@
 import instance from "./axiosInstance";
 import { ApiResponse } from "../types/api";
-import { ModeloProducto, ListaPrecioProducto } from "../types/precioProducto";
+import { ModeloProducto } from "types/modeloProducto";
 
 const API_URL = "/PreciosProductos";
 

@@ -5,6 +5,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StoreIcon from "@mui/icons-material/Store";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import CategoryIcon from "@mui/icons-material/Category";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const Panel: React.FC = () => {
 
         {/* ================= GESTIÓN ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
-          Gestión
+          Gestión Producto
         </h2>
 
         <button
@@ -45,6 +46,14 @@ const Panel: React.FC = () => {
         >
           <StoreIcon fontSize="small" />
           Marcas
+        </button>
+
+        <button
+          onClick={() => navigate("/clientes/modelos")}
+          className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
+        >
+          <CategoryIcon fontSize="small" />
+          Modelos
         </button>
 
         <button

@@ -1,22 +1,24 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+
 import preciosService from "api/preciosProductosService";
 import marcasService from "api/marcasService";
+
+import { Marca } from "types/marca";
+import { ModeloProducto } from "types/modeloProducto";
 import {
   PrecioBlock,
   PrecioModelo,
   emptyPrecioBlock,
 } from "types/precioProducto";
-import { Marca } from "types/marca";
-import { ModeloProducto } from "types/modeloProducto";
+
+import { PreciosTable } from "./components/PreciosTable";
 
 /* =======================
    Helpers
 ======================= */
 const onlyDigits = (v: string) => v.replace(/\D/g, "");
-const miles = (v?: string) =>
-  v ? Number(onlyDigits(v)).toLocaleString("es-PY") : "";
 const isEmpty = (v?: string) => !v || v.trim() === "";
 
 /* =======================
@@ -34,32 +36,95 @@ const GestionPrecios: React.FC = () => {
     "ALL"
   );
 
-  /* =======================
-     Carga inicial
-  ======================= */
   useEffect(() => {
     cargarTodo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarTodo = async () => {
     setLoading(true);
     try {
-      const [modelosData, marcasData] = await Promise.all([
+      const [modelosData, marcasData, listadoPrecios] = await Promise.all([
         preciosService.obtenerModelos(),
         marcasService.obtenerMarcas(true),
+        preciosService.obtenerListadoPrecios(),
       ]);
 
       setModelos(modelosData);
       setMarcas(marcasData);
 
-      const inicial: Record<number, PrecioModelo> = {};
+      const mapa: Record<number, PrecioModelo> = {};
+
       modelosData.forEach((m) => {
-        inicial[m.id] = {
-          normal: emptyPrecioBlock(false),
+        const modeloPrecio = listadoPrecios.find(
+          (x: any) => x.idModeloProducto === m.id
+        );
+
+        const normal = modeloPrecio?.listasPrecios?.find(
+          (l: any) => l.esPromo === false
+        );
+
+        const promo = modeloPrecio?.listasPrecios?.find(
+          (l: any) => l.esPromo === true
+        );
+
+        const normalPlan = normal?.planes?.[0];
+        const promoPlan = promo?.planes?.[0];
+
+        mapa[m.id] = {
+          normal: normal
+            ? {
+                idListaPrecio: normal.idListaPrecio,
+                idPlan: normalPlan?.id,
+                esPromo: false,
+                estado: normal.estado,
+
+                precioPublico: String(normal.precioPublico ?? ""),
+                precioDistribuidor: String(normal.precioDistribuidor ?? ""),
+                precioBase: String(normal.precioBase ?? ""),
+
+                fechaDesde: normal.fechaDesde
+                  ? normal.fechaDesde.slice(0, 10)
+                  : "",
+                fechaHasta: normal.fechaHasta
+                  ? normal.fechaHasta.slice(0, 10)
+                  : "",
+
+                entregaInicial: String(normalPlan?.entregaInicial ?? ""),
+                importeCuota: String(normalPlan?.importeCuota ?? ""),
+                interes: String(normalPlan?.interes ?? ""),
+                codigoPlan: String(normalPlan?.codigoPlan ?? ""),
+              }
+            : emptyPrecioBlock(false),
+
+          promo: promo
+            ? {
+                idListaPrecio: promo.idListaPrecio,
+                idPlan: promoPlan?.id,
+                esPromo: true,
+                estado: promo.estado,
+
+                precioPublico: String(promo.precioPublico ?? ""),
+                precioDistribuidor: String(promo.precioDistribuidor ?? ""),
+                precioBase: String(promo.precioBase ?? ""),
+
+                fechaDesde: promo.fechaDesde
+                  ? promo.fechaDesde.slice(0, 10)
+                  : "",
+                fechaHasta: promo.fechaHasta
+                  ? promo.fechaHasta.slice(0, 10)
+                  : "",
+
+                entregaInicial: String(promoPlan?.entregaInicial ?? ""),
+                importeCuota: String(promoPlan?.importeCuota ?? ""),
+                interes: String(promoPlan?.interes ?? ""),
+                codigoPlan: String(promoPlan?.codigoPlan ?? ""),
+              }
+            : undefined,
         };
       });
 
-      setPrecios(inicial);
+      setPrecios(mapa);
     } finally {
       setLoading(false);
     }
@@ -98,64 +163,118 @@ const GestionPrecios: React.FC = () => {
     }));
   };
 
-  /* =======================
-     Guardar
-  ======================= */
-  const guardar = async (m: ModeloProducto, tipo: "normal" | "promo") => {
+  const guardar = async (idModelo: number, tipo: "normal" | "promo") => {
     const block =
-      tipo === "normal" ? precios[m.id]?.normal : precios[m.id]?.promo;
-
+      tipo === "normal" ? precios[idModelo]?.normal : precios[idModelo]?.promo;
     if (!block) return;
 
+    // validación mínima
     if (
       isEmpty(block.precioPublico) ||
       isEmpty(block.precioDistribuidor) ||
       isEmpty(block.precioBase)
     ) {
       updateBlock(
-        m.id,
+        idModelo,
         tipo,
         "error",
-        "Completá todos los campos obligatorios"
+        "Completá Público / Distrib. / Base"
+      );
+      return;
+    }
+
+    // si es promo: exigir fechas
+    if (
+      block.esPromo &&
+      (isEmpty(block.fechaDesde) || isEmpty(block.fechaHasta))
+    ) {
+      updateBlock(
+        idModelo,
+        tipo,
+        "error",
+        "Promo requiere Fecha desde y hasta"
       );
       return;
     }
 
     try {
-      const res = await preciosService.crearListaPrecio({
-        idModeloProducto: m.id,
-        precioPublico: Number(onlyDigits(block.precioPublico)),
-        precioDistribuidor: Number(onlyDigits(block.precioDistribuidor)),
-        precioBase: Number(onlyDigits(block.precioBase)),
-        fechaDesde: block.fechaDesde,
-        fechaHasta: block.esPromo ? block.fechaHasta : undefined,
-        esPromo: block.esPromo,
-      });
+      // 1) Lista precio (crear o editar)
+      let idLista = block.idListaPrecio;
 
-      const idLista = res?.Id || res?.id;
+      if (idLista) {
+        await preciosService.editarListaPrecio({
+          Id: idLista,
+          precioPublico: Number(onlyDigits(block.precioPublico)),
+          precioDistribuidor: Number(onlyDigits(block.precioDistribuidor)),
+          precioBase: Number(onlyDigits(block.precioBase)),
+          fechaDesde: block.fechaDesde,
+          fechaHasta: block.esPromo ? block.fechaHasta : null,
+          esPromo: block.esPromo,
+        });
+      } else {
+        const res = await preciosService.crearListaPrecio({
+          idModeloProducto: idModelo,
+          precioPublico: Number(onlyDigits(block.precioPublico)),
+          precioDistribuidor: Number(onlyDigits(block.precioDistribuidor)),
+          precioBase: Number(onlyDigits(block.precioBase)),
+          fechaDesde: block.fechaDesde || "",
+          fechaHasta: block.esPromo ? block.fechaHasta || "" : undefined,
+          esPromo: block.esPromo,
+        });
 
-      await preciosService.crearPlan({
-        idListaPrecio: idLista,
-        entregaInicial: Number(onlyDigits(block.entregaInicial || "0")),
-        cantidadCuotas: 30,
-        importeCuota: Number(onlyDigits(block.importeCuota)),
-        interes: Number(block.interes || 0),
-        codigoPlan: block.codigoPlan,
-      });
+        idLista = res?.Id ?? res?.id;
+      }
 
-      updateBlock(m.id, tipo, "mensaje", "Precio guardado correctamente ✔");
+      // 2) Plan (crear o editar)
+
+      if (!idLista) {
+        throw new Error("No se pudo obtener idListaPrecio");
+      }
+      if (block.idPlan) {
+        await preciosService.editarPlan({
+          id: block.idPlan,
+          idListaPrecio: idLista,
+          entregaInicial: Number(onlyDigits(block.entregaInicial || "0")),
+          cantidadCuotas: 30,
+          importeCuota: Number(onlyDigits(block.importeCuota || "0")),
+          interes: Number(onlyDigits(block.interes || "0")),
+          codigoPlan: block.codigoPlan,
+        });
+      } else {
+        await preciosService.crearPlan({
+          idListaPrecio: idLista,
+          entregaInicial: Number(onlyDigits(block.entregaInicial || "0")),
+          cantidadCuotas: 30,
+          importeCuota: Number(onlyDigits(block.importeCuota || "0")),
+          interes: Number(onlyDigits(block.interes || "0")),
+          codigoPlan: block.codigoPlan,
+        });
+      }
+
+      // refresco para traer ids/estado/plan id
+      await cargarTodo();
     } catch (e: any) {
-      updateBlock(m.id, tipo, "error", e.message || "Error al guardar");
+      updateBlock(idModelo, tipo, "error", e?.message || "Error al guardar");
     }
+  };
+
+  const activarLista = async (idListaPrecio: number) => {
+    await preciosService.activarListaPrecio(idListaPrecio);
+    await cargarTodo();
+  };
+
+  const desactivarLista = async (idListaPrecio: number) => {
+    await preciosService.desactivarListaPrecio(idListaPrecio);
+    await cargarTodo();
   };
 
   /* =======================
      Filtrado por marca
   ======================= */
-  const modelosFiltrados =
-    marcaSeleccionada === "ALL"
-      ? modelos
-      : modelos.filter((m) => m.marca === marcaSeleccionada);
+  const modelosFiltrados = useMemo(() => {
+    if (marcaSeleccionada === "ALL") return modelos;
+    return modelos.filter((m) => m.marca === marcaSeleccionada);
+  }, [marcaSeleccionada, modelos]);
 
   /* =======================
      Render
@@ -172,8 +291,8 @@ const GestionPrecios: React.FC = () => {
           <button
             onClick={() => navigate("/clientes/dashboard")}
             className="flex items-center gap-2 px-4 py-2 rounded-full
-            border border-yellow-400 text-yellow-400
-            hover:bg-yellow-400 hover:text-black transition"
+              border border-yellow-400 text-yellow-400
+              hover:bg-yellow-400 hover:text-black transition"
           >
             <ArrowBackIcon fontSize="small" />
             Volver
@@ -232,37 +351,22 @@ const GestionPrecios: React.FC = () => {
           return (
             <div
               key={m.id}
-              className="mb-6 border border-gray-300/40 rounded-xl p-5"
+              className="mb-6 border border-gray-300/40 rounded-2xl p-5 bg-black/20"
             >
               <div className="text-gray-200 font-semibold mb-3">
                 {m.marca} – {m.nombreModelo} ({m.codigoReferencia})
               </div>
 
-              <PrecioUI
-                titulo="PRECIO NORMAL"
-                color="bg-gray-50 border border-gray-200"
-                block={data.normal}
-                onChange={(f, v) => updateBlock(m.id, "normal", f, v)}
-                onSave={() => guardar(m, "normal")}
+              <PreciosTable
+                precios={data}
+                onChange={(tipo, field, value) =>
+                  updateBlock(m.id, tipo, field, value)
+                }
+                onGuardar={(tipo) => guardar(m.id, tipo)}
+                onAgregarPromo={() => agregarPromo(m.id)}
+                onActivar={(id) => activarLista(id)}
+                onDesactivar={(id) => desactivarLista(id)}
               />
-
-              {data.promo ? (
-                <PrecioUI
-                  titulo="PROMO"
-                  color="bg-yellow-50 border border-yellow-300/50"
-                  block={data.promo}
-                  onChange={(f, v) => updateBlock(m.id, "promo", f, v)}
-                  onSave={() => guardar(m, "promo")}
-                  showFecha
-                />
-              ) : (
-                <button
-                  onClick={() => agregarPromo(m.id)}
-                  className="mt-3 text-yellow-400 underline"
-                >
-                  + Agregar promo
-                </button>
-              )}
             </div>
           );
         })
@@ -270,126 +374,5 @@ const GestionPrecios: React.FC = () => {
     </div>
   );
 };
-
-/* =======================
-   Sub UI
-======================= */
-type PrecioUIProps = {
-  titulo: string;
-  color: string;
-  block: PrecioBlock;
-  showFecha?: boolean;
-  onSave: () => void;
-  onChange: (field: keyof PrecioBlock, value: string) => void;
-};
-
-const PrecioUI: React.FC<PrecioUIProps> = ({
-  titulo,
-  color,
-  block,
-  onChange,
-  onSave,
-  showFecha,
-}) => (
-  <div className={`mt-4 p-5 rounded-xl ${color}`}>
-    <div className="font-semibold text-gray-700 mb-4">{titulo}</div>
-
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-      {(
-        ["precioPublico", "precioDistribuidor", "precioBase"] as Array<
-          keyof PrecioBlock
-        >
-      ).map((f) => (
-        <input
-          key={f}
-          className={`p-2 rounded bg-gray-800 text-white
-          ${
-            block.error && isEmpty(block[f] as string)
-              ? "border border-red-500"
-              : "border border-transparent"
-          }`}
-          placeholder={f}
-          value={miles(block[f] as string)}
-          onChange={(e) => onChange(f, onlyDigits(e.target.value))}
-        />
-      ))}
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-5 gap-3 mt-3">
-      <input
-        placeholder="Entrega"
-        className="bg-gray-800 text-white p-2 rounded"
-        value={miles(block.entregaInicial)}
-        onChange={(e) => onChange("entregaInicial", onlyDigits(e.target.value))}
-      />
-      <input
-        disabled
-        value="30 cuotas"
-        className="bg-gray-700 text-gray-300 p-2 rounded"
-      />
-      <input
-        placeholder="Cuota"
-        className="bg-gray-800 text-white p-2 rounded"
-        value={miles(block.importeCuota)}
-        onChange={(e) => onChange("importeCuota", onlyDigits(e.target.value))}
-      />
-      <input
-        placeholder="Interés %"
-        className="bg-gray-800 text-white p-2 rounded"
-        value={block.interes}
-        onChange={(e) => onChange("interes", onlyDigits(e.target.value))}
-      />
-      <input
-        placeholder="Código plan"
-        className="bg-gray-800 text-white p-2 rounded"
-        value={block.codigoPlan}
-        onChange={(e) => onChange("codigoPlan", e.target.value.toUpperCase())}
-      />
-    </div>
-
-    {showFecha && (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-        <input
-          type="date"
-          className="bg-gray-800 text-white p-2 rounded"
-          value={block.fechaDesde}
-          onChange={(e) => onChange("fechaDesde", e.target.value)}
-        />
-        <input
-          type="date"
-          className="bg-gray-800 text-white p-2 rounded"
-          value={block.fechaHasta}
-          onChange={(e) => onChange("fechaHasta", e.target.value)}
-        />
-      </div>
-    )}
-
-    <button
-      onClick={onSave}
-      className="mt-4 px-6 py-2 bg-yellow-400 text-black
-      font-semibold rounded-full hover:bg-yellow-300 transition"
-    >
-      Guardar
-    </button>
-
-    {block.error && (
-      <div
-        className="mt-3 text-sm text-red-600 bg-red-50
-      border border-red-200 rounded px-3 py-2"
-      >
-        ⚠ {block.error}
-      </div>
-    )}
-
-    {block.mensaje && (
-      <div
-        className="mt-3 text-sm text-green-600 bg-green-50
-      border border-green-200 rounded px-3 py-2"
-      >
-        ✔ {block.mensaje}
-      </div>
-    )}
-  </div>
-);
 
 export default GestionPrecios;

@@ -1,50 +1,24 @@
-// Lista de precios (vigente o promo)
-export interface ListaPrecioProducto {
-  id: number;
-  idModeloProducto: number;
-
-  precioPublico: number;
-  precioBase: number;
-
-  fechaDesde: string;
-  fechaHasta?: string;
-
-  estado: "Activo" | "Inactivo";
-
-  // ⭐ opcional (si backend lo soporta)
-  observacion?: string;
-}
-
-// Plan de financiación
-export interface PlanFinanciacionProducto {
-  id: number;
-  idListaPrecio: number;
-
-  entregaInicial: number;
-  cantidadCuotas: number;
-  importeCuota: number;
-
-  codigoPlan?: string;
-}
+// src/types/precioProducto.ts
 
 export type PrecioBlock = {
   idListaPrecio?: number;
+  idPlan?: number;
+
   esPromo: boolean;
+  estado?: "Activo" | "Inactivo" | "Nuevo";
 
   precioPublico: string;
   precioDistribuidor: string;
   precioBase: string;
 
-  fechaDesde: string;
-  fechaHasta: string;
+  fechaDesde?: string;
+  fechaHasta?: string;
 
   entregaInicial: string;
   importeCuota: string;
   interes: string;
   codigoPlan: string;
 
-  guardando?: boolean;
-  mensaje?: string;
   error?: string;
 };
 
@@ -55,11 +29,15 @@ export type PrecioModelo = {
 
 export const emptyPrecioBlock = (esPromo: boolean): PrecioBlock => ({
   esPromo,
+  estado: "Nuevo",
+
   precioPublico: "",
   precioDistribuidor: "",
   precioBase: "",
-  fechaDesde: new Date().toISOString().slice(0, 10),
+
+  fechaDesde: "",
   fechaHasta: "",
+
   entregaInicial: "",
   importeCuota: "",
   interes: "",

@@ -88,9 +88,102 @@ const crearPlan = async (payload: {
   return data.Data;
 };
 
+/* ===============================
+   LISTADO COMPLETO
+================================ */
+
+const obtenerListadoPrecios = async () => {
+  const { data } = await instance.get<ApiResponse<any>>(
+    `${API_URL}/listado-precios`
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al obtener listado de precios");
+  }
+
+  return data.Data;
+};
+
+/* ===============================
+   LISTAS DE PRECIOS
+================================ */
+
+const editarListaPrecio = async (payload: any) => {
+  const { data } = await instance.put<ApiResponse<any>>(
+    `${API_URL}/editar-lista-precio`,
+    payload
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al editar lista de precios");
+  }
+};
+
+const desactivarListaPrecio = async (id: number) => {
+  const { data } = await instance.post<ApiResponse<any>>(
+    `${API_URL}/desactivar-lista-precio/${id}`
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al desactivar lista");
+  }
+};
+
+const activarListaPrecio = async (id: number) => {
+  const { data } = await instance.post<ApiResponse<any>>(
+    `${API_URL}/activar-lista-precio/${id}`
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al activar lista");
+  }
+};
+
+/* ===============================
+   PLANES
+================================ */
+
+const editarPlan = async (payload: any) => {
+  const { data } = await instance.put<ApiResponse<any>>(
+    `${API_URL}/editar-plan`,
+    payload
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al editar plan");
+  }
+};
+
+const desactivarPlan = async (id: number) => {
+  const { data } = await instance.post<ApiResponse<any>>(
+    `${API_URL}/desactivar-plan/${id}`
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al desactivar plan");
+  }
+};
+
+const activarPlan = async (id: number) => {
+  const { data } = await instance.post<ApiResponse<any>>(
+    `${API_URL}/activar-plan/${id}`
+  );
+
+  if (!data.Success) {
+    throw new Error(data.Message || "Error al activar plan");
+  }
+};
+
 export default {
   obtenerModelos,
+  obtenerListadoPrecios,
   crearModelo,
   crearListaPrecio,
+  editarListaPrecio,
+  desactivarListaPrecio,
+  activarListaPrecio,
   crearPlan,
+  editarPlan,
+  desactivarPlan,
+  activarPlan,
 };

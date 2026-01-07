@@ -69,9 +69,13 @@ export const PrecioRow: React.FC<Props> = ({
           className="w-full bg-transparent border-b border-gray-600 focus:border-yellow-400 outline-none"
           value={block.interes ?? ""}
           placeholder="0"
-          onChange={(e) =>
-            onChange("interes", e.target.value.replace(/\D/g, ""))
-          }
+          onChange={(e) => {
+            const value = e.target.value
+              .replace(",", ".") // permitir coma
+              .replace(/[^0-9.]/g, ""); // permitir solo números y punto
+
+            onChange("interes", value);
+          }}
         />
       </td>
 
@@ -80,7 +84,7 @@ export const PrecioRow: React.FC<Props> = ({
           className="w-full bg-transparent border-b border-gray-600 focus:border-yellow-400 outline-none"
           value={block.codigoPlan ?? ""}
           placeholder="Ej: C30C"
-          onChange={(e) => onChange("codigoPlan", e.target.value)}
+          onChange={(e) => onChange("codigoPlan", e.target.value.toUpperCase())}
         />
       </td>
 
@@ -100,8 +104,21 @@ export const PrecioRow: React.FC<Props> = ({
       </td>
 
       <td className="px-2 py-1 flex gap-2 justify-center">
-        <button onClick={onGuardar} title="Guardar">
-          <EditIcon fontSize="small" />
+        <button
+          onClick={onGuardar}
+          title={block.idListaPrecio ? "Editar precio" : "Guardar precio"}
+          className={`w-8 h-8 flex items-center justify-center rounded-full
+    ${
+      block.idListaPrecio
+        ? "bg-blue-500 hover:bg-blue-600 text-white"
+        : "bg-yellow-400 hover:bg-yellow-500 text-black"
+    }`}
+        >
+          {block.idListaPrecio ? (
+            <EditIcon fontSize="small" />
+          ) : (
+            <CheckIcon fontSize="small" />
+          )}
         </button>
 
         {block.estado === "Activo" && onDesactivar && (

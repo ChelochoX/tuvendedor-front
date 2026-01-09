@@ -237,7 +237,7 @@ const GestionPrecios: React.FC = () => {
           entregaInicial: Number(onlyDigits(block.entregaInicial || "0")),
           cantidadCuotas: 30,
           importeCuota: Number(onlyDigits(block.importeCuota || "0")),
-          interes: Number(onlyDigits(block.interes || "0")),
+          interes: block.interes || undefined,
           codigoPlan: block.codigoPlan,
         });
       } else {
@@ -246,7 +246,7 @@ const GestionPrecios: React.FC = () => {
           entregaInicial: Number(onlyDigits(block.entregaInicial || "0")),
           cantidadCuotas: 30,
           importeCuota: Number(onlyDigits(block.importeCuota || "0")),
-          interes: Number(onlyDigits(block.interes || "0")),
+          interes: block.interes || undefined,
           codigoPlan: block.codigoPlan,
         });
       }

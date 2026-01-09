@@ -74,10 +74,39 @@ export const PrecioRow: React.FC<Props> = ({
               .replace(",", ".") // permitir coma
               .replace(/[^0-9.]/g, ""); // permitir solo números y punto
 
-            onChange("interes", value);
+            onChange("interes", value.replace(",", "."));
           }}
         />
       </td>
+
+      {/* FECHAS SOLO PARA PROMO */}
+      {tipo === "promo" ? (
+        <>
+          <td className="px-2 py-1">
+            <input
+              type="date"
+              className="w-full bg-transparent border-b border-gray-600"
+              value={block.fechaDesde || ""}
+              onChange={(e) => onChange("fechaDesde", e.target.value)}
+            />
+          </td>
+
+          <td className="px-2 py-1">
+            <input
+              type="date"
+              className="w-full bg-transparent border-b border-gray-600"
+              value={block.fechaHasta || ""}
+              onChange={(e) => onChange("fechaHasta", e.target.value)}
+            />
+          </td>
+        </>
+      ) : (
+        <>
+          {/* columnas vacías para mantener alineación */}
+          <td />
+          <td />
+        </>
+      )}
 
       <td className="px-2 py-1">
         <input

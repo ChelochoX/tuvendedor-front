@@ -73,7 +73,7 @@ const crearPlan = async (payload: {
   entregaInicial: number;
   cantidadCuotas: number;
   importeCuota: number;
-  interes?: number;
+  interes?: string;
   codigoPlan?: string;
 }) => {
   const { data } = await instance.post<ApiResponse<any>>(

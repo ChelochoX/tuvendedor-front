@@ -39,6 +39,8 @@ export const PreciosTable: React.FC<Props> = ({
             <th>Entrega</th>
             <th>Cuota</th>
             <th>Interés</th>
+            <th>Desde</th>
+            <th>Hasta</th>
             <th>Plan</th>
             <th>Estado</th>
             <th>Acciones</th>

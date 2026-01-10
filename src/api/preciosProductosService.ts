@@ -42,19 +42,43 @@ const crearModelo = async (payload: {
    LISTA DE PRECIOS (NORMAL / PROMO)
 ================================ */
 
-const crearListaPrecio = async (payload: {
+type CrearListaPrecioPayload = {
   idModeloProducto: number;
   precioPublico: number;
   precioDistribuidor: number;
   precioBase: number;
-  fechaDesde: string;
-  fechaHasta?: string;
   esPromo: boolean;
+
+  // 👇 solo para promo
+  fechaDesde?: string;
+  fechaHasta?: string;
+
   observacion?: string;
-}) => {
+};
+
+const crearListaPrecio = async (payload: CrearListaPrecioPayload) => {
+  const body: any = {
+    idModeloProducto: payload.idModeloProducto,
+    precioPublico: payload.precioPublico,
+    precioDistribuidor: payload.precioDistribuidor,
+    precioBase: payload.precioBase,
+    esPromo: payload.esPromo,
+  };
+
+  // ✅ SOLO si es promo se envían fechas
+  if (payload.esPromo) {
+    body.fechaDesde = payload.fechaDesde;
+    body.fechaHasta = payload.fechaHasta;
+  }
+
+  // opcional
+  if (payload.observacion) {
+    body.observacion = payload.observacion;
+  }
+
   const { data } = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear-lista-precio`,
-    payload
+    body
   );
 
   if (!data.Success) {

@@ -13,7 +13,7 @@ import {
   emptyPrecioBlock,
 } from "types/precioProducto";
 
-import { PreciosTable } from "./components/PreciosTable";
+import { PreciosTable } from "../clientes/components/PreciosTable";
 
 /* =======================
    Helpers

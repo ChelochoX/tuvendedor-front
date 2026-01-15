@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Panel from "./Panel";
+import Panel from "../clientes/Panel";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 

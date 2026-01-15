@@ -19,5 +19,5 @@ export const categoriaIconos: Record<string, string> = {
 };
 
 export const obtenerIconoCategoria = (nombre: string): string => {
-  return categoriaIconos[nombre] || "📦"; // ícono por defecto
+  return categoriaIconos[nombre] || "📦";
 };

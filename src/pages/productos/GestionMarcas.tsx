@@ -42,7 +42,7 @@ const GestionMarcas: React.FC = () => {
       setNombre("");
       setEditandoId(null);
       cargarMarcas();
-    } catch (e) {
+    } catch {
       alert("Error al guardar la marca");
     }
   };
@@ -58,24 +58,55 @@ const GestionMarcas: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-yellow-400">
-          Gestión de Marcas
-        </h1>
+      {/* ================= HEADER ================= */}
+      <div className="mb-6">
+        {/* ===== DESKTOP ===== */}
+        <div className="hidden lg:flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-yellow-400">
+            Gestión de Marcas
+          </h1>
 
-        <button
-          onClick={() => navigate("/clientes/dashboard")}
-          className="flex items-center gap-2 px-4 py-2 rounded-full
-           border border-yellow-400 text-yellow-400
-           hover:bg-yellow-400 hover:text-black
-           transition-all duration-200"
-        >
-          <ArrowBackIcon fontSize="small" />
-          Volver al Dashboard
-        </button>
+          <button
+            onClick={() => navigate("/panel/dashboard")}
+            className="
+              flex items-center gap-2
+              px-4 py-2 rounded-full
+              border border-yellow-400/60
+              text-yellow-300 font-medium
+              hover:bg-yellow-400 hover:text-black
+              transition-all duration-200
+            "
+          >
+            <ArrowBackIcon fontSize="small" />
+            Volver al Dashboard
+          </button>
+        </div>
+
+        {/* ===== MOBILE ===== */}
+        <div className="lg:hidden">
+          <h1 className="text-2xl font-bold text-yellow-400 mb-2">
+            Gestión de Marcas
+          </h1>
+
+          <button
+            onClick={() => navigate("/panel/dashboard")}
+            className="
+              inline-flex items-center gap-2
+              px-4 py-2 rounded-full
+              bg-yellow-400 text-black
+              font-semibold text-sm
+              shadow
+              hover:bg-yellow-300
+              transition-all duration-200
+            "
+          >
+            <ArrowBackIcon fontSize="small" />
+            Volver al Dashboard
+          </button>
+        </div>
       </div>
 
-      {/* Formulario */}
+      {/* ================= FORMULARIO ================= */}
       <div className="bg-gray-800 p-4 rounded-lg border border-yellow-400 mb-6">
         <h2 className="text-yellow-400 font-semibold mb-3">
           {editandoId ? "Editar marca" : "Nueva marca"}
@@ -108,7 +139,7 @@ const GestionMarcas: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla */}
+      {/* ================= TABLA ================= */}
       <div className="bg-gray-900 rounded-lg border border-yellow-400 overflow-hidden">
         <table className="w-full text-left text-sm">
           <thead className="bg-gray-700 text-yellow-300 uppercase tracking-wide">
@@ -142,11 +173,11 @@ const GestionMarcas: React.FC = () => {
                   <td className="px-4 py-3">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold
-                  ${
-                    m.estado === "Activo"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-red-500/20 text-red-400"
-                  }`}
+                        ${
+                          m.estado === "Activo"
+                            ? "bg-green-500/20 text-green-400"
+                            : "bg-red-500/20 text-red-400"
+                        }`}
                     >
                       {m.estado}
                     </span>

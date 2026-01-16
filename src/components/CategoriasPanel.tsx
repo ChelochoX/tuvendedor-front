@@ -75,14 +75,14 @@ const CategoriasPanel: React.FC<Props> = ({
         {puedeVerClientes && (
           <button
             onClick={() => {
-              navigate("/clientes");
+              navigate("/panel");
               onCerrarSidebar?.(); // 🔥 cerrar panel
             }}
             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
             text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
           >
             <PersonIcon fontSize="small" />
-            Gestionar Clientes
+            Panel de Administración
           </button>
         )}
 
@@ -163,12 +163,12 @@ const CategoriasPanel: React.FC<Props> = ({
             <>
               <hr className="border-yellow-400 opacity-40" />
               <button
-                onClick={() => navigate("/clientes")}
+                onClick={() => navigate("/panel")}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
                   text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
               >
                 <PersonIcon fontSize="small" />
-                Gestionar Clientes
+                Panel de Administración
               </button>
             </>
           )}

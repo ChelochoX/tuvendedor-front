@@ -35,11 +35,11 @@ const GestionClientes: React.FC = () => {
         {/* 🔹 Botón Volver — ahora dentro del bloque del formulario */}
         <div className="mt-auto py-6 flex justify-center md:justify-start px-6">
           <button
-            onClick={() => navigate("/clientes/dashboard")}
+            onClick={() => navigate("/panel/dashboard")}
             className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold py-2 px-5 rounded-full shadow-md transition-all duration-200"
           >
             <ArrowLeft size={18} />
-            <span>Volver al panel</span>
+            <span>Volver al Dashboard</span>
           </button>
         </div>
       </div>

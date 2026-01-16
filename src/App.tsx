@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import RoutesHandler from "./router";
+import RoutesHandler from "./router/RoutesHandler";
 
 // 👇 Tipamos fbq para que TypeScript no se queje
 declare global {

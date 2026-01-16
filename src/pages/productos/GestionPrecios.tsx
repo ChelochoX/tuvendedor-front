@@ -289,13 +289,13 @@ const GestionPrecios: React.FC = () => {
           </h1>
 
           <button
-            onClick={() => navigate("/clientes/dashboard")}
+            onClick={() => navigate("/panel/dashboard")}
             className="flex items-center gap-2 px-4 py-2 rounded-full
               border border-yellow-400 text-yellow-400
               hover:bg-yellow-400 hover:text-black transition"
           >
             <ArrowBackIcon fontSize="small" />
-            Volver
+            Volver al Dashboard
           </button>
         </div>
 

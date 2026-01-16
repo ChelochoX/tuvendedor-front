@@ -283,39 +283,60 @@ const GestionPrecios: React.FC = () => {
     <div className="p-6">
       {/* HEADER */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
+        {/* Título + botón desktop */}
+        <div className="flex items-center justify-between mb-2">
           <h1 className="text-2xl font-bold text-yellow-400">
             Gestión de Precios
           </h1>
 
+          {/* Desktop */}
           <button
             onClick={() => navigate("/panel/dashboard")}
-            className="flex items-center gap-2 px-4 py-2 rounded-full
-              border border-yellow-400 text-yellow-400
-              hover:bg-yellow-400 hover:text-black transition"
+            className="
+        hidden md:flex items-center gap-2
+        px-4 py-2 rounded-full
+        border border-yellow-400 text-yellow-400
+        hover:bg-yellow-400 hover:text-black
+        transition
+      "
           >
             <ArrowBackIcon fontSize="small" />
             Volver al Dashboard
           </button>
         </div>
 
+        {/* Mobile */}
+        <button
+          onClick={() => navigate("/panel/dashboard")}
+          className="
+      md:hidden inline-flex items-center gap-2
+      px-4 py-2 rounded-full
+      bg-yellow-400 text-black font-semibold
+      hover:bg-yellow-500
+      transition
+    "
+        >
+          <ArrowBackIcon fontSize="small" />
+          Volver al Dashboard
+        </button>
+
         {/* SELECT MARCAS */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+        <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center">
           <label className="text-sm text-gray-300 font-medium">Marcas</label>
 
           <select
             value={marcaSeleccionada}
             onChange={(e) => setMarcaSeleccionada(e.target.value)}
             className={`
-              w-full sm:w-72 px-4 py-2 rounded-lg font-medium
-              transition-all duration-200
-              focus:outline-none focus:ring-2 focus:ring-yellow-400
-              ${
-                marcaSeleccionada === "ALL"
-                  ? "bg-gray-900 text-gray-300 border border-gray-600"
-                  : "bg-yellow-100 text-gray-900 border border-yellow-400"
-              }
-            `}
+        w-full sm:w-72 px-4 py-2 rounded-lg font-medium
+        transition-all duration-200
+        focus:outline-none focus:ring-2 focus:ring-yellow-400
+        ${
+          marcaSeleccionada === "ALL"
+            ? "bg-gray-900 text-gray-300 border border-gray-600"
+            : "bg-yellow-100 text-gray-900 border border-yellow-400"
+        }
+      `}
           >
             <option value="ALL" className="bg-gray-900 text-white">
               Todas las marcas

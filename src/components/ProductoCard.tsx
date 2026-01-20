@@ -22,6 +22,7 @@ import "tippy.js/themes/light.css";
 import Tippy from "@tippyjs/react";
 interface Props {
   producto: Producto;
+  onEditar?: (producto: Producto) => void;
   onEliminado?: (id: number) => void;
   mostrarAcciones?: boolean;
   variant?: "default" | "compact";
@@ -564,13 +565,7 @@ const ProductoCard: React.FC<Props> = ({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    Swal.fire({
-                      icon: "info",
-                      title: "✨ ¡Estamos trabajando en ello!",
-                      html: `<p style="color:#ddd;font-size:14px;">La edición estará disponible pronto.</p>`,
-                      background: "#1e1f23",
-                      color: "#fff",
-                    });
+                    onEditar?.(producto); // 🔥 ACÁ
                   }}
                 >
                   <PencilSquareIcon className="w-4 h-4" />

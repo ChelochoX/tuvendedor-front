@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   categorias: Categoria[];
   onPublicar: (nueva: any) => void;
+  publicacionEditar?: Producto | null;
 }
 
 const CrearPublicacionModal: React.FC<Props> = ({
@@ -33,6 +34,29 @@ const CrearPublicacionModal: React.FC<Props> = ({
   >([]);
 
   const [errorImagenes, setErrorImagenes] = React.useState("");
+
+  useEffect(() => {
+    if (!publicacionEditar) return;
+
+    setTitulo(publicacionEditar.nombre);
+    setDescripcion(publicacionEditar.descripcion ?? "");
+    setPrecio(publicacionEditar.precio.toString());
+    setCategoria(publicacionEditar.categoria);
+    setMostrarBotonesCompra(!!publicacionEditar.planCredito);
+
+    if (publicacionEditar.planCredito?.opciones) {
+      setCuotas(
+        publicacionEditar.planCredito.opciones.map((p) => ({
+          cuotas: p.cantidadCuotas.toString(),
+          valorCuota: p.importeCuota.toLocaleString("es-PY"),
+        }))
+      );
+    } else {
+      setCuotas([]);
+    }
+
+    setImagenes([]); // solo nuevas imágenes
+  }, [publicacionEditar]);
 
   // ---------------------------
   // FORMATEO DE NÚMEROS

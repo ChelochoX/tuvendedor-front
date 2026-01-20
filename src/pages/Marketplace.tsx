@@ -39,8 +39,10 @@ const Marketplace: React.FC = () => {
   const { usuario } = useUsuario();
   const [openRecuperar, setOpenRecuperar] = useState(false);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [publicacionEditar, setPublicacionEditar] = useState<Producto | null>(
+    null
+  );
 
-  // 👇 NUEVO: lista de especiales globales (independiente del filtro actual)
   const [especialesGlobales, setEspecialesGlobales] = useState<Producto[]>([]);
 
   const productosEspeciales = productos.filter((p) => p.esTemporada);
@@ -344,9 +346,13 @@ const Marketplace: React.FC = () => {
 
       <CrearPublicacionModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setPublicacionEditar(null);
+        }}
         categorias={categorias}
         onPublicar={handlePublicar}
+        publicacionEditar={publicacionEditar}
       />
 
       {showFab && (

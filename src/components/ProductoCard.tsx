@@ -27,6 +27,23 @@ interface Props {
   variant?: "default" | "compact";
 }
 
+// 👇 helper local dentro del componente
+const getMedia = (producto: Producto) => {
+  const first = producto.imagenes?.[0];
+  const urlThumb = first?.thumbUrl || first?.mainUrl || "";
+  const urlMain = first?.mainUrl || urlThumb;
+
+  const lower = (urlMain || urlThumb).toLowerCase();
+  const esVideo =
+    lower.includes("/video/upload/") ||
+    lower.endsWith(".mp4") ||
+    lower.endsWith(".mov") ||
+    lower.endsWith(".avi") ||
+    lower.endsWith(".webm");
+
+  return { urlThumb, urlMain, esVideo };
+};
+
 const ProductoCard: React.FC<Props> = ({
   producto,
   onEliminado,
@@ -39,7 +56,7 @@ const ProductoCard: React.FC<Props> = ({
   const [operandoDestacado, setOperandoDestacado] = useState(false);
 
   const isCompact = variant === "compact";
-
+  const { urlThumb, urlMain, esVideo } = getMedia(producto);
   const especialActivo = !!producto.esTemporada;
   const destacadoActivo = !!producto.esDestacada;
 
@@ -270,7 +287,7 @@ const ProductoCard: React.FC<Props> = ({
         confirmButtonText: "Activar",
         preConfirm: () =>
           Number(
-            (document.getElementById("temporada") as HTMLSelectElement).value
+            (document.getElementById("temporada") as HTMLSelectElement).value,
           ),
       });
       if (!res.isConfirmed) return;
@@ -373,7 +390,7 @@ const ProductoCard: React.FC<Props> = ({
         gap: 4px;
       ">
         <span style="text-transform: uppercase;">$1</span> </span>
-      `
+      `,
       );
     });
 
@@ -473,9 +490,9 @@ const ProductoCard: React.FC<Props> = ({
           )}
 
           {/* 👇 … imagen o video … */}
-          {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
+          {esVideo ? (
             <video
-              src={producto.imagenes[0]?.mainUrl}
+              src={urlMain}
               className="w-full h-full object-cover absolute top-0 left-0"
               muted
               autoPlay
@@ -487,10 +504,15 @@ const ProductoCard: React.FC<Props> = ({
               src={
                 producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
               }
+              onError={(e) => {
+                const img = e.currentTarget;
+                img.onerror = null;
+                img.src = producto.imagenes[0]?.mainUrl || "";
+              }}
               loading="lazy"
               decoding="async"
               alt={producto.nombre}
-              className="w-full h-full object-cover absolute top-0 left-0"
+              className="w-full h-full object-cover"
             />
           )}
         </div>
@@ -664,15 +686,15 @@ const ProductoCard: React.FC<Props> = ({
                   especialActivo
                     ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
                     : puedeActivarEspecial
-                    ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                      ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed",
                 ].join(" ")}
                 title={
                   especialActivo
                     ? "Quitar de publicación especial"
                     : puedeActivarEspecial
-                    ? "Activar como publicación especial"
-                    : "Función Premium"
+                      ? "Activar como publicación especial"
+                      : "Función Premium"
                 }
               >
                 🎉 {especialActivo ? "Especial (activo)" : "Especial"}

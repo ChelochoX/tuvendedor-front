@@ -5,20 +5,105 @@ import { Categoria } from "../types/categoria";
 
 const API_URL = "/Publicaciones";
 
-// helper: convierte una URL normal en miniatura WebP 300x300 (con Cloudinary)
-const toThumbUrl = (url: string) => {
-  if (!url) return "";
-  return url.replace("/upload/", "/upload/c_pad,b_white,w_300,h_300/");
+/**
+ * ✅ Normaliza "imagenes" desde backend al formato del front:
+ * [{ mainUrl, thumbUrl }]
+ *
+ * Soporta:
+ * 1) Nuevo: [{ mainUrl, thumbUrl }] o PascalCase [{ MainUrl, ThumbUrl }]
+ * 2) Legacy: ["url1", "url2"]
+ *
+ * Regla:
+ * - thumbUrl: si no viene, se usa mainUrl (para no romper UI)
+ */
+const normalizeImagenes = (
+  raw: any,
+): { mainUrl: string; thumbUrl: string }[] => {
+  if (!raw) return [];
+
+  // Caso nuevo: array de objetos
+  if (Array.isArray(raw) && raw.length > 0 && typeof raw[0] === "object") {
+    return raw
+      .map((x: any) => {
+        const mainUrl = x.mainUrl || x.MainUrl || x.url || x.Url || "";
+        const thumbUrl =
+          x.thumbUrl ||
+          x.ThumbUrl ||
+          x.thumbnailUrl ||
+          x.ThumbnailUrl ||
+          mainUrl;
+
+        return { mainUrl, thumbUrl };
+      })
+      .filter((x) => !!x.mainUrl);
+  }
+
+  // Caso viejo: array de strings
+  if (Array.isArray(raw) && (raw.length === 0 || typeof raw[0] === "string")) {
+    return raw
+      .map((url: string) => ({ mainUrl: url, thumbUrl: url }))
+      .filter((x) => !!x.mainUrl);
+  }
+
+  return [];
 };
 
-// helper: normaliza array de strings a array de objetos { mainUrl, thumbUrl }
-const normalizeImagenes = (arr?: string[]) => {
-  if (!arr || arr.length === 0) return [];
+/**
+ * ✅ Mapea item del backend a Producto del front
+ * - Respeta lo que viene del back (thumbUrl ya viene listo)
+ * - Mantiene compatibilidad por si algún componente usa p.imagen o p.miniatura
+ */
+const mapearProducto = (p: any): Producto => {
+  const imagenes = normalizeImagenes(p.imagenes ?? p.Imagenes);
 
-  return arr.map((url) => ({
-    mainUrl: url,
-    thumbUrl: toThumbUrl(url),
-  }));
+  const imagenPrincipal = imagenes[0]?.mainUrl || p.imagen || p.Imagen || "";
+  const miniaturaPrincipal =
+    imagenes[0]?.thumbUrl || p.miniatura || p.Miniatura || imagenPrincipal;
+
+  return {
+    id: p.id ?? p.Id,
+    nombre: p.nombre ?? p.Nombre ?? p.titulo ?? p.Titulo,
+    precio: p.precio ?? p.Precio ?? 0,
+    categoria: p.categoria ?? p.Categoria ?? "",
+    ubicacion: p.ubicacion ?? p.Ubicacion ?? "",
+    descripcion: p.descripcion ?? p.Descripcion ?? "",
+    estado: p.estado ?? p.Estado ?? "Activo",
+
+    mostrarBotonesCompra: p.mostrarBotonesCompra ?? p.MostrarBotonesCompra,
+
+    esDestacada: p.esDestacada ?? p.EsDestacada,
+    fechaFinDestacado: p.fechaFinDestacado ?? p.FechaFinDestacado,
+
+    esTemporada: p.esTemporada ?? p.EsTemporada,
+    badgeTexto: p.badgeTexto ?? p.BadgeTexto,
+    badgeColor: p.badgeColor ?? p.BadgeColor,
+    fechaFinTemporada: p.fechaFinTemporada ?? p.FechaFinTemporada,
+
+    vendedor: {
+      nombre:
+        p.vendedor?.nombre ??
+        p.Vendedor?.Nombre ??
+        p.vendedorNombre ??
+        p.VendedorNombre ??
+        "Sin nombre",
+      avatar: p.vendedor?.avatar ?? p.Vendedor?.Avatar ?? "",
+      telefono:
+        p.vendedor?.telefono ??
+        p.Vendedor?.Telefono ??
+        p.vendedorTelefono ??
+        p.VendedorTelefono ??
+        "",
+    },
+
+    planCredito: p.planCredito ?? p.PlanCredito,
+
+    // ✅ clave
+    imagenes,
+
+    // ✅ compatibilidad por si el front aún usa estos campos
+    imagen: imagenPrincipal,
+    miniatura: miniaturaPrincipal,
+  } as Producto;
 };
 
 export const crearPublicacion = async (payload: {
@@ -38,21 +123,19 @@ export const crearPublicacion = async (payload: {
   formData.append("Categoria", payload.categoria);
   formData.append(
     "MostrarBotonesCompra",
-    payload.mostrarBotonesCompra.toString()
+    payload.mostrarBotonesCompra.toString(),
   );
 
-  // Agregamos imágenes
   payload.imagenes.forEach((img) => {
     formData.append("Imagenes", img);
   });
 
-  // Agregamos plan de crédito si viene
   if (payload.mostrarBotonesCompra && payload.planCredito) {
     payload.planCredito.forEach((plan, i) => {
       formData.append(`PlanCredito[${i}].Cuotas`, plan.cuotas.toString());
       formData.append(
         `PlanCredito[${i}].ValorCuota`,
-        plan.valorCuota.toString()
+        plan.valorCuota.toString(),
       );
     });
   }
@@ -60,11 +143,7 @@ export const crearPublicacion = async (payload: {
   const response = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear-publicacion`,
     formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
 
   const result = response.data;
@@ -80,46 +159,45 @@ export const crearPublicacion = async (payload: {
   return result.Data;
 };
 
-// 🚀 USO PRINCIPAL: obtener publicaciones con imágenes normalizadas
+// 🚀 obtener publicaciones
 export const obtenerPublicaciones = async (
   categoria?: string,
-  nombre?: string
+  nombre?: string,
 ): Promise<Producto[]> => {
   const response = await instance.get<ApiResponse<any[]>>(
     `${API_URL}/obtener-publicaciones`,
-    {
-      params: { categoria, nombre },
-    }
+    { params: { categoria, nombre } },
   );
 
   const result = response.data;
-
   if (!result.Success) {
     throw new Error(result.Errors?.[0] || "Error al obtener publicaciones");
   }
 
-  // normalizamos los datos recibidos
-  const productos = result.Data || [];
-
-  return productos.map((p) => {
-    const imagenes = normalizeImagenes(p.imagenes);
-    return {
-      ...p,
-      estado: p.estado,
-      imagenes,
-      imagen: imagenes[0]?.mainUrl || "", // compatibilidad
-    } as Producto;
-  });
+  return (result.Data || []).map(mapearProducto);
 };
 
-// 🗑️ Eliminar publicación
-export const eliminarPublicacion = async (id: number): Promise<void> => {
-  const response = await instance.delete<ApiResponse<any>>(
-    `${API_URL}/eliminar-publicacion/${id}`
+// 🚀 obtener mis publicaciones
+export const obtenerMisPublicaciones = async (): Promise<Producto[]> => {
+  const response = await instance.get<ApiResponse<any[]>>(
+    `${API_URL}/mis-publicaciones`,
   );
 
   const result = response.data;
+  if (!result.Success) {
+    throw new Error(result.Errors?.[0] || "Error al obtener tus publicaciones");
+  }
 
+  return (result.Data || []).map(mapearProducto);
+};
+
+// 🗑️ eliminar publicación
+export const eliminarPublicacion = async (id: number): Promise<void> => {
+  const response = await instance.delete<ApiResponse<any>>(
+    `${API_URL}/eliminar-publicacion/${id}`,
+  );
+
+  const result = response.data;
   if (!result.Success) {
     const mensaje =
       result.Message || result.Errors?.[0] || "Error al eliminar publicación.";
@@ -127,30 +205,6 @@ export const eliminarPublicacion = async (id: number): Promise<void> => {
     (error as any).customErrors = result.Errors;
     throw error;
   }
-};
-
-// 🚀 Obtener solo las publicaciones del usuario autenticado
-export const obtenerMisPublicaciones = async (): Promise<Producto[]> => {
-  const response = await instance.get<ApiResponse<any[]>>(
-    `${API_URL}/mis-publicaciones`
-  );
-
-  const result = response.data;
-
-  if (!result.Success) {
-    throw new Error(result.Errors?.[0] || "Error al obtener tus publicaciones");
-  }
-
-  const productos = result.Data || [];
-
-  return productos.map((p) => {
-    const imagenes = normalizeImagenes(p.imagenes);
-    return {
-      ...p,
-      imagenes,
-      imagen: imagenes[0]?.mainUrl || "",
-    } as Producto;
-  });
 };
 
 export const obtenerCategorias = async (): Promise<Categoria[]> => {
@@ -166,19 +220,18 @@ export const obtenerCategorias = async (): Promise<Categoria[]> => {
 
 export const destacarPublicacion = async (
   idPublicacion: number,
-  duracionDias: number = 7
+  duracionDias: number = 7,
 ): Promise<void> => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       "/Publicaciones/destacar-publicacion",
-      { idPublicacion, duracionDias }
+      { idPublicacion, duracionDias },
     );
 
     if (!data.Success) {
       throw new Error(data.Message || data.Errors?.[0] || "Error al destacar");
     }
   } catch (error: any) {
-    // ⬅️ AQUÍ interpretamos el error del backend REAL
     const backendMsg =
       error.response?.data?.Message ||
       error.response?.data?.Errors?.[0] ||
@@ -189,33 +242,28 @@ export const destacarPublicacion = async (
   }
 };
 
-// ⭐ Obtener lista de temporadas activas
+// ⭐ temporadas
 export const obtenerTemporadas = async () => {
   const response = await instance.get<ApiResponse<any[]>>(
-    "/Publicaciones/listar-temporadas"
+    "/Publicaciones/listar-temporadas",
   );
 
   const result = response.data;
-
   if (!result.Success) {
     throw new Error(result.Message || "Error al obtener temporadas.");
   }
 
-  return result.Data; // array de TemporadaDto
+  return result.Data;
 };
 
-// ⭐ Activar temporada
 export const activarTemporada = async (
   idPublicacion: number,
-  idTemporada: number
+  idTemporada: number,
 ) => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       "/Publicaciones/activar-temporada",
-      {
-        idPublicacion,
-        idTemporada,
-      }
+      { idPublicacion, idTemporada },
     );
 
     if (!data.Success) {
@@ -231,12 +279,11 @@ export const activarTemporada = async (
   }
 };
 
-// ⛔ Desactivar temporada
 export const desactivarTemporada = async (idPublicacion: number) => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       "/Publicaciones/desactivar-temporada",
-      { idPublicacion }
+      { idPublicacion },
     );
 
     if (!data.Success) throw new Error(data.Message || data.Errors?.[0]);
@@ -250,41 +297,13 @@ export const desactivarTemporada = async (idPublicacion: number) => {
   }
 };
 
-// ⬇️ pegá esto en publicacionesService.ts (debajo de tus helpers estaría bien)
-
-// Mapea y normaliza un item del backend a Producto con miniaturas
-const mapearProducto = (p: any): Producto => {
-  const imagenes = normalizeImagenes(p.imagenes);
-  return {
-    ...p,
-    imagenes,
-    imagen: imagenes[0]?.mainUrl || "",
-  } as Producto;
-};
-
 /**
- * Obtiene SIEMPRE las publicaciones "especiales" (temporada) para el carrusel,
- * independientemente de la categoría que esté seleccionada en la UI.
- *
- * 1) Intenta usar un endpoint opcional del backend (/Publicaciones/listar-especiales).
- * 2) Si no existe, hace fallback a /Publicaciones/obtener-publicaciones y filtra en el cliente.
+ * ✅ Publicaciones especiales (temporada)
+ * - Solo fallback (sin llamar a /listar-especiales) para evitar 404
  */
 export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
-  // 1) intento (silencioso) con endpoint dedicado
-  try {
-    const resp = await instance.get<ApiResponse<any[]>>(
-      `${API_URL}/listar-especiales`
-    );
-    if (resp.data?.Success && Array.isArray(resp.data.Data)) {
-      return (resp.data.Data || []).map(mapearProducto);
-    }
-  } catch {
-    // ignoramos y pasamos al fallback
-  }
-
-  // 2) fallback: traemos todo y filtramos en front por esTemporada + fecha vigente
   const response = await instance.get<ApiResponse<any[]>>(
-    `${API_URL}/obtener-publicaciones`
+    `${API_URL}/obtener-publicaciones`,
   );
 
   const result = response.data;
@@ -295,14 +314,15 @@ export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
   const ahora = new Date();
 
   const especiales = (result.Data || []).filter((p: any) => {
-    if (!p.esTemporada) return false;
+    const esTemporada = p.esTemporada ?? p.EsTemporada;
+    if (!esTemporada) return false;
 
-    // si el back envía fechaFinTemporada, validamos que siga vigente
-    if (p.fechaFinTemporada) {
-      const fin = new Date(p.fechaFinTemporada);
+    const finRaw = p.fechaFinTemporada ?? p.FechaFinTemporada;
+    if (finRaw) {
+      const fin = new Date(finRaw);
       return fin >= ahora;
     }
-    return true; // si no viene fecha, lo consideramos activo
+    return true;
   });
 
   return especiales.map(mapearProducto);
@@ -312,7 +332,7 @@ export const enviarSugerencia = async (comentario: string): Promise<void> => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       `${API_URL}/crear-sugerencia`,
-      { comentario }
+      { comentario },
     );
 
     if (!data.Success) {
@@ -321,11 +341,6 @@ export const enviarSugerencia = async (comentario: string): Promise<void> => {
       throw new Error(mensaje);
     }
   } catch (error: any) {
-    console.error(
-      "Error en petición API:",
-      error.response?.data || error.message || error
-    );
-
     const backendMsg =
       error.response?.data?.Message ||
       error.response?.data?.Errors?.[0] ||
@@ -337,17 +352,17 @@ export const enviarSugerencia = async (comentario: string): Promise<void> => {
 };
 
 export const marcarComoVendido = async (
-  idPublicacion: number
+  idPublicacion: number,
 ): Promise<void> => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       "/Publicaciones/marcar-vendido",
-      { idPublicacion }
+      { idPublicacion },
     );
 
     if (!data.Success) {
       throw new Error(
-        data.Message || data.Errors?.[0] || "No se pudo marcar como vendido."
+        data.Message || data.Errors?.[0] || "No se pudo marcar como vendido.",
       );
     }
   } catch (error: any) {
@@ -360,14 +375,13 @@ export const marcarComoVendido = async (
   }
 };
 
-// ❌ Quitar destacado
 export const quitarDestacadoPublicacion = async (
-  idPublicacion: number
+  idPublicacion: number,
 ): Promise<void> => {
   try {
     const { data } = await instance.post<ApiResponse<any>>(
       "/Publicaciones/quitar-destacado-publicacion",
-      { idPublicacion }
+      { idPublicacion },
     );
 
     if (!data.Success) {

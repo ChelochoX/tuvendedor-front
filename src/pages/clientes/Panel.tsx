@@ -12,7 +12,6 @@ const Panel: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-between h-full relative">
-      {/* Sección superior */}
       <div className="flex flex-col gap-2 overflow-y-auto pb-20 md:pb-0">
         {/* ================= CLIENTES ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mb-3">
@@ -35,7 +34,7 @@ const Panel: React.FC = () => {
           Registrar cliente
         </button>
 
-        {/* ================= GESTIÓN ================= */}
+        {/* ================= GESTIÓN PRODUCTO ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
           Gestión Producto
         </h2>
@@ -65,7 +64,7 @@ const Panel: React.FC = () => {
         </button>
       </div>
 
-      {/* ================= BOTÓN MARKETPLACE (DESKTOP) ================= */}
+      {/* ================= BOTÓN MARKETPLACE DESKTOP ================= */}
       <div className="hidden md:block mt-4">
         <button
           onClick={() => navigate("/")}
@@ -78,7 +77,7 @@ const Panel: React.FC = () => {
         </button>
       </div>
 
-      {/* ================= BOTÓN MARKETPLACE (MOBILE) ================= */}
+      {/* ================= BOTÓN MARKETPLACE MOBILE ================= */}
       <div
         className="
           md:hidden

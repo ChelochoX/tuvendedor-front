@@ -43,7 +43,7 @@ const ProductoCard: React.FC<Props> = ({
   const especialActivo = !!producto.esTemporada;
   const destacadoActivo = !!producto.esDestacada;
 
-  // 🔐 permisos existentes (NO TOCADOS)
+  // permisos existentes (NO TOCADOS)
   const puedeCrearDestacado =
     usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false;
 
@@ -270,7 +270,7 @@ const ProductoCard: React.FC<Props> = ({
         confirmButtonText: "Activar",
         preConfirm: () =>
           Number(
-            (document.getElementById("temporada") as HTMLSelectElement).value
+            (document.getElementById("temporada") as HTMLSelectElement).value,
           ),
       });
       if (!res.isConfirmed) return;
@@ -373,7 +373,7 @@ const ProductoCard: React.FC<Props> = ({
         gap: 4px;
       ">
         <span style="text-transform: uppercase;">$1</span> </span>
-      `
+      `,
       );
     });
 
@@ -664,15 +664,15 @@ const ProductoCard: React.FC<Props> = ({
                   especialActivo
                     ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
                     : puedeActivarEspecial
-                    ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                      ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed",
                 ].join(" ")}
                 title={
                   especialActivo
                     ? "Quitar de publicación especial"
                     : puedeActivarEspecial
-                    ? "Activar como publicación especial"
-                    : "Función Premium"
+                      ? "Activar como publicación especial"
+                      : "Función Premium"
                 }
               >
                 🎉 {especialActivo ? "Especial (activo)" : "Especial"}

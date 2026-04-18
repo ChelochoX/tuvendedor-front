@@ -4,6 +4,7 @@ import { Categoria } from "../types/categoria";
 import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import PublicIcon from "@mui/icons-material/Public";
 import { useNavigate } from "react-router-dom";
 import { useUsuario } from "../context/UsuarioContext";
 import Swal from "sweetalert2";
@@ -26,19 +27,15 @@ const CategoriasPanel: React.FC<Props> = ({
   onCerrarSidebar,
 }) => {
   const navigate = useNavigate();
-  const {
-    usuario,
-    cerrarSesion,
-    esVisitante,
-    puedePublicar,
-    puedeVerClientes,
-  } = useUsuario();
+
+  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
 
   const [abrirSugerencia, setAbrirSugerencia] = useState(false);
 
   const enviarSugerencia = async (comentario: string) => {
     try {
       await enviarSugerenciaService(comentario);
+
       Swal.fire({
         title: "¡Gracias por tu aporte! 💛",
         text: "Tu sugerencia fue enviada correctamente.",
@@ -54,32 +51,52 @@ const CategoriasPanel: React.FC<Props> = ({
     }
   };
 
+  const irAMiVitrinaPublica = () => {
+    navigate("/clientes/perfil-vendedor");
+    onCerrarSidebar?.();
+  };
+
+  const irAGestionClientes = () => {
+    navigate("/clientes");
+    onCerrarSidebar?.();
+  };
+
+  const verMisPublicaciones = () => {
+    window.dispatchEvent(new Event("ver-mis-publicaciones"));
+    onCerrarSidebar?.();
+  };
+
   return (
     <div className="flex flex-col h-full justify-start">
       {/* 🔥 ENCABEZADO MOBILE */}
       <div className="flex flex-col gap-2 mb-0 md:hidden px-1">
         {!esVisitante && puedePublicar && (
-          <button
-            onClick={() => {
-              window.dispatchEvent(new Event("ver-mis-publicaciones"));
-              onCerrarSidebar?.(); // 🔥 cerrar panel si está definido
-            }}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-          >
-            <LibraryBooksIcon fontSize="small" />
-            Mis publicaciones
-          </button>
+          <>
+            <button
+              onClick={verMisPublicaciones}
+              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
+                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+            >
+              <LibraryBooksIcon fontSize="small" />
+              Mis publicaciones
+            </button>
+
+            <button
+              onClick={irAMiVitrinaPublica}
+              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
+                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+            >
+              <PublicIcon fontSize="small" />
+              Mi vitrina pública
+            </button>
+          </>
         )}
 
         {puedeVerClientes && (
           <button
-            onClick={() => {
-              navigate("/clientes");
-              onCerrarSidebar?.(); // 🔥 cerrar panel
-            }}
+            onClick={irAGestionClientes}
             className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-            text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
           >
             <PersonIcon fontSize="small" />
             Gestionar Clientes
@@ -107,7 +124,7 @@ const CategoriasPanel: React.FC<Props> = ({
                 key={cat.id}
                 onClick={() => {
                   onSelect(cat);
-                  onCerrarSidebar?.(); // 🔥 cerrar panel
+                  onCerrarSidebar?.();
                 }}
                 className={`flex items-center 
                   gap-1 md:gap-2
@@ -131,7 +148,7 @@ const CategoriasPanel: React.FC<Props> = ({
         {/* Ocultar en móvil */}
         <hr className="border-yellow-400 opacity-40 mt-2 hidden md:block" />
 
-        {/* ESCRITORIO — NO SE TOCA NADA */}
+        {/* ESCRITORIO */}
         <div className="hidden md:flex flex-col gap-3">
           {puedePublicar && (
             <button
@@ -146,15 +163,23 @@ const CategoriasPanel: React.FC<Props> = ({
           {!esVisitante && puedePublicar && (
             <>
               <hr className="border-yellow-400 opacity-40" />
+
               <button
-                onClick={() =>
-                  window.dispatchEvent(new Event("ver-mis-publicaciones"))
-                }
+                onClick={verMisPublicaciones}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
                   text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
               >
                 <LibraryBooksIcon fontSize="small" />
                 Mis publicaciones
+              </button>
+
+              <button
+                onClick={irAMiVitrinaPublica}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              >
+                <PublicIcon fontSize="small" />
+                Mi vitrina pública
               </button>
             </>
           )}
@@ -162,8 +187,9 @@ const CategoriasPanel: React.FC<Props> = ({
           {puedeVerClientes && (
             <>
               <hr className="border-yellow-400 opacity-40" />
+
               <button
-                onClick={() => navigate("/clientes")}
+                onClick={irAGestionClientes}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
                   text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
               >
@@ -183,6 +209,7 @@ const CategoriasPanel: React.FC<Props> = ({
             href="https://www.graciatech.com.py"
             onClick={onCerrarSidebar}
             target="_blank"
+            rel="noreferrer"
             className="text-yellow-400 font-semibold hover:underline"
           >
             Gracia Tech

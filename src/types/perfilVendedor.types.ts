@@ -28,6 +28,12 @@ export interface PerfilPublicoVendedor {
   ciudadVisible: string | null;
 
   telefono: string | null;
+
+  // Nuevo correo público/comercial
+  email: string | null;
+  correoContacto: string | null;
+  mostrarEmail: boolean;
+
   whatsapp: string | null;
   instagramUrl: string | null;
   facebookUrl: string | null;
@@ -45,12 +51,20 @@ export interface ActualizarMiPerfilVendedorRequest {
   slug: string;
   rubro: string;
   descripcion: string;
+
   whatsapp: string;
   instagramUrl: string;
   facebookUrl: string;
+
+  // Nuevo correo editable
+  correoContacto: string;
+  mostrarEmail: boolean;
+
   ciudadVisible: string;
+
   esPerfilPublico: boolean;
   mostrarTelefono: boolean;
+
   fotoPerfil?: File | null;
   banner?: File | null;
 }

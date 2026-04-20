@@ -1,5 +1,14 @@
 import React from "react";
-import { MapPin, MessageCircle, Star, Instagram, Facebook } from "lucide-react";
+import {
+  Facebook,
+  Instagram,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+  Star,
+  Store,
+} from "lucide-react";
 import { PerfilPublicoVendedor } from "../types/perfilVendedor.types";
 
 interface Props {
@@ -19,124 +28,123 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
     ? `https://wa.me/${perfil.whatsapp}`
     : undefined;
 
+  const esVideoBanner =
+    perfil.bannerTipo?.toUpperCase() === "VIDEO" ||
+    banner.toLowerCase().includes(".mp4") ||
+    banner.toLowerCase().includes(".webm") ||
+    banner.toLowerCase().includes(".mov");
+
   return (
-    <section className="relative overflow-hidden rounded-b-[2rem] bg-gray-950 text-white shadow-2xl">
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-70"
-        style={{ backgroundImage: `url(${banner})` }}
-      />
+    <section className="relative overflow-hidden bg-gray-950 text-white shadow-2xl">
+      {/* Banner */}
+      <div className="absolute inset-0">
+        {esVideoBanner ? (
+          <video
+            src={banner}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover opacity-70"
+          />
+        ) : (
+          <div
+            className="h-full w-full bg-cover bg-center opacity-75"
+            style={{ backgroundImage: `url(${banner})` }}
+          />
+        )}
+      </div>
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-gray-950" />
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/60 to-gray-950" />
+      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/60" />
 
-      <div className="relative z-10 px-5 py-8 sm:px-8 sm:py-10">
-        <div className="flex justify-between items-start gap-4">
-          <span className="rounded-full bg-black/60 px-4 py-2 text-xs font-semibold backdrop-blur">
+      <div className="relative z-10 mx-auto max-w-7xl px-5 pb-8 pt-20 sm:px-8 sm:pb-8 lg:px-10 lg:pb-3 lg:pt-16">
+        {/* Badges superiores */}
+        <div className="mb-7 flex items-center justify-between gap-4 sm:mb-9 lg:mb-5">
+          <span className="rounded-full bg-black/45 px-4 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-md">
             Tu Vendedor Premium
           </span>
 
           {perfil.esPremium && (
-            <span className="flex items-center gap-1 rounded-full border border-yellow-400/70 bg-yellow-400/10 px-4 py-2 text-xs font-semibold text-yellow-300">
+            <span className="hidden items-center gap-2 rounded-full border border-yellow-400/70 bg-yellow-400/15 px-4 py-2 text-xs font-bold text-yellow-300 shadow-lg backdrop-blur-md sm:flex">
               <Star size={14} />
               Premium
             </span>
           )}
         </div>
 
-        <div className="mt-16 flex flex-col gap-5 sm:flex-row sm:items-end">
-          <img
-            src={foto}
-            alt={perfil.nombreNegocio}
-            className="h-24 w-24 rounded-2xl border-2 border-white/70 object-cover shadow-xl"
-          />
-
-          <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-extrabold sm:text-3xl">
-                {perfil.nombreNegocio}
-              </h1>
-
-              {perfil.esPremium && (
-                <span className="rounded-full bg-yellow-400 px-2 py-1 text-[10px] font-bold uppercase text-black">
-                  Premium
-                </span>
-              )}
+        {/* Cabecera principal */}
+        <div className="grid gap-7 lg:grid-cols-[230px_1fr_330px] lg:items-start">
+          {/* Foto perfil */}
+          <div className="flex justify-center lg:justify-start">
+            <div className="relative overflow-hidden rounded-[2rem] border-2 border-white/70 bg-gray-900 shadow-2xl">
+              <img
+                src={foto}
+                alt={perfil.nombreNegocio || "Perfil vendedor"}
+                className="h-44 w-44 object-cover object-center sm:h-56 sm:w-56 lg:h-56 lg:w-56"
+              />
             </div>
+          </div>
 
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-100">
-              {perfil.descripcion}
+          {/* Datos principales */}
+          <div className="text-center lg:pt-4 lg:text-left">
+            <h1 className="mx-auto max-w-3xl text-3xl font-extrabold leading-tight sm:text-4xl lg:mx-0 lg:text-5xl">
+              {perfil.nombreNegocio || perfil.nombreUsuario || "Vendedor"}
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-gray-100 sm:text-base lg:mx-0">
+              {perfil.descripcion ||
+                "Perfil comercial del vendedor. Encontrá sus productos y formas de contacto en un solo lugar."}
             </p>
 
-            <div className="mt-4 flex flex-wrap gap-2 text-xs">
+            <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs font-semibold lg:justify-start">
               {perfil.ciudadVisible && (
-                <span className="flex items-center gap-1 rounded-full bg-black/50 px-3 py-2">
+                <span className="flex items-center gap-1 rounded-full bg-black/45 px-4 py-2 backdrop-blur-md">
                   <MapPin size={14} />
                   {perfil.ciudadVisible}
                 </span>
               )}
 
               {perfil.rubro && (
-                <span className="rounded-full bg-black/50 px-3 py-2">
+                <span className="flex items-center gap-1 rounded-full bg-black/45 px-4 py-2 backdrop-blur-md">
+                  <Store size={14} />
                   {perfil.rubro}
                 </span>
               )}
 
-              <span className="rounded-full bg-black/50 px-3 py-2">
+              <span className="rounded-full bg-black/45 px-4 py-2 backdrop-blur-md">
                 +{perfil.cantidadPublicaciones} publicaciones
               </span>
 
-              <span className="rounded-full bg-black/50 px-3 py-2">
+              <span className="rounded-full bg-black/45 px-4 py-2 backdrop-blur-md">
                 Respuesta rápida
               </span>
             </div>
           </div>
-        </div>
 
-        <div className="mt-7 flex flex-wrap gap-3">
-          {whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-bold text-black shadow-lg transition hover:bg-green-400"
-            >
-              <MessageCircle size={18} />
-              Hablar por WhatsApp
-            </a>
-          )}
-
-          <a
-            href="#catalogo"
-            className="rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/20"
-          >
-            Ver catálogo completo
-          </a>
-        </div>
-
-        <div className="mt-7 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs text-gray-400">Subdominio público</p>
-            <p className="mt-2 break-all font-bold text-yellow-300">
-              {perfil.slug}.tuvendedor.com.py
+          {/* Contacto derecho */}
+          <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none lg:pt-2">
+            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-300 lg:text-left">
+              Contacto directo
             </p>
-          </div>
 
-          <div className="rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs text-gray-400">Categoría principal</p>
-            <p className="mt-2 font-bold">{perfil.rubro || "General"}</p>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-black/35 p-4 backdrop-blur">
-            <p className="text-xs text-gray-400">Redes</p>
-            <div className="mt-2 flex gap-3">
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:gap-2.5">
               {perfil.instagramUrl && (
                 <a
                   href={perfil.instagramUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1 font-bold hover:text-yellow-300"
+                  className="group flex min-h-[52px] items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black lg:min-h-[48px] lg:py-2.5"
                 >
-                  <Instagram size={16} />
-                  Instagram
+                  <span className="flex items-center gap-2">
+                    <Instagram
+                      size={18}
+                      className="text-yellow-300 group-hover:text-black"
+                    />
+                    Instagram
+                  </span>
+                  <span className="text-xs opacity-70">Abrir</span>
                 </a>
               )}
 
@@ -145,12 +153,75 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                   href={perfil.facebookUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1 font-bold hover:text-yellow-300"
+                  className="group flex min-h-[52px] items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black lg:min-h-[48px] lg:py-2.5"
                 >
-                  <Facebook size={16} />
-                  Facebook
+                  <span className="flex items-center gap-2">
+                    <Facebook
+                      size={18}
+                      className="text-yellow-300 group-hover:text-black"
+                    />
+                    Facebook
+                  </span>
+                  <span className="text-xs opacity-70">Abrir</span>
                 </a>
               )}
+
+              {perfil.email && (
+                <a
+                  href={`mailto:${perfil.email}`}
+                  className="group col-span-2 flex min-h-[52px] items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black lg:col-span-1 lg:min-h-[48px] lg:py-2.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <Mail
+                      size={18}
+                      className="text-yellow-300 group-hover:text-black"
+                    />
+                    Correo
+                  </span>
+
+                  <span className="max-w-[190px] truncate text-right text-xs opacity-80">
+                    {perfil.email}
+                  </span>
+                </a>
+              )}
+
+              {perfil.telefono && perfil.mostrarTelefono && (
+                <div className="col-span-2 flex min-h-[54px] items-center justify-between gap-3 rounded-2xl border border-yellow-400/40 bg-yellow-400 px-4 py-3 text-black shadow-xl backdrop-blur-md lg:col-span-1 lg:min-h-[48px] lg:py-2.5">
+                  <span className="flex shrink-0 items-center gap-2 text-sm font-extrabold">
+                    <Phone size={19} />
+                    Teléfono
+                  </span>
+
+                  <span className="text-right text-xl font-black leading-none tracking-wide sm:text-2xl lg:text-xl">
+                    {perfil.telefono}
+                  </span>
+                </div>
+              )}
+
+              {whatsappUrl && (
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group col-span-2 flex min-h-[52px] items-center justify-between rounded-2xl border border-green-400/30 bg-green-500/15 px-4 py-3 text-sm font-bold text-green-200 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-green-500 hover:text-black sm:col-span-1 lg:col-span-1 lg:min-h-[48px] lg:py-2.5"
+                >
+                  <span className="flex items-center gap-2">
+                    <MessageCircle size={18} />
+                    WhatsApp
+                  </span>
+                  <span className="text-xs opacity-80">Chat</span>
+                </a>
+              )}
+
+              {!perfil.instagramUrl &&
+                !perfil.facebookUrl &&
+                !perfil.email &&
+                !perfil.telefono &&
+                !whatsappUrl && (
+                  <div className="col-span-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-gray-300 backdrop-blur-md lg:col-span-1">
+                    Sin redes configuradas.
+                  </div>
+                )}
             </div>
           </div>
         </div>

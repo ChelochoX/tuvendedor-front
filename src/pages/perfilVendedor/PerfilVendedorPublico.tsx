@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
@@ -42,40 +42,45 @@ const PerfilVendedorPublico: React.FC = () => {
 
   if (cargando) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
-        <div className="flex items-center gap-3 text-gray-300">
-          <Loader2 className="animate-spin" />
-          Cargando perfil del vendedor...
+      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
+        <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-gray-300 shadow-xl">
+          <Loader2 className="animate-spin text-yellow-300" />
+          <span className="font-semibold">Cargando perfil del vendedor...</span>
         </div>
-      </div>
+      </main>
     );
   }
 
   if (error || !perfil) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-950 px-5 text-center text-white">
-        <h1 className="text-2xl font-bold">Perfil no disponible</h1>
-        <p className="mt-2 max-w-md text-gray-400">
-          {error || "No encontramos el perfil solicitado."}
-        </p>
+      <main className="flex min-h-screen flex-col items-center justify-center bg-gray-950 px-5 text-center text-white">
+        <div className="max-w-md rounded-3xl border border-white/10 bg-gray-900 p-8 shadow-2xl">
+          <h1 className="text-2xl font-extrabold text-white">
+            Perfil no disponible
+          </h1>
 
-        <button
-          onClick={() => navigate("/")}
-          className="mt-6 flex items-center gap-2 rounded-full bg-yellow-400 px-5 py-3 font-bold text-black hover:bg-yellow-300"
-        >
-          <ArrowLeft size={18} />
-          Volver al marketplace
-        </button>
-      </div>
+          <p className="mt-3 text-sm leading-relaxed text-gray-400">
+            {error || "No encontramos el perfil solicitado."}
+          </p>
+
+          <button
+            onClick={() => navigate("/")}
+            className="mt-6 rounded-full bg-yellow-400 px-6 py-3 font-bold text-black transition hover:bg-yellow-300"
+          >
+            Volver al marketplace
+          </button>
+        </div>
+      </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950">
+    <main className="min-h-screen bg-gray-950 text-white">
+      {/* Botón flotante para volver a edición */}
       <div className="fixed left-4 top-4 z-50">
         <button
           onClick={() => navigate("/clientes/perfil-vendedor")}
-          className="rounded-full bg-yellow-400 px-5 py-2 text-sm font-bold text-black shadow-lg transition hover:bg-yellow-300"
+          className="rounded-full bg-yellow-400 px-5 py-2.5 text-sm font-extrabold text-black shadow-xl transition hover:-translate-y-0.5 hover:bg-yellow-300"
         >
           Editar mi vitrina
         </button>
@@ -83,9 +88,7 @@ const PerfilVendedorPublico: React.FC = () => {
 
       <PerfilVendedorHeader perfil={perfil} />
 
-      <div className="mx-auto max-w-7xl">
-        <PerfilVendedorPublicaciones publicaciones={perfil.publicaciones} />
-      </div>
+      <PerfilVendedorPublicaciones publicaciones={perfil.publicaciones} />
     </main>
   );
 };

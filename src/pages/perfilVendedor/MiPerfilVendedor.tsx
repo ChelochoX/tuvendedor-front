@@ -4,6 +4,7 @@ import {
   Eye,
   ImagePlus,
   Loader2,
+  Mail,
   Save,
   UserRound,
 } from "lucide-react";
@@ -23,12 +24,19 @@ const estadoInicial: ActualizarMiPerfilVendedorRequest = {
   slug: "",
   rubro: "",
   descripcion: "",
+
   whatsapp: "",
   instagramUrl: "",
   facebookUrl: "",
+
+  correoContacto: "",
+  mostrarEmail: false,
+
   ciudadVisible: "",
+
   esPerfilPublico: true,
   mostrarTelefono: true,
+
   fotoPerfil: null,
   banner: null,
 };
@@ -61,12 +69,19 @@ const MiPerfilVendedor: React.FC = () => {
         slug: data.slug ?? "",
         rubro: data.rubro ?? "",
         descripcion: data.descripcion ?? "",
+
         whatsapp: data.whatsapp ?? "",
         instagramUrl: data.instagramUrl ?? "",
         facebookUrl: data.facebookUrl ?? "",
+
+        correoContacto: data.correoContacto ?? data.email ?? "",
+        mostrarEmail: data.mostrarEmail ?? false,
+
         ciudadVisible: data.ciudadVisible ?? "",
+
         esPerfilPublico: data.esPerfilPublico,
         mostrarTelefono: data.mostrarTelefono,
+
         fotoPerfil: null,
         banner: null,
       });
@@ -227,7 +242,8 @@ const MiPerfilVendedor: React.FC = () => {
 
                   <p className="mt-2 max-w-2xl text-sm text-gray-200">
                     Editá cómo se ve tu perfil comercial para los visitantes:
-                    portada, foto, biografía, redes, WhatsApp y visibilidad.
+                    portada, foto, biografía, redes, WhatsApp, correo y
+                    visibilidad.
                   </p>
                 </div>
 
@@ -247,7 +263,7 @@ const MiPerfilVendedor: React.FC = () => {
                     <img
                       src={previewFotoPerfil}
                       alt="Foto de perfil"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-cover object-center"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center">
@@ -283,6 +299,16 @@ const MiPerfilVendedor: React.FC = () => {
                       {form.esPerfilPublico
                         ? "Perfil visible"
                         : "Perfil oculto"}
+                    </span>
+
+                    <span
+                      className={`rounded-full px-3 py-1 text-xs font-bold ${
+                        form.mostrarEmail
+                          ? "bg-blue-500/20 text-blue-300"
+                          : "bg-gray-500/20 text-gray-300"
+                      }`}
+                    >
+                      {form.mostrarEmail ? "Correo visible" : "Correo oculto"}
                     </span>
                   </div>
                 </div>
@@ -378,7 +404,7 @@ const MiPerfilVendedor: React.FC = () => {
                   Contacto y redes
                 </h3>
 
-                <div className="grid gap-4 md:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div>
                     <label className="mb-1 block text-sm text-gray-300">
                       WhatsApp
@@ -391,6 +417,25 @@ const MiPerfilVendedor: React.FC = () => {
                       className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
                       placeholder="595981000000"
                     />
+                  </div>
+
+                  <div>
+                    <label className="mb-1 flex items-center gap-2 text-sm text-gray-300">
+                      <Mail size={15} />
+                      Correo de contacto
+                    </label>
+                    <input
+                      value={form.correoContacto}
+                      onChange={(e) =>
+                        actualizarCampo("correoContacto", e.target.value)
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
+                      placeholder="contacto@tuvendedor.com.py"
+                    />
+                    <p className="mt-1 text-xs text-gray-500">
+                      Este correo puede ser distinto al correo de inicio de
+                      sesión.
+                    </p>
                   </div>
 
                   <div>
@@ -493,6 +538,24 @@ const MiPerfilVendedor: React.FC = () => {
                     checked={form.mostrarTelefono}
                     onChange={(e) =>
                       actualizarCampo("mostrarTelefono", e.target.checked)
+                    }
+                    className="h-5 w-5 accent-yellow-400"
+                  />
+                </label>
+
+                <label className="mt-3 flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-gray-950 px-4 py-3">
+                  <span>
+                    <b className="block">Mostrar correo</b>
+                    <small className="text-gray-400">
+                      Expone el correo comercial en el perfil.
+                    </small>
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    checked={form.mostrarEmail}
+                    onChange={(e) =>
+                      actualizarCampo("mostrarEmail", e.target.checked)
                     }
                     className="h-5 w-5 accent-yellow-400"
                   />

@@ -33,10 +33,17 @@ export const actualizarMiPerfilVendedor = async (
   formData.append("Slug", request.slug ?? "");
   formData.append("Rubro", request.rubro ?? "");
   formData.append("Descripcion", request.descripcion ?? "");
+
   formData.append("Whatsapp", request.whatsapp ?? "");
   formData.append("InstagramUrl", request.instagramUrl ?? "");
   formData.append("FacebookUrl", request.facebookUrl ?? "");
+
+  // Nuevo correo
+  formData.append("CorreoContacto", request.correoContacto ?? "");
+  formData.append("MostrarEmail", String(request.mostrarEmail));
+
   formData.append("CiudadVisible", request.ciudadVisible ?? "");
+
   formData.append("EsPerfilPublico", String(request.esPerfilPublico));
   formData.append("MostrarTelefono", String(request.mostrarTelefono));
 

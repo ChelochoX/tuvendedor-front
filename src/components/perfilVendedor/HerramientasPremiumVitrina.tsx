@@ -16,7 +16,7 @@ import {
 import Swal from "sweetalert2";
 
 import CrearPublicacionModal from "../publicaciones/CrearPublicacionModal";
-import { buildVitrinaUrl } from "../../config/appConfig";
+import { buildProductoShareUrl, buildVitrinaUrl } from "../../config/appConfig";
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 
 interface Props {
@@ -134,7 +134,7 @@ const HerramientasPremiumVitrina: React.FC<Props> = ({
   const urlProducto = (id?: number) => {
     if (!id) return urlVitrina;
 
-    return `${window.location.origin}/producto/${id}`;
+    return buildProductoShareUrl(id);
   };
 
   const cargarPublicaciones = async () => {

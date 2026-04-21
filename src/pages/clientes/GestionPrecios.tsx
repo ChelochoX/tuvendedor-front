@@ -33,7 +33,7 @@ const GestionPrecios: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const [marcaSeleccionada, setMarcaSeleccionada] = useState<string | "ALL">(
-    "ALL"
+    "ALL",
   );
 
   useEffect(() => {
@@ -57,15 +57,15 @@ const GestionPrecios: React.FC = () => {
 
       modelosData.forEach((m) => {
         const modeloPrecio = listadoPrecios.find(
-          (x: any) => x.idModeloProducto === m.id
+          (x: any) => x.idModeloProducto === m.id,
         );
 
         const normal = modeloPrecio?.listasPrecios?.find(
-          (l: any) => l.esPromo === false
+          (l: any) => l.esPromo === false,
         );
 
         const promo = modeloPrecio?.listasPrecios?.find(
-          (l: any) => l.esPromo === true
+          (l: any) => l.esPromo === true,
         );
 
         const normalPlan = normal?.planes?.[0];
@@ -137,7 +137,7 @@ const GestionPrecios: React.FC = () => {
     idModelo: number,
     tipo: "normal" | "promo",
     field: keyof PrecioBlock,
-    value: string
+    value: string,
   ) => {
     setPrecios((prev) => ({
       ...prev,
@@ -178,7 +178,7 @@ const GestionPrecios: React.FC = () => {
         idModelo,
         tipo,
         "error",
-        "Completá Público / Distrib. / Base"
+        "Completá Público / Distrib. / Base",
       );
       return;
     }
@@ -192,7 +192,7 @@ const GestionPrecios: React.FC = () => {
         idModelo,
         tipo,
         "error",
-        "Promo requiere Fecha desde y hasta"
+        "Promo requiere Fecha desde y hasta",
       );
       return;
     }

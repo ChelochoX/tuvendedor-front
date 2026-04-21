@@ -1,49 +1,58 @@
-export interface PerfilPublicoPublicacion {
+export interface ApiResponse<T> {
+  Success: boolean;
+  Data: T;
+  Errors: string[];
+  StatusCode: number;
+  Message: string;
+}
+
+export interface PublicacionPerfilVendedor {
   id: number;
   titulo: string;
-  descripcion: string;
-  precio: number;
-  categoria: string;
-  ubicacion: string | null;
-  estado: string;
-  imagenPrincipal: string | null;
-  thumbUrl: string | null;
-  esDestacada: boolean;
+  descripcion?: string;
+  precio?: number;
+  categoria?: string;
+  ubicacion?: string;
+  estado?: string;
+  imagenPrincipal?: string;
+  thumbUrl?: string;
+  esDestacada?: boolean;
 }
 
 export interface PerfilPublicoVendedor {
   idVendedor: number;
   idUsuario: number;
-  slug: string | null;
 
-  nombreNegocio: string | null;
-  nombreUsuario: string | null;
-  descripcion: string | null;
+  slug: string;
+  nombreNegocio: string;
+  nombreUsuario: string;
 
-  bannerUrl: string | null;
-  bannerTipo: string | null;
-  fotoPerfil: string | null;
+  descripcion: string;
+  bannerUrl: string;
+  fotoPerfil: string;
 
-  rubro: string | null;
-  ciudadVisible: string | null;
+  rubro: string;
+  ciudadVisible: string;
 
-  telefono: string | null;
+  telefono: string;
+  whatsapp: string;
 
-  // Nuevo correo público/comercial
-  email: string | null;
-  correoContacto: string | null;
-  mostrarEmail: boolean;
+  email?: string;
+  correoContacto?: string;
 
-  whatsapp: string | null;
-  instagramUrl: string | null;
-  facebookUrl: string | null;
+  instagramUrl: string;
+  facebookUrl: string;
 
   esPerfilPublico: boolean;
   esPremium: boolean;
+
   mostrarTelefono: boolean;
 
+  // ✅ Nuevo campo para controlar si se muestra el correo
+  mostrarCorreo: boolean;
+
   cantidadPublicaciones: number;
-  publicaciones: PerfilPublicoPublicacion[];
+  publicaciones: PublicacionPerfilVendedor[];
 }
 
 export interface ActualizarMiPerfilVendedorRequest {
@@ -56,9 +65,13 @@ export interface ActualizarMiPerfilVendedorRequest {
   instagramUrl: string;
   facebookUrl: string;
 
-  // Nuevo correo editable
-  correoContacto: string;
-  mostrarEmail: boolean;
+  correoContacto?: string;
+
+  // ✅ En el front usamos mostrarCorreo
+  mostrarCorreo?: boolean;
+
+  // ✅ Lo dejamos opcional por compatibilidad si en algún lado quedó mostrarEmail
+  mostrarEmail?: boolean;
 
   ciudadVisible: string;
 
@@ -67,12 +80,4 @@ export interface ActualizarMiPerfilVendedorRequest {
 
   fotoPerfil?: File | null;
   banner?: File | null;
-}
-
-export interface ApiResponse<T> {
-  Success: boolean;
-  Data: T;
-  Errors: string[];
-  StatusCode: number;
-  Message: string;
 }

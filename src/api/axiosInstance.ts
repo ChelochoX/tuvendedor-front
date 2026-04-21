@@ -18,7 +18,7 @@ instance.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // Manejo de errores centralizado (puedes personalizar esto)
@@ -27,7 +27,7 @@ instance.interceptors.response.use(
   (error) => {
     console.error("Error en petición API:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 export default instance;

@@ -4,8 +4,8 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 import { PerfilPublicoVendedor } from "../../types/perfilVendedor.types";
-import PerfilVendedorHeader from "../../components/PerfilVendedorHeader";
-import PerfilVendedorPublicaciones from "../../components/PerfilVendedorPublicaciones";
+import PerfilVendedorHeader from "../../components/perfilVendedor/PerfilVendedorHeader";
+import PerfilVendedorPublicaciones from "../../components/perfilVendedor/PerfilVendedorPublicaciones";
 
 const PerfilVendedorPublico: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();

@@ -6,13 +6,13 @@ const API_URL = "/Marcas";
 
 // 📥 Listar marcas
 export const obtenerMarcas = async (
-  soloActivas: boolean = true
+  soloActivas: boolean = true,
 ): Promise<Marca[]> => {
   const response = await instance.get<ApiResponse<Marca[]>>(
     `${API_URL}/listar`,
     {
       params: { soloActivas },
-    }
+    },
   );
 
   const result = response.data;
@@ -26,11 +26,11 @@ export const obtenerMarcas = async (
 
 // ➕ Crear marca
 export const crearMarca = async (
-  payload: CrearMarcaRequest
+  payload: CrearMarcaRequest,
 ): Promise<number> => {
   const response = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear`,
-    payload
+    payload,
   );
 
   const result = response.data;
@@ -44,11 +44,11 @@ export const crearMarca = async (
 
 // ✏️ Editar marca
 export const editarMarca = async (
-  payload: EditarMarcaRequest
+  payload: EditarMarcaRequest,
 ): Promise<void> => {
   const response = await instance.put<ApiResponse<any>>(
     `${API_URL}/editar`,
-    payload
+    payload,
   );
 
   const result = response.data;
@@ -61,7 +61,7 @@ export const editarMarca = async (
 // ✅ Activar
 export const activarMarca = async (id: number): Promise<void> => {
   const response = await instance.post<ApiResponse<any>>(
-    `${API_URL}/activar/${id}`
+    `${API_URL}/activar/${id}`,
   );
 
   if (!response.data.Success) {
@@ -72,7 +72,7 @@ export const activarMarca = async (id: number): Promise<void> => {
 // ⛔ Desactivar
 export const desactivarMarca = async (id: number): Promise<void> => {
   const response = await instance.post<ApiResponse<any>>(
-    `${API_URL}/desactivar/${id}`
+    `${API_URL}/desactivar/${id}`,
   );
 
   if (!response.data.Success) {

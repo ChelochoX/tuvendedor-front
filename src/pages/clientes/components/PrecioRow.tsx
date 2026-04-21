@@ -37,7 +37,7 @@ export const PrecioRow: React.FC<Props> = ({
             onChange={(e) =>
               onChange(
                 f as keyof PrecioBlock,
-                e.target.value.replace(/\D/g, "")
+                e.target.value.replace(/\D/g, ""),
               )
             }
           />
@@ -124,8 +124,8 @@ export const PrecioRow: React.FC<Props> = ({
             block.estado === "Activo"
               ? "bg-green-500 text-black"
               : block.estado === "Inactivo"
-              ? "bg-red-500 text-white"
-              : "bg-gray-400 text-black"
+                ? "bg-red-500 text-white"
+                : "bg-gray-400 text-black"
           }`}
         >
           {block.estado ?? "Nuevo"}

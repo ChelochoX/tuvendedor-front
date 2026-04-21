@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
@@ -11,45 +11,78 @@ import {
   obtenerPublicaciones,
   obtenerMisPublicaciones,
   obtenerCategorias,
-  // 👇 NUEVO: import de los especiales globales
   obtenerPublicacionesEspeciales,
 } from "../api/publicacionesService";
-import { useNavigate } from "react-router-dom";
-import PersonIcon from "@mui/icons-material/Person";
 import { useUsuario } from "../context/UsuarioContext";
 import CambiarClaveModal from "../components/auth/CambiarClaveModal";
 import { obtenerIconoCategoria } from "../utils/categoriaIconos";
 import CarruselEspeciales from "../components/CarruselEspeciales";
 
 const Marketplace: React.FC = () => {
-  const navigate = useNavigate();
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
     useState<Categoria | null>(null);
+
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+
   const [openLogin, setOpenLogin] = useState(false);
   const [openRegister, setOpenRegister] = useState(false);
-  const [datosPrevios, setDatosPrevios] = useState(null);
+  const [openRecuperar, setOpenRecuperar] = useState(false);
+
+  const [datosPrevios, setDatosPrevios] = useState<any>(null);
   const [quierePublicar, setQuierePublicar] = useState(false);
+
   const [busqueda, setBusqueda] = useState("");
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [cargando, setCargando] = useState(false);
-  const [mostrarSoloMias, setMostrarSoloMias] = useState(false);
-  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
-  const { usuario } = useUsuario();
-  const [openRecuperar, setOpenRecuperar] = useState(false);
+  const [especialesGlobales, setEspecialesGlobales] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
-  // 👇 NUEVO: lista de especiales globales (independiente del filtro actual)
-  const [especialesGlobales, setEspecialesGlobales] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(false);
+  const [mostrarSoloMias, setMostrarSoloMias] = useState(false);
 
-  const productosEspeciales = productos.filter((p) => p.esTemporada);
+  const { usuario, puedePublicar } = useUsuario();
+
   const productosNormales = productos.filter((p) => !p.esTemporada);
   const itemsEnGrid = mostrarSoloMias ? productos : productosNormales;
 
-  // ==============================================================
-  // 0️⃣ Cargar categorías desde el backend y preparar lista completa
-  // ==============================================================
+  const showFab = !modalOpen && puedePublicar && !sidebarAbierto;
+
+  const cargarPublicaciones = useCallback(async () => {
+    setCargando(true);
+
+    try {
+      let data: Producto[] = [];
+
+      if (mostrarSoloMias) {
+        data = await obtenerMisPublicaciones();
+      } else {
+        const categoria =
+          categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
+            ? categoriaSeleccionada.nombre
+            : undefined;
+
+        data = await obtenerPublicaciones(categoria, busqueda || undefined);
+      }
+
+      setProductos(data);
+    } catch (error) {
+      console.error("Error al obtener publicaciones:", error);
+      setProductos([]);
+    } finally {
+      setCargando(false);
+    }
+  }, [categoriaSeleccionada, busqueda, mostrarSoloMias]);
+
+  const cargarEspeciales = useCallback(async () => {
+    try {
+      const data = await obtenerPublicacionesEspeciales();
+      setEspecialesGlobales(data);
+    } catch (error) {
+      console.error("Error al cargar especiales globales:", error);
+      setEspecialesGlobales([]);
+    }
+  }, []);
+
   useEffect(() => {
     const cargarCategorias = async () => {
       try {
@@ -72,71 +105,32 @@ const Marketplace: React.FC = () => {
     cargarCategorias();
   }, []);
 
-  // 👇 NUEVO: 0.5️⃣ Cargar ESPECIALES GLOBALES una sola vez
   useEffect(() => {
-    let cancelado = false;
-
-    const cargarEspeciales = async () => {
-      try {
-        const data = await obtenerPublicacionesEspeciales();
-        if (!cancelado) setEspecialesGlobales(data);
-      } catch (e) {
-        console.error("Error al cargar especiales globales:", e);
-        if (!cancelado) setEspecialesGlobales([]);
-      }
-    };
-
     cargarEspeciales();
-    return () => {
-      cancelado = true;
-    };
-  }, []);
+  }, [cargarEspeciales]);
 
-  // ==============================================================
-  // 1️⃣ Cargar publicaciones según categoría, búsqueda o usuario
-  // ==============================================================
   useEffect(() => {
-    const fetchProductos = async () => {
-      setCargando(true);
-      try {
-        let data: Producto[] = [];
+    cargarPublicaciones();
+  }, [cargarPublicaciones, usuario]);
 
-        if (mostrarSoloMias) {
-          data = await obtenerMisPublicaciones();
-        } else {
-          const categoria =
-            categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
-              ? categoriaSeleccionada.nombre
-              : undefined;
-
-          data = await obtenerPublicaciones(categoria, busqueda || undefined);
-        }
-
-        setProductos(data);
-      } catch (error) {
-        console.error("Error al obtener publicaciones:", error);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    fetchProductos();
-  }, [categoriaSeleccionada, busqueda, mostrarSoloMias, usuario]);
-
-  // ==============================================================
-  // 2️⃣ Eventos globales (login, recuperar, mis publicaciones...)
-  // ==============================================================
   useEffect(() => {
     const handleAbrirLogin = () => setOpenLogin(true);
+
     window.addEventListener("abrir-login", handleAbrirLogin);
-    return () => window.removeEventListener("abrir-login", handleAbrirLogin);
+
+    return () => {
+      window.removeEventListener("abrir-login", handleAbrirLogin);
+    };
   }, []);
 
   useEffect(() => {
     const handleAbrirRecuperar = () => setOpenRecuperar(true);
+
     window.addEventListener("abrir-recuperar", handleAbrirRecuperar);
-    return () =>
+
+    return () => {
       window.removeEventListener("abrir-recuperar", handleAbrirRecuperar);
+    };
   }, []);
 
   useEffect(() => {
@@ -146,80 +140,60 @@ const Marketplace: React.FC = () => {
         setQuierePublicar(false);
       }
     };
+
     window.addEventListener("login-exitoso", handleLoginExitoso);
-    return () =>
+
+    return () => {
       window.removeEventListener("login-exitoso", handleLoginExitoso);
+    };
   }, [quierePublicar]);
 
   useEffect(() => {
-    const handleVerMisPublicaciones = () => setMostrarSoloMias(true);
-    window.addEventListener("ver-mis-publicaciones", handleVerMisPubliciciones);
-    function handleVerMisPubliciciones() {
+    const handleVerMisPublicaciones = () => {
       setMostrarSoloMias(true);
-    }
-    return () =>
+      setCategoriaSeleccionada(null);
+      setBusqueda("");
+    };
+
+    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
+
+    return () => {
       window.removeEventListener(
         "ver-mis-publicaciones",
-        handleVerMisPubliciciones
+        handleVerMisPublicaciones,
       );
+    };
   }, []);
 
-  // 🔍 Escuchar buscador global
   useEffect(() => {
     const handler = (e: any) => {
       const texto = e.detail || "";
 
       setBusqueda(texto);
-      setCategoriaSeleccionada(null); // 🔥 clave: el buscador manda
+      setCategoriaSeleccionada(null);
       setMostrarSoloMias(false);
     };
 
     window.addEventListener("buscar-productos", handler);
-    return () => window.removeEventListener("buscar-productos", handler);
+
+    return () => {
+      window.removeEventListener("buscar-productos", handler);
+    };
   }, []);
 
-  // ==============================================================
-  // 🔄 6️⃣ Escuchar actualización global de publicaciones
-  // ==============================================================
   useEffect(() => {
     const actualizar = () => {
-      // 🔁 Le damos un pequeño delay para asegurar que el backend actualizó antes del reload
-      setTimeout(() => window.location.reload(), 200);
+      cargarPublicaciones();
+      cargarEspeciales();
     };
 
     window.addEventListener("actualizar-publicaciones", actualizar);
 
-    return () =>
+    return () => {
       window.removeEventListener("actualizar-publicaciones", actualizar);
-  }, []);
+    };
+  }, [cargarPublicaciones, cargarEspeciales]);
 
-  const handleCrearPublicacion = () => {
-    const token = localStorage.getItem("token");
-
-    if (token) {
-      setModalOpen(true);
-    } else {
-      setQuierePublicar(true);
-      setOpenLogin(true);
-    }
-  };
-
-  const handlePublicar = async () => {
-    setModalOpen(false);
-    const data = await obtenerPublicaciones(
-      categoriaSeleccionada?.nombre !== "Todos"
-        ? categoriaSeleccionada?.nombre
-        : undefined,
-      busqueda || undefined
-    );
-    setProductos(data);
-  };
-
-  const puedeActivarEspecial = !!usuario?.permisos?.includes(
-    "CrearPublicacionTemporada"
-  );
-
-  // 🔥 TOGGLE SIDEBAR GLOBAL
   useEffect(() => {
     const toggle = () => {
       if (window.innerWidth < 768) {
@@ -240,25 +214,34 @@ const Marketplace: React.FC = () => {
     };
   }, []);
 
-  // ocultar FAB si sidebar abierto
-  const showFab = !modalOpen && puedePublicar && !sidebarAbierto;
+  const handleCrearPublicacion = () => {
+    const token = localStorage.getItem("token");
 
-  // ==============================================================
-  // RENDER
-  // ==============================================================
+    if (token) {
+      setModalOpen(true);
+      return;
+    }
+
+    setQuierePublicar(true);
+    setOpenLogin(true);
+  };
+
+  const handlePublicacionCreada = async () => {
+    setModalOpen(false);
+    await cargarPublicaciones();
+    await cargarEspeciales();
+  };
+
   return (
-    <div className="bg-[#1e1f23] min-h-screen text-white">
+    <div className="min-h-screen bg-[#1e1f23] text-white">
       <Cabecera busqueda={busqueda} setBusqueda={setBusqueda} />
+
       <div className="flex">
-        {/* ===== SIDEBAR ===== */}
         <aside
-          className={`fixed md:fixed md:left-0 top-[64px] bg-[#1e1f23] text-white 
-            border-r-2 border-yellow-400 p-4 w-72 z-50 
-            h-[calc(100vh-64px)] overflow-y-auto
+          className={`fixed top-[64px] z-50 h-[calc(100vh-64px)] w-72 overflow-y-auto border-r-2 border-yellow-400 bg-[#1e1f23] p-4 text-white md:left-0
             ${sidebarAbierto ? "block" : "hidden md:block"}`}
         >
-          {/* 🔥 FIX: El panel se estira y footer aparece bien */}
-          <div className="h-full flex flex-col">
+          <div className="flex h-full flex-col">
             <CategoriasPanel
               categorias={categorias}
               categoriaSeleccionada={categoriaSeleccionada}
@@ -273,21 +256,20 @@ const Marketplace: React.FC = () => {
           </div>
         </aside>
 
-        {/* ZONA DE PRODUCTOS */}
         <main
-          className={`flex-1 p-4 mt-2 md:mt-4 md:ml-72 overflow-x-hidden
-          ${showFab ? "pb-28 md:pb-0" : ""}`}
+          className={`mt-2 flex-1 overflow-x-hidden p-4 md:ml-72 md:mt-4 ${
+            showFab ? "pb-28 md:pb-0" : ""
+          }`}
         >
           <div
-            className="w-full max-w-[1280px] mx-auto px-2"
+            className="mx-auto w-full max-w-[1280px] px-2"
             style={{
-              // asegura margen extra en móviles con notch cuando el FAB está
               paddingBottom: showFab
                 ? "calc(7rem + env(safe-area-inset-bottom, 0px))"
                 : undefined,
             }}
           >
-            <h2 className="text-2xl font-semibold mb-4 text-white">
+            <h2 className="mb-4 text-2xl font-semibold text-white">
               {mostrarSoloMias
                 ? "Mis publicaciones"
                 : categoriaSeleccionada?.nombre || "Todos los productos"}
@@ -295,18 +277,21 @@ const Marketplace: React.FC = () => {
 
             {mostrarSoloMias && (
               <button
-                onClick={() => setMostrarSoloMias(false)}
-                className="mb-3 text-yellow-400 hover:text-yellow-500 underline"
+                onClick={() => {
+                  setMostrarSoloMias(false);
+                  setCategoriaSeleccionada(null);
+                  setBusqueda("");
+                }}
+                className="mb-3 text-yellow-400 underline hover:text-yellow-500"
               >
                 ← Volver al marketplace
               </button>
             )}
 
-            {/* 🚀 CARRUSEL DE PUBLICACIONES ESPECIALES — SIEMPRE visible (salvo en mis publicaciones) */}
             {!mostrarSoloMias && especialesGlobales.length > 0 && (
               <CarruselEspeciales
                 productos={especialesGlobales}
-                mostrarAcciones={false} // en el home no mostramos acciones
+                mostrarAcciones={false}
                 onEliminarProducto={(id) =>
                   setProductos((prev) => prev.filter((x) => x.id !== id))
                 }
@@ -314,12 +299,12 @@ const Marketplace: React.FC = () => {
             )}
 
             {cargando ? (
-              <div className="flex justify-center items-center py-10 text-yellow-400">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-yellow-400 border-opacity-70 mr-3"></div>
+              <div className="flex items-center justify-center py-10 text-yellow-400">
+                <div className="mr-3 h-8 w-8 animate-spin rounded-full border-t-2 border-yellow-400 border-opacity-70" />
                 Cargando publicaciones...
               </div>
             ) : (
-              <div className="grid gap-4 grid-cols-2 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
                 {itemsEnGrid.map((p) => (
                   <ProductoCard
                     key={p.id}
@@ -332,7 +317,6 @@ const Marketplace: React.FC = () => {
                   />
                 ))}
 
-                {/* Spacer para que el FAB no tape la última card en móvil */}
                 {showFab && (
                   <div className="h-28 md:hidden" aria-hidden="true" />
                 )}
@@ -343,17 +327,17 @@ const Marketplace: React.FC = () => {
       </div>
 
       <CrearPublicacionModal
-        open={modalOpen}
+        abierto={modalOpen}
         onClose={() => setModalOpen(false)}
-        categorias={categorias}
-        onPublicar={handlePublicar}
+        onCreado={handlePublicacionCreada}
+        modo="marketplace"
       />
 
       {showFab && (
         <button
           id="crear-publicacion-btn"
           onClick={handleCrearPublicacion}
-          className="fixed bottom-6 right-6 z-50 bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full shadow-lg hover:bg-yellow-300 transition animate-pulse-slow block md:hidden"
+          className="fixed bottom-6 right-6 z-50 block animate-pulse rounded-full bg-yellow-400 px-4 py-2 font-semibold text-black shadow-lg transition hover:bg-yellow-300 md:hidden"
         >
           + Crear publicación
         </button>
@@ -364,6 +348,7 @@ const Marketplace: React.FC = () => {
         onClose={() => setOpenLogin(false)}
         onSwitchToRegister={(datos?: any) => {
           setDatosPrevios(null);
+
           setTimeout(() => {
             setDatosPrevios(datos || null);
             setOpenLogin(false);

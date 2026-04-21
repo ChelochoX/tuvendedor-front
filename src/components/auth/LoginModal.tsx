@@ -48,7 +48,7 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
           data.datosPrevios && data.datosPrevios.tipoLogin === "google";
         console.log(
           "Datos previos para registro:",
-          tieneDatosPrevios ? data.datosPrevios : null
+          tieneDatosPrevios ? data.datosPrevios : null,
         );
         onSwitchToRegister(tieneDatosPrevios ? data.datosPrevios : null);
         return;

@@ -19,7 +19,7 @@ interface Props {
 const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   const [esVendedor, setEsVendedor] = useState(false);
   const [usuarioDisponible, setUsuarioDisponible] = useState<boolean | null>(
-    null
+    null,
   );
   const [checkingUsuario, setCheckingUsuario] = useState(false);
   const [mostrarClave, setMostrarClave] = useState(false); // 👁️ Nuevo estado
@@ -103,7 +103,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
   }, [open]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));

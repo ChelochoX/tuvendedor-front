@@ -9,7 +9,7 @@ type Props = {
   onChange: (
     tipo: "normal" | "promo",
     field: keyof PrecioBlock,
-    value: string
+    value: string,
   ) => void;
 
   onGuardar: (tipo: "normal" | "promo") => void;

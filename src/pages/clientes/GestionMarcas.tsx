@@ -98,8 +98,8 @@ const GestionMarcas: React.FC = () => {
                 !nombreValido
                   ? "bg-gray-600 text-gray-300 cursor-not-allowed"
                   : editandoId
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-yellow-400 hover:bg-yellow-500 text-black"
+                    ? "bg-blue-500 hover:bg-blue-600 text-white"
+                    : "bg-yellow-400 hover:bg-yellow-500 text-black"
               }
             `}
           >

@@ -1,5 +1,5 @@
 import React, { FormEvent, useMemo, useState } from "react";
-import { X } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 import Swal from "sweetalert2";
 
 import { crearPublicacion } from "../../api/publicacionesService";
@@ -16,6 +16,7 @@ import {
   categoriasGenerales,
   categoriasInmuebles,
   crearFormDataPublicacion,
+  esCategoriaInmobiliaria,
   limpiarPrecio,
 } from "./crear-publicacion/helpers";
 
@@ -58,17 +59,13 @@ const CrearPublicacionModal: React.FC<Props> = ({
   } = useCrearPublicacionForm();
 
   const esInmobiliario =
-    rubroVendedor?.toLowerCase().includes("inmueble") ||
-    form.categoria.toLowerCase().includes("terreno") ||
-    form.categoria.toLowerCase().includes("casa") ||
-    form.categoria.toLowerCase().includes("departamento") ||
-    form.categoria.toLowerCase().includes("dúplex") ||
-    form.categoria.toLowerCase().includes("duplex");
+    esCategoriaInmobiliaria(form.categoria) ||
+    esCategoriaInmobiliaria(rubroVendedor);
 
   const categoriasFinales = useMemo<CategoriaPublicacionOption[]>(() => {
     if (categorias?.length) return categorias;
 
-    if (rubroVendedor?.toLowerCase().includes("inmueble")) {
+    if (esCategoriaInmobiliaria(rubroVendedor)) {
       return categoriasInmuebles.map((nombre) => ({ nombre }));
     }
 
@@ -106,7 +103,6 @@ const CrearPublicacionModal: React.FC<Props> = ({
       setGuardando(true);
 
       const formData = crearFormDataPublicacion(form);
-
       await crearPublicacion(formData);
 
       Swal.fire({
@@ -129,10 +125,11 @@ const CrearPublicacionModal: React.FC<Props> = ({
       const mensaje =
         error?.response?.data?.Errors?.[0] ||
         error?.response?.data?.Message ||
+        error?.message ||
         "No se pudo crear la publicación.";
 
       Swal.fire({
-        title: "Error",
+        title: "No se pudo publicar",
         text: mensaje,
         icon: "error",
         confirmButtonColor: "#facc15",
@@ -143,27 +140,29 @@ const CrearPublicacionModal: React.FC<Props> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/70 px-4 py-6 backdrop-blur-sm">
-      <div className="relative flex max-h-[92vh] w-full max-w-7xl flex-col overflow-hidden rounded-3xl border border-white/10 bg-gray-900 text-white shadow-2xl">
-        <div className="flex items-start justify-between border-b border-white/10 px-6 py-5">
+    <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/75 px-3 py-4 backdrop-blur-md">
+      <div className="relative flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#10151f] text-white shadow-2xl">
+        <div className="flex items-start justify-between border-b border-white/10 bg-white/[0.02] px-5 py-4 sm:px-6">
           <div>
-            <p className="text-sm font-bold text-yellow-300">
+            <p className="text-xs font-black uppercase tracking-wide text-yellow-300">
               {modo === "perfil-vendedor"
                 ? "Nueva publicación para tu vitrina"
                 : "Marketplace"}
             </p>
 
-            <h2 className="text-2xl font-extrabold">Crear publicación</h2>
+            <h2 className="mt-1 text-2xl font-black">Crear publicación</h2>
 
-            <p className="mt-1 text-sm text-gray-400">
-              Cargá fotos, precio, descripción y datos principales del producto.
+            <p className="mt-1 max-w-2xl text-sm text-gray-400">
+              Cargá la información principal del producto. Si elegís una
+              categoría inmobiliaria, aparecerán datos especiales para
+              propiedades.
             </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-white/10 p-2 text-gray-300 hover:bg-red-500 hover:text-white"
+            className="rounded-full bg-white/10 p-2 text-gray-300 transition hover:bg-red-500 hover:text-white"
           >
             <X size={20} />
           </button>
@@ -171,7 +170,10 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
         <form
           onSubmit={handleSubmit}
-          className="grid flex-1 gap-5 overflow-y-auto p-6 lg:grid-cols-[1fr_0.9fr]"
+          className="
+            grid flex-1 gap-5 overflow-y-auto p-5 sm:p-6 lg:grid-cols-[1fr_0.86fr]
+            [scrollbar-width:none] [&::-webkit-scrollbar]:hidden
+          "
         >
           <div className="space-y-5">
             <PublicacionDatosBasicos
@@ -206,17 +208,29 @@ const CrearPublicacionModal: React.FC<Props> = ({
             />
           </div>
 
-          <div className="flex flex-col gap-5">
+          <aside className="flex flex-col gap-5">
             <PublicacionPreview form={form} previews={previews} />
 
             <button
               type="submit"
               disabled={guardando}
-              className="rounded-full bg-yellow-400 px-6 py-4 text-lg font-extrabold text-black shadow-xl transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="
+                group flex w-full items-center justify-center gap-2 rounded-2xl
+                border border-yellow-400/40 bg-yellow-400/15 px-6 py-4
+                text-base font-black text-yellow-200 shadow-lg shadow-yellow-950/20
+                transition hover:-translate-y-0.5 hover:border-yellow-300 hover:bg-yellow-400 hover:text-black
+                disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0
+              "
             >
-              {guardando ? "Publicando..." : "Publicar"}
+              <CheckCircle2 size={19} />
+              {guardando ? "Publicando..." : "Publicar ahora"}
             </button>
-          </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/25 p-4 text-xs leading-relaxed text-gray-400">
+              Tu publicación se mostrará en el marketplace y, si tenés perfil
+              público de vendedor, también aparecerá en tu vitrina.
+            </div>
+          </aside>
         </form>
       </div>
     </div>

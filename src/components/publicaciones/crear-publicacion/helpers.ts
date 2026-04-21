@@ -36,6 +36,34 @@ export const categoriasGenerales = [
   "Inmuebles",
 ];
 
+export const esCategoriaInmobiliaria = (valor?: string | null) => {
+  if (!valor) return false;
+
+  const normalizado = valor.trim().toLowerCase();
+
+  return [
+    "inmueble",
+    "terreno",
+    "casa",
+    "departamento",
+    "dúplex",
+    "duplex",
+    "salon",
+    "salón",
+    "local",
+    "oficina",
+    "quinta",
+    "lote",
+    "deposito",
+    "depósito",
+    "tinglado",
+    "campo",
+    "alquiler",
+    "monoambiente",
+    "garaje",
+  ].some((x) => normalizado.includes(x));
+};
+
 export const formatearPrecioVisual = (valor: string) => {
   const limpio = valor.replace(/\D/g, "");
 
@@ -64,10 +92,13 @@ export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
 
   if (form.mostrarBotonesCompra) {
     form.planCredito.forEach((plan, index) => {
-      formData.append(`PlanCredito[${index}].Cuotas`, String(plan.cuotas));
+      formData.append(
+        `PlanCredito[${index}].Cuotas`,
+        String(Number(plan.cuotas) || 0),
+      );
       formData.append(
         `PlanCredito[${index}].ValorCuota`,
-        String(plan.valorCuota),
+        String(limpiarPrecio(plan.valorCuota)),
       );
     });
   }

@@ -11,13 +11,13 @@ const API_URL = "/modelos-producto";
 // 📥 Listar modelos
 export const obtenerModelos = async (
   idMarca?: number,
-  soloActivos: boolean = true
+  soloActivos: boolean = true,
 ): Promise<ModeloProducto[]> => {
   const response = await instance.get<ApiResponse<ModeloProducto[]>>(
     `${API_URL}/listar`,
     {
       params: { idMarca, soloActivos },
-    }
+    },
   );
 
   if (!response.data.Success) {
@@ -29,11 +29,11 @@ export const obtenerModelos = async (
 
 // ➕ Crear modelo
 export const crearModelo = async (
-  payload: CrearModeloProductoRequest
+  payload: CrearModeloProductoRequest,
 ): Promise<number> => {
   const response = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear`,
-    payload
+    payload,
   );
 
   if (!response.data.Success) {
@@ -45,11 +45,11 @@ export const crearModelo = async (
 
 // ✏️ Editar modelo
 export const editarModelo = async (
-  payload: EditarModeloProductoRequest
+  payload: EditarModeloProductoRequest,
 ): Promise<void> => {
   const response = await instance.put<ApiResponse<any>>(
     `${API_URL}/editar`,
-    payload
+    payload,
   );
 
   if (!response.data.Success) {
@@ -66,7 +66,7 @@ export const activarModelo = async (id: number): Promise<void> => {
 // ⛔ Desactivar
 export const desactivarModelo = async (id: number): Promise<void> => {
   const res = await instance.post<ApiResponse<any>>(
-    `${API_URL}/desactivar/${id}`
+    `${API_URL}/desactivar/${id}`,
   );
   if (!res.data.Success) throw new Error("Error al desactivar modelo");
 };

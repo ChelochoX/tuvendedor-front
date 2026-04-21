@@ -41,18 +41,18 @@ const ProductDetail: React.FC<Props> = ({
 
   const cuotas =
     producto.planCredito?.opciones.map(
-      (op) => `${op.cuotas} X Gs. ${op.valorCuota.toLocaleString()}`
+      (op) => `${op.cuotas} X Gs. ${op.valorCuota.toLocaleString()}`,
     ) || [];
 
   const handlePrevImage = () => {
     setSelectedImageIndex((prev) =>
-      prev === 0 ? producto.imagenes.length - 1 : prev - 1
+      prev === 0 ? producto.imagenes.length - 1 : prev - 1,
     );
   };
 
   const handleNextImage = () => {
     setSelectedImageIndex((prev) =>
-      prev === producto.imagenes.length - 1 ? 0 : prev + 1
+      prev === producto.imagenes.length - 1 ? 0 : prev + 1,
     );
   };
 

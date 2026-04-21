@@ -10,7 +10,7 @@ const API_URL = "/PreciosProductos";
 
 const obtenerModelos = async (): Promise<ModeloProducto[]> => {
   const { data } = await instance.get<ApiResponse<ModeloProducto[]>>(
-    `${API_URL}/listar-modelos`
+    `${API_URL}/listar-modelos`,
   );
 
   if (!data.Success) {
@@ -28,7 +28,7 @@ const crearModelo = async (payload: {
 }) => {
   const { data } = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear-modelo`,
-    payload
+    payload,
   );
 
   if (!data.Success) {
@@ -78,7 +78,7 @@ const crearListaPrecio = async (payload: CrearListaPrecioPayload) => {
 
   const { data } = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear-lista-precio`,
-    body
+    body,
   );
 
   if (!data.Success) {
@@ -102,7 +102,7 @@ const crearPlan = async (payload: {
 }) => {
   const { data } = await instance.post<ApiResponse<any>>(
     `${API_URL}/crear-plan`,
-    payload
+    payload,
   );
 
   if (!data.Success) {
@@ -118,7 +118,7 @@ const crearPlan = async (payload: {
 
 const obtenerListadoPrecios = async () => {
   const { data } = await instance.get<ApiResponse<any>>(
-    `${API_URL}/listado-precios`
+    `${API_URL}/listado-precios`,
   );
 
   if (!data.Success) {
@@ -135,7 +135,7 @@ const obtenerListadoPrecios = async () => {
 const editarListaPrecio = async (payload: any) => {
   const { data } = await instance.put<ApiResponse<any>>(
     `${API_URL}/editar-lista-precio`,
-    payload
+    payload,
   );
 
   if (!data.Success) {
@@ -145,7 +145,7 @@ const editarListaPrecio = async (payload: any) => {
 
 const desactivarListaPrecio = async (id: number) => {
   const { data } = await instance.post<ApiResponse<any>>(
-    `${API_URL}/desactivar-lista-precio/${id}`
+    `${API_URL}/desactivar-lista-precio/${id}`,
   );
 
   if (!data.Success) {
@@ -155,7 +155,7 @@ const desactivarListaPrecio = async (id: number) => {
 
 const activarListaPrecio = async (id: number) => {
   const { data } = await instance.post<ApiResponse<any>>(
-    `${API_URL}/activar-lista-precio/${id}`
+    `${API_URL}/activar-lista-precio/${id}`,
   );
 
   if (!data.Success) {
@@ -170,7 +170,7 @@ const activarListaPrecio = async (id: number) => {
 const editarPlan = async (payload: any) => {
   const { data } = await instance.put<ApiResponse<any>>(
     `${API_URL}/editar-plan`,
-    payload
+    payload,
   );
 
   if (!data.Success) {
@@ -180,7 +180,7 @@ const editarPlan = async (payload: any) => {
 
 const desactivarPlan = async (id: number) => {
   const { data } = await instance.post<ApiResponse<any>>(
-    `${API_URL}/desactivar-plan/${id}`
+    `${API_URL}/desactivar-plan/${id}`,
   );
 
   if (!data.Success) {
@@ -190,7 +190,7 @@ const desactivarPlan = async (id: number) => {
 
 const activarPlan = async (id: number) => {
   const { data } = await instance.post<ApiResponse<any>>(
-    `${API_URL}/activar-plan/${id}`
+    `${API_URL}/activar-plan/${id}`,
   );
 
   if (!data.Success) {

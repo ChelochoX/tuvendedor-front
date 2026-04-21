@@ -1,60 +1,87 @@
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import {
-  ArrowLeft,
-  Eye,
-  ImagePlus,
-  Loader2,
-  Mail,
-  Save,
-  UserRound,
-} from "lucide-react";
+import React, {
+  ChangeEvent,
+  FormEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { ArrowLeft, ImagePlus, Mail, Save } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+
 import {
-  actualizarMiPerfilVendedor,
   obtenerMiPerfilVendedor,
+  actualizarMiPerfilVendedor,
 } from "../../api/perfilVendedorService";
-import {
-  ActualizarMiPerfilVendedorRequest,
-  PerfilPublicoVendedor,
-} from "../../types/perfilVendedor.types";
 
-const estadoInicial: ActualizarMiPerfilVendedorRequest = {
-  nombreNegocio: "",
+import HerramientasPremiumVitrina from "../../components/perfilVendedor/HerramientasPremiumVitrina";
+interface MiPerfilVendedorForm {
+  idVendedor?: number;
+  idUsuario?: number;
+  slug: string;
+  nombreNegocio: string;
+  nombreUsuario?: string;
+  descripcion: string;
+  bannerUrl?: string;
+  fotoPerfil?: string;
+  rubro: string;
+  ciudadVisible: string;
+  telefono?: string;
+  whatsapp: string;
+  email: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  esPerfilPublico: boolean;
+  esPremium: boolean;
+  mostrarTelefono: boolean;
+  mostrarCorreo: boolean;
+}
+
+const estadoInicial: MiPerfilVendedorForm = {
   slug: "",
-  rubro: "",
+  nombreNegocio: "",
+  nombreUsuario: "",
   descripcion: "",
-
+  bannerUrl: "",
+  fotoPerfil: "",
+  rubro: "",
+  ciudadVisible: "",
+  telefono: "",
   whatsapp: "",
+  email: "",
   instagramUrl: "",
   facebookUrl: "",
-
-  correoContacto: "",
-  mostrarEmail: false,
-
-  ciudadVisible: "",
-
   esPerfilPublico: true,
+  esPremium: false,
   mostrarTelefono: true,
-
-  fotoPerfil: null,
-  banner: null,
+  mostrarCorreo: true,
 };
 
 const MiPerfilVendedor: React.FC = () => {
   const navigate = useNavigate();
 
-  const [perfil, setPerfil] = useState<PerfilPublicoVendedor | null>(null);
-  const [form, setForm] =
-    useState<ActualizarMiPerfilVendedorRequest>(estadoInicial);
-
+  const [form, setForm] = useState<MiPerfilVendedorForm>(estadoInicial);
+  const [fotoPerfilArchivo, setFotoPerfilArchivo] = useState<File | null>(null);
+  const [bannerArchivo, setBannerArchivo] = useState<File | null>(null);
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
-  const [previewFotoPerfil, setPreviewFotoPerfil] = useState<string | null>(
-    null,
-  );
-  const [previewBanner, setPreviewBanner] = useState<string | null>(null);
+  const fotoPreview = useMemo(() => {
+    if (fotoPerfilArchivo) return URL.createObjectURL(fotoPerfilArchivo);
+    return form.fotoPerfil || "";
+  }, [fotoPerfilArchivo, form.fotoPerfil]);
+
+  const bannerPreview = useMemo(() => {
+    if (bannerArchivo) return URL.createObjectURL(bannerArchivo);
+    return (
+      form.bannerUrl ||
+      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"
+    );
+  }, [bannerArchivo, form.bannerUrl]);
+
+  useEffect(() => {
+    cargarPerfil();
+  }, []);
 
   const cargarPerfil = async () => {
     try {
@@ -62,38 +89,36 @@ const MiPerfilVendedor: React.FC = () => {
 
       const data = await obtenerMiPerfilVendedor();
 
-      setPerfil(data);
-
       setForm({
-        nombreNegocio: data.nombreNegocio ?? "",
-        slug: data.slug ?? "",
-        rubro: data.rubro ?? "",
-        descripcion: data.descripcion ?? "",
-
-        whatsapp: data.whatsapp ?? "",
-        instagramUrl: data.instagramUrl ?? "",
-        facebookUrl: data.facebookUrl ?? "",
-
-        correoContacto: data.correoContacto ?? data.email ?? "",
-        mostrarEmail: data.mostrarEmail ?? false,
-
-        ciudadVisible: data.ciudadVisible ?? "",
-
-        esPerfilPublico: data.esPerfilPublico,
-        mostrarTelefono: data.mostrarTelefono,
-
-        fotoPerfil: null,
-        banner: null,
+        idVendedor: data.idVendedor,
+        idUsuario: data.idUsuario,
+        slug: data.slug || "",
+        nombreNegocio: data.nombreNegocio || "",
+        nombreUsuario: data.nombreUsuario || "",
+        descripcion: data.descripcion || "",
+        bannerUrl: data.bannerUrl || "",
+        fotoPerfil: data.fotoPerfil || "",
+        rubro: data.rubro || "",
+        ciudadVisible: data.ciudadVisible || "",
+        telefono: data.telefono || "",
+        whatsapp: data.whatsapp || "",
+        email: data.email || "",
+        instagramUrl: data.instagramUrl || "",
+        facebookUrl: data.facebookUrl || "",
+        esPerfilPublico: data.esPerfilPublico ?? true,
+        esPremium: data.esPremium ?? false,
+        mostrarTelefono: data.mostrarTelefono ?? true,
+        mostrarCorreo: data.mostrarCorreo ?? true,
       });
-
-      setPreviewFotoPerfil(data.fotoPerfil);
-      setPreviewBanner(data.bannerUrl);
-    } catch (error) {
-      console.error("Error al obtener mi perfil vendedor:", error);
+    } catch (error: any) {
+      console.error("Error al cargar perfil vendedor:", error);
 
       Swal.fire({
         title: "No se pudo cargar tu vitrina",
-        text: "Verificá que tu usuario tenga un perfil vendedor asociado.",
+        text:
+          error?.response?.data?.Message ||
+          error?.message ||
+          "Ocurrió un error al obtener los datos del perfil.",
         icon: "error",
         confirmButtonColor: "#facc15",
       });
@@ -102,13 +127,9 @@ const MiPerfilVendedor: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    cargarPerfil();
-  }, []);
-
-  const actualizarCampo = (
-    campo: keyof ActualizarMiPerfilVendedorRequest,
-    valor: string | boolean | File | null,
+  const actualizarCampo = <K extends keyof MiPerfilVendedorForm>(
+    campo: K,
+    valor: MiPerfilVendedorForm[K],
   ) => {
     setForm((prev) => ({
       ...prev,
@@ -116,62 +137,121 @@ const MiPerfilVendedor: React.FC = () => {
     }));
   };
 
-  const manejarFotoPerfil = (event: ChangeEvent<HTMLInputElement>) => {
-    const archivo = event.target.files?.[0] ?? null;
-
-    actualizarCampo("fotoPerfil", archivo);
-
-    if (archivo) {
-      setPreviewFotoPerfil(URL.createObjectURL(archivo));
-    }
+  const normalizarSlug = (valor: string) => {
+    return valor
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
   };
 
-  const manejarBanner = (event: ChangeEvent<HTMLInputElement>) => {
-    const archivo = event.target.files?.[0] ?? null;
-
-    actualizarCampo("banner", archivo);
-
-    if (archivo) {
-      setPreviewBanner(URL.createObjectURL(archivo));
-    }
+  const handleSlugChange = (valor: string) => {
+    actualizarCampo("slug", normalizarSlug(valor));
   };
 
-  const guardarPerfil = async (event: FormEvent<HTMLFormElement>) => {
+  const handleFotoPerfilChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const archivo = event.target.files?.[0];
+
+    if (!archivo) return;
+
+    setFotoPerfilArchivo(archivo);
+  };
+
+  const handleBannerChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const archivo = event.target.files?.[0];
+
+    if (!archivo) return;
+
+    setBannerArchivo(archivo);
+  };
+
+  const validar = () => {
+    if (!form.nombreNegocio.trim()) {
+      return "Ingresá el nombre comercial de tu vitrina.";
+    }
+
+    if (!form.slug.trim()) {
+      return "Ingresá el slug público de tu vitrina.";
+    }
+
+    if (!form.rubro.trim()) {
+      return "Ingresá el rubro principal.";
+    }
+
+    if (!form.descripcion.trim()) {
+      return "Ingresá una biografía o descripción comercial.";
+    }
+
+    return null;
+  };
+
+  const handleGuardar = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const error = validar();
+
+    if (error) {
+      Swal.fire({
+        title: "Faltan datos",
+        text: error,
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+      });
+
+      return;
+    }
 
     try {
       setGuardando(true);
 
-      const data = await actualizarMiPerfilVendedor(form);
+      const formData = new FormData();
 
-      setPerfil(data);
+      formData.append("NombreNegocio", form.nombreNegocio);
+      formData.append("Slug", form.slug);
+      formData.append("Rubro", form.rubro);
+      formData.append("CiudadVisible", form.ciudadVisible);
+      formData.append("Descripcion", form.descripcion);
+      formData.append("Whatsapp", form.whatsapp);
+      formData.append("Email", form.email);
+      formData.append("InstagramUrl", form.instagramUrl);
+      formData.append("FacebookUrl", form.facebookUrl);
+      formData.append("EsPerfilPublico", String(form.esPerfilPublico));
+      formData.append("MostrarTelefono", String(form.mostrarTelefono));
+      formData.append("MostrarCorreo", String(form.mostrarCorreo));
 
-      setForm((prev) => ({
-        ...prev,
-        fotoPerfil: null,
-        banner: null,
-      }));
+      if (fotoPerfilArchivo) {
+        formData.append("FotoPerfil", fotoPerfilArchivo);
+      }
 
-      setPreviewFotoPerfil(data.fotoPerfil);
-      setPreviewBanner(data.bannerUrl);
+      if (bannerArchivo) {
+        formData.append("Banner", bannerArchivo);
+      }
+
+      await actualizarMiPerfilVendedor(formData);
 
       Swal.fire({
-        title: "¡Vitrina actualizada!",
-        text: "Los cambios de tu perfil público fueron guardados correctamente.",
+        title: "Vitrina actualizada",
+        text: "Los cambios se guardaron correctamente.",
         icon: "success",
         confirmButtonColor: "#facc15",
       });
-    } catch (error: any) {
-      console.error("Error al actualizar perfil vendedor:", error);
 
-      const mensaje =
-        error?.response?.data?.Errors?.[0] ||
-        error?.response?.data?.Message ||
-        "No se pudo actualizar el perfil vendedor.";
+      setFotoPerfilArchivo(null);
+      setBannerArchivo(null);
+
+      await cargarPerfil();
+    } catch (error: any) {
+      console.error("Error al guardar perfil vendedor:", error);
 
       Swal.fire({
         title: "No se pudo guardar",
-        text: mensaje,
+        text:
+          error?.response?.data?.Errors?.[0] ||
+          error?.response?.data?.Message ||
+          error?.message ||
+          "Ocurrió un error al actualizar la vitrina.",
         icon: "error",
         confirmButtonColor: "#facc15",
       });
@@ -180,419 +260,411 @@ const MiPerfilVendedor: React.FC = () => {
     }
   };
 
-  const irPerfilPublico = () => {
-    if (form.slug) {
-      navigate(`/vendedor/${form.slug}`);
-      return;
-    }
-
-    Swal.fire({
-      title: "Falta el slug",
-      text: "Para ver el perfil público primero necesitás tener un slug configurado.",
-      icon: "info",
-      confirmButtonColor: "#facc15",
-    });
-  };
-
   if (cargando) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-950 text-white">
-        <div className="flex items-center gap-3 text-gray-300">
-          <Loader2 className="animate-spin" />
-          Cargando vitrina pública...
+      <div className="flex min-h-screen items-center justify-center bg-[#050914] text-white">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center shadow-xl">
+          <p className="text-sm font-bold text-yellow-300">
+            Cargando tu vitrina...
+          </p>
+          <p className="mt-1 text-xs text-gray-400">
+            Estamos preparando tu panel premium.
+          </p>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 px-4 py-6 text-white">
-      <div className="mx-auto max-w-6xl">
+    <div className="min-h-screen bg-[#050914] px-4 py-6 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
         <button
+          type="button"
           onClick={() => navigate("/")}
-          className="mb-6 flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/20"
+          className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-5 py-2 text-sm font-bold text-white transition hover:bg-yellow-400 hover:text-black"
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={17} />
           Volver al marketplace
         </button>
 
-        <section className="overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-2xl">
-          <div className="relative min-h-[260px] border-b border-white/10">
-            {previewBanner ? (
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-70"
-                style={{ backgroundImage: `url(${previewBanner})` }}
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
-            )}
+        <section className="overflow-hidden rounded-3xl border border-white/10 bg-[#101722] shadow-2xl">
+          <div
+            className="relative min-h-[255px] bg-cover bg-center"
+            style={{
+              backgroundImage: `url(${bannerPreview})`,
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-[#101722]" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/25 to-black/50" />
 
-            <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/55 to-gray-900" />
-
-            <div className="relative z-10 flex min-h-[260px] flex-col justify-between p-6">
+            <div className="relative z-10 flex min-h-[255px] flex-col justify-between p-5 sm:p-7">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold text-yellow-300">
+                  <p className="text-sm font-black text-yellow-300">
                     Perfil público del vendedor
                   </p>
 
-                  <h1 className="mt-2 text-3xl font-extrabold md:text-4xl">
+                  <h1 className="mt-2 text-4xl font-black leading-tight sm:text-5xl">
                     Mi vitrina pública
                   </h1>
 
-                  <p className="mt-2 max-w-2xl text-sm text-gray-200">
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-gray-100">
                     Editá cómo se ve tu perfil comercial para los visitantes:
                     portada, foto, biografía, redes, WhatsApp, correo y
                     visibilidad.
                   </p>
                 </div>
-
-                <button
-                  onClick={irPerfilPublico}
-                  type="button"
-                  className="hidden items-center gap-2 rounded-full bg-yellow-400 px-5 py-3 font-bold text-black hover:bg-yellow-300 md:flex"
-                >
-                  <Eye size={18} />
-                  Ver perfil público
-                </button>
               </div>
 
-              <div className="flex items-end gap-4">
-                <div className="relative h-24 w-24 overflow-hidden rounded-2xl border-2 border-white/70 bg-black shadow-xl">
-                  {previewFotoPerfil ? (
+              <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-end">
+                <div className="h-24 w-24 overflow-hidden rounded-3xl border border-white/50 bg-gray-900 shadow-xl sm:h-28 sm:w-28">
+                  {fotoPreview ? (
                     <img
-                      src={previewFotoPerfil}
-                      alt="Foto de perfil"
+                      src={fotoPreview}
+                      alt={form.nombreNegocio}
                       className="h-full w-full object-cover object-center"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                      <UserRound className="text-gray-400" />
+                    <div className="flex h-full w-full items-center justify-center bg-gray-800 text-xs text-gray-400">
+                      Sin foto
                     </div>
                   )}
                 </div>
 
-                <div>
-                  <h2 className="text-2xl font-extrabold">
-                    {form.nombreNegocio || perfil?.nombreUsuario || "Vendedor"}
+                <div className="pb-1">
+                  <h2 className="text-2xl font-black">
+                    {form.nombreNegocio || "Nombre comercial"}
                   </h2>
 
-                  <p className="mt-1 text-sm text-gray-300">
-                    {form.rubro || "Rubro no configurado"} ·{" "}
-                    {form.ciudadVisible || "Ciudad no configurada"}
+                  <p className="mt-1 text-sm text-gray-200">
+                    {form.rubro || "Rubro"} ·{" "}
+                    {form.ciudadVisible || "Ciudad visible"}
                   </p>
 
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {perfil?.esPremium && (
-                      <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {form.esPremium && (
+                      <span className="rounded-full bg-yellow-400 px-4 py-1 text-xs font-black text-black">
                         Premium
                       </span>
                     )}
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        form.esPerfilPublico
-                          ? "bg-green-500/20 text-green-300"
-                          : "bg-red-500/20 text-red-300"
-                      }`}
-                    >
-                      {form.esPerfilPublico
-                        ? "Perfil visible"
-                        : "Perfil oculto"}
-                    </span>
+                    {form.esPerfilPublico && (
+                      <span className="rounded-full bg-green-500/25 px-4 py-1 text-xs font-black text-green-200">
+                        Perfil visible
+                      </span>
+                    )}
 
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-bold ${
-                        form.mostrarEmail
-                          ? "bg-blue-500/20 text-blue-300"
-                          : "bg-gray-500/20 text-gray-300"
-                      }`}
-                    >
-                      {form.mostrarEmail ? "Correo visible" : "Correo oculto"}
-                    </span>
+                    {form.mostrarCorreo && (
+                      <span className="rounded-full bg-blue-500/25 px-4 py-1 text-xs font-black text-blue-200">
+                        Correo visible
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <form
-            onSubmit={guardarPerfil}
-            className="grid gap-6 p-6 lg:grid-cols-3"
-          >
-            <section className="space-y-5 lg:col-span-2">
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-                <h3 className="mb-4 text-lg font-bold text-yellow-300">
-                  Datos comerciales
-                </h3>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Nombre comercial
-                    </label>
-                    <input
-                      value={form.nombreNegocio}
-                      onChange={(e) =>
-                        actualizarCampo("nombreNegocio", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="Ej: Angela Cáceres KW"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Slug público
-                    </label>
-                    <input
-                      value={form.slug}
-                      onChange={(e) => actualizarCampo("slug", e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="angelacaceres"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      URL: /vendedor/{form.slug || "tu-slug"}
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Rubro
-                    </label>
-                    <input
-                      value={form.rubro}
-                      onChange={(e) => actualizarCampo("rubro", e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="Inmuebles, Motos, Tecnología..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Ciudad visible
-                    </label>
-                    <input
-                      value={form.ciudadVisible}
-                      onChange={(e) =>
-                        actualizarCampo("ciudadVisible", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="Asunción - Central"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <label className="mb-1 block text-sm text-gray-300">
-                    Biografía / descripción
-                  </label>
-                  <textarea
-                    value={form.descripcion}
-                    onChange={(e) =>
-                      actualizarCampo("descripcion", e.target.value)
-                    }
-                    rows={4}
-                    className="w-full resize-none rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                    placeholder="Contá brevemente qué ofrecés..."
-                  />
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-                <h3 className="mb-4 text-lg font-bold text-yellow-300">
-                  Contacto y redes
-                </h3>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      WhatsApp
-                    </label>
-                    <input
-                      value={form.whatsapp}
-                      onChange={(e) =>
-                        actualizarCampo("whatsapp", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="595981000000"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 flex items-center gap-2 text-sm text-gray-300">
-                      <Mail size={15} />
-                      Correo de contacto
-                    </label>
-                    <input
-                      value={form.correoContacto}
-                      onChange={(e) =>
-                        actualizarCampo("correoContacto", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="contacto@tuvendedor.com.py"
-                    />
-                    <p className="mt-1 text-xs text-gray-500">
-                      Este correo puede ser distinto al correo de inicio de
-                      sesión.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Instagram
-                    </label>
-                    <input
-                      value={form.instagramUrl}
-                      onChange={(e) =>
-                        actualizarCampo("instagramUrl", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="https://instagram.com/..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="mb-1 block text-sm text-gray-300">
-                      Facebook
-                    </label>
-                    <input
-                      value={form.facebookUrl}
-                      onChange={(e) =>
-                        actualizarCampo("facebookUrl", e.target.value)
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-gray-950 px-4 py-3 text-white outline-none focus:border-yellow-400"
-                      placeholder="https://facebook.com/..."
-                    />
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <aside className="space-y-5">
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-                <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-yellow-300">
-                  <ImagePlus size={20} />
-                  Foto y portada
-                </h3>
-
-                <label className="mb-2 block text-sm text-gray-300">
-                  Foto de perfil
-                </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={manejarFotoPerfil}
-                  className="mb-4 block w-full text-sm text-gray-300 file:mr-3 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:font-bold file:text-black"
+          <div className="border-t border-white/10 p-5 sm:p-7">
+            {form.slug && (
+              <div className="mb-6">
+                <HerramientasPremiumVitrina
+                  slug={form.slug}
+                  rubro={form.rubro}
+                  nombreNegocio={form.nombreNegocio}
+                  descripcion={form.descripcion}
+                  ciudadVisible={form.ciudadVisible}
+                  onPublicacionCreada={() => {
+                    Swal.fire({
+                      title: "Producto agregado",
+                      text: "Ya podés verlo en tu vitrina pública.",
+                      icon: "success",
+                      confirmButtonColor: "#facc15",
+                    });
+                  }}
                 />
+              </div>
+            )}
 
-                <label className="mb-2 block text-sm text-gray-300">
-                  Banner / portada
-                </label>
-                <input
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={manejarBanner}
-                  className="block w-full text-sm text-gray-300 file:mr-3 file:rounded-full file:border-0 file:bg-yellow-400 file:px-4 file:py-2 file:font-bold file:text-black"
-                />
+            <form
+              onSubmit={handleGuardar}
+              className="grid gap-6 lg:grid-cols-[1fr_360px]"
+            >
+              <div className="space-y-6">
+                <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                  <h3 className="text-xl font-black text-yellow-300">
+                    Datos comerciales
+                  </h3>
 
-                <p className="mt-3 text-xs text-gray-500">
-                  Para ahorrar espacio, el backend optimiza la imagen y la sube
-                  una sola vez.
-                </p>
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Nombre comercial
+                      </label>
+                      <input
+                        value={form.nombreNegocio}
+                        onChange={(e) =>
+                          actualizarCampo("nombreNegocio", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Slug público
+                      </label>
+                      <input
+                        value={form.slug}
+                        onChange={(e) => handleSlugChange(e.target.value)}
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        URL: /vendedor/{form.slug || "mi-vitrina"}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Rubro
+                      </label>
+                      <input
+                        value={form.rubro}
+                        onChange={(e) =>
+                          actualizarCampo("rubro", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Ciudad visible
+                      </label>
+                      <input
+                        value={form.ciudadVisible}
+                        onChange={(e) =>
+                          actualizarCampo("ciudadVisible", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Biografía / descripción
+                      </label>
+                      <textarea
+                        value={form.descripcion}
+                        onChange={(e) =>
+                          actualizarCampo("descripcion", e.target.value)
+                        }
+                        rows={4}
+                        className="w-full resize-none rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                  <h3 className="text-xl font-black text-yellow-300">
+                    Contacto y redes
+                  </h3>
+
+                  <div className="mt-5 grid gap-4 md:grid-cols-2">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        WhatsApp
+                      </label>
+                      <input
+                        value={form.whatsapp}
+                        onChange={(e) =>
+                          actualizarCampo("whatsapp", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-gray-200">
+                        <Mail size={15} />
+                        Correo de contacto
+                      </label>
+                      <input
+                        value={form.email}
+                        onChange={(e) =>
+                          actualizarCampo("email", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        Este correo puede ser distinto al correo de inicio de
+                        sesión.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Instagram
+                      </label>
+                      <input
+                        value={form.instagramUrl}
+                        onChange={(e) =>
+                          actualizarCampo("instagramUrl", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Facebook
+                      </label>
+                      <input
+                        value={form.facebookUrl}
+                        onChange={(e) =>
+                          actualizarCampo("facebookUrl", e.target.value)
+                        }
+                        className="w-full rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-white outline-none transition focus:border-yellow-400/70"
+                      />
+                    </div>
+                  </div>
+                </section>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-                <h3 className="mb-4 text-lg font-bold text-yellow-300">
-                  Visibilidad
-                </h3>
+              <aside className="space-y-6">
+                <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                  <h3 className="flex items-center gap-2 text-xl font-black text-yellow-300">
+                    <ImagePlus size={20} />
+                    Foto y portada
+                  </h3>
 
-                <label className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-gray-950 px-4 py-3">
-                  <span>
-                    <b className="block">Perfil público</b>
-                    <small className="text-gray-400">
-                      Permite que otros vean tu vitrina.
-                    </small>
-                  </span>
+                  <div className="mt-5 space-y-5">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Foto de perfil
+                      </label>
 
-                  <input
-                    type="checkbox"
-                    checked={form.esPerfilPublico}
-                    onChange={(e) =>
-                      actualizarCampo("esPerfilPublico", e.target.checked)
-                    }
-                    className="h-5 w-5 accent-yellow-400"
-                  />
-                </label>
+                      <label className="inline-flex cursor-pointer items-center gap-3 rounded-full bg-yellow-400 px-5 py-2 text-sm font-black text-black transition hover:bg-yellow-300">
+                        Elegir archivo
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFotoPerfilChange}
+                        />
+                      </label>
 
-                <label className="mt-3 flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-gray-950 px-4 py-3">
-                  <span>
-                    <b className="block">Mostrar teléfono</b>
-                    <small className="text-gray-400">
-                      Expone tu teléfono en el perfil.
-                    </small>
-                  </span>
+                      <span className="ml-3 text-xs text-gray-400">
+                        {fotoPerfilArchivo?.name || "No se seleccionó archivo"}
+                      </span>
+                    </div>
 
-                  <input
-                    type="checkbox"
-                    checked={form.mostrarTelefono}
-                    onChange={(e) =>
-                      actualizarCampo("mostrarTelefono", e.target.checked)
-                    }
-                    className="h-5 w-5 accent-yellow-400"
-                  />
-                </label>
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-200">
+                        Banner / portada
+                      </label>
 
-                <label className="mt-3 flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-gray-950 px-4 py-3">
-                  <span>
-                    <b className="block">Mostrar correo</b>
-                    <small className="text-gray-400">
-                      Expone el correo comercial en el perfil.
-                    </small>
-                  </span>
+                      <label className="inline-flex cursor-pointer items-center gap-3 rounded-full bg-yellow-400 px-5 py-2 text-sm font-black text-black transition hover:bg-yellow-300">
+                        Elegir archivo
+                        <input
+                          type="file"
+                          accept="image/*,video/*"
+                          className="hidden"
+                          onChange={handleBannerChange}
+                        />
+                      </label>
 
-                  <input
-                    type="checkbox"
-                    checked={form.mostrarEmail}
-                    onChange={(e) =>
-                      actualizarCampo("mostrarEmail", e.target.checked)
-                    }
-                    className="h-5 w-5 accent-yellow-400"
-                  />
-                </label>
-              </div>
+                      <span className="ml-3 text-xs text-gray-400">
+                        {bannerArchivo?.name || "No se seleccionó archivo"}
+                      </span>
 
-              <button
-                type="submit"
-                disabled={guardando}
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-6 py-3 font-extrabold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {guardando ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    Guardar cambios
-                  </>
-                )}
-              </button>
+                      <p className="mt-3 text-xs leading-relaxed text-gray-500">
+                        Para ahorrar espacio, el backend optimiza la imagen y la
+                        sube una sola vez.
+                      </p>
+                    </div>
+                  </div>
+                </section>
 
-              <button
-                type="button"
-                onClick={irPerfilPublico}
-                className="flex w-full items-center justify-center gap-2 rounded-full border border-yellow-400 px-6 py-3 font-bold text-yellow-300 hover:bg-yellow-400 hover:text-black md:hidden"
-              >
-                <Eye size={18} />
-                Ver perfil público
-              </button>
-            </aside>
-          </form>
+                <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+                  <h3 className="text-xl font-black text-yellow-300">
+                    Visibilidad
+                  </h3>
+
+                  <div className="mt-5 space-y-3">
+                    <label className="flex cursor-pointer items-center justify-between rounded-2xl bg-[#070b13] px-4 py-3">
+                      <div>
+                        <p className="font-black text-white">Perfil público</p>
+                        <p className="text-xs text-gray-400">
+                          Permite que otros vean tu vitrina.
+                        </p>
+                      </div>
+
+                      <input
+                        type="checkbox"
+                        checked={form.esPerfilPublico}
+                        onChange={(e) =>
+                          actualizarCampo("esPerfilPublico", e.target.checked)
+                        }
+                        className="h-5 w-5 accent-yellow-400"
+                      />
+                    </label>
+
+                    <label className="flex cursor-pointer items-center justify-between rounded-2xl bg-[#070b13] px-4 py-3">
+                      <div>
+                        <p className="font-black text-white">
+                          Mostrar teléfono
+                        </p>
+                        <p className="text-xs text-gray-400">
+                          Expone tu teléfono en el perfil.
+                        </p>
+                      </div>
+
+                      <input
+                        type="checkbox"
+                        checked={form.mostrarTelefono}
+                        onChange={(e) =>
+                          actualizarCampo("mostrarTelefono", e.target.checked)
+                        }
+                        className="h-5 w-5 accent-yellow-400"
+                      />
+                    </label>
+
+                    <label className="flex cursor-pointer items-center justify-between rounded-2xl bg-[#070b13] px-4 py-3">
+                      <div>
+                        <p className="font-black text-white">Mostrar correo</p>
+                        <p className="text-xs text-gray-400">
+                          Expone el correo comercial en el perfil.
+                        </p>
+                      </div>
+
+                      <input
+                        type="checkbox"
+                        checked={form.mostrarCorreo}
+                        onChange={(e) =>
+                          actualizarCampo("mostrarCorreo", e.target.checked)
+                        }
+                        className="h-5 w-5 accent-yellow-400"
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <button
+                  type="submit"
+                  disabled={guardando}
+                  className="flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-6 py-4 text-base font-black text-black shadow-lg transition hover:-translate-y-0.5 hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Save size={18} />
+                  {guardando ? "Guardando..." : "Guardar cambios"}
+                </button>
+              </aside>
+            </form>
+          </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 };
 

@@ -25,35 +25,12 @@ export const obtenerMiPerfilVendedor =
   };
 
 export const actualizarMiPerfilVendedor = async (
-  request: ActualizarMiPerfilVendedorRequest,
+  request: ActualizarMiPerfilVendedorRequest | FormData,
 ): Promise<PerfilPublicoVendedor> => {
-  const formData = new FormData();
-
-  formData.append("NombreNegocio", request.nombreNegocio ?? "");
-  formData.append("Slug", request.slug ?? "");
-  formData.append("Rubro", request.rubro ?? "");
-  formData.append("Descripcion", request.descripcion ?? "");
-
-  formData.append("Whatsapp", request.whatsapp ?? "");
-  formData.append("InstagramUrl", request.instagramUrl ?? "");
-  formData.append("FacebookUrl", request.facebookUrl ?? "");
-
-  // Nuevo correo
-  formData.append("CorreoContacto", request.correoContacto ?? "");
-  formData.append("MostrarEmail", String(request.mostrarEmail));
-
-  formData.append("CiudadVisible", request.ciudadVisible ?? "");
-
-  formData.append("EsPerfilPublico", String(request.esPerfilPublico));
-  formData.append("MostrarTelefono", String(request.mostrarTelefono));
-
-  if (request.fotoPerfil) {
-    formData.append("FotoPerfil", request.fotoPerfil);
-  }
-
-  if (request.banner) {
-    formData.append("Banner", request.banner);
-  }
+  const formData =
+    request instanceof FormData
+      ? request
+      : crearFormDataPerfilVendedor(request);
 
   const response = await axiosInstance.put<ApiResponse<PerfilPublicoVendedor>>(
     "/PerfilesVendedores/mi-perfil",
@@ -66,4 +43,37 @@ export const actualizarMiPerfilVendedor = async (
   );
 
   return response.data.Data;
+};
+
+const crearFormDataPerfilVendedor = (
+  request: ActualizarMiPerfilVendedorRequest,
+): FormData => {
+  const formData = new FormData();
+
+  formData.append("NombreNegocio", request.nombreNegocio ?? "");
+  formData.append("Slug", request.slug ?? "");
+  formData.append("Rubro", request.rubro ?? "");
+  formData.append("Descripcion", request.descripcion ?? "");
+
+  formData.append("Whatsapp", request.whatsapp ?? "");
+  formData.append("InstagramUrl", request.instagramUrl ?? "");
+  formData.append("FacebookUrl", request.facebookUrl ?? "");
+
+  formData.append("CorreoContacto", request.correoContacto ?? "");
+  formData.append("MostrarEmail", String(request.mostrarEmail ?? false));
+
+  formData.append("CiudadVisible", request.ciudadVisible ?? "");
+
+  formData.append("EsPerfilPublico", String(request.esPerfilPublico ?? false));
+  formData.append("MostrarTelefono", String(request.mostrarTelefono ?? false));
+
+  if (request.fotoPerfil) {
+    formData.append("FotoPerfil", request.fotoPerfil);
+  }
+
+  if (request.banner) {
+    formData.append("Banner", request.banner);
+  }
+
+  return formData;
 };

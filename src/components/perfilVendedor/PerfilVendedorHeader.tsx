@@ -169,9 +169,10 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
               {perfil.email && (
                 <a
                   href={`mailto:${perfil.email}`}
-                  className="group col-span-2 flex min-h-[52px] items-center justify-between rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black lg:col-span-1 lg:min-h-[48px] lg:py-2.5"
+                  title={perfil.email}
+                  className="group relative flex min-h-[48px] items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black"
                 >
-                  <span className="flex items-center gap-2">
+                  <span className="flex shrink-0 items-center gap-2">
                     <Mail
                       size={18}
                       className="text-yellow-300 group-hover:text-black"
@@ -179,7 +180,11 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                     Correo
                   </span>
 
-                  <span className="max-w-[190px] truncate text-right text-xs opacity-80">
+                  <span className="max-w-[180px] truncate text-right text-xs opacity-90 lg:max-w-[210px]">
+                    {perfil.email}
+                  </span>
+
+                  <span className="pointer-events-none absolute right-0 top-full z-50 mt-2 hidden max-w-[320px] rounded-xl border border-yellow-400/30 bg-black px-3 py-2 text-xs font-semibold text-yellow-200 shadow-xl group-hover:block">
                     {perfil.email}
                   </span>
                 </a>

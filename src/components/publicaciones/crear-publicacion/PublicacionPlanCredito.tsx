@@ -9,7 +9,7 @@ interface Props {
   onActualizarPlan: (
     index: number,
     campo: "cuotas" | "valorCuota",
-    valor: number,
+    valor: string,
   ) => void;
   onEliminarPlan: (index: number) => void;
 }
@@ -22,7 +22,7 @@ const PublicacionPlanCredito: React.FC<Props> = ({
   onEliminarPlan,
 }) => {
   return (
-    <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <section className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:p-5">
       <label className="flex cursor-pointer items-center gap-3">
         <input
           type="checkbox"
@@ -41,32 +41,42 @@ const PublicacionPlanCredito: React.FC<Props> = ({
           {form.planCredito.map((plan, index) => (
             <div
               key={index}
-              className="grid gap-3 rounded-xl border border-white/10 bg-gray-950 p-3 sm:grid-cols-[1fr_1fr_auto]"
+              className="grid gap-3 rounded-2xl border border-white/10 bg-[#070b13] p-3 sm:grid-cols-[1fr_1fr_auto]"
             >
               <input
-                type="number"
+                inputMode="numeric"
                 value={plan.cuotas}
+                onFocus={() => {
+                  if (plan.cuotas === "0") {
+                    onActualizarPlan(index, "cuotas", "");
+                  }
+                }}
                 onChange={(e) =>
-                  onActualizarPlan(index, "cuotas", Number(e.target.value))
+                  onActualizarPlan(index, "cuotas", e.target.value)
                 }
-                className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-yellow-400"
+                className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400/70"
                 placeholder="Cuotas"
               />
 
               <input
-                type="number"
+                inputMode="numeric"
                 value={plan.valorCuota}
+                onFocus={() => {
+                  if (plan.valorCuota === "0") {
+                    onActualizarPlan(index, "valorCuota", "");
+                  }
+                }}
                 onChange={(e) =>
-                  onActualizarPlan(index, "valorCuota", Number(e.target.value))
+                  onActualizarPlan(index, "valorCuota", e.target.value)
                 }
-                className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none focus:border-yellow-400"
-                placeholder="Valor cuota"
+                className="rounded-xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400/70"
+                placeholder="Valor de cuota"
               />
 
               <button
                 type="button"
                 onClick={() => onEliminarPlan(index)}
-                className="rounded-xl bg-red-500/15 px-4 py-3 text-red-300 hover:bg-red-500 hover:text-white"
+                className="rounded-xl bg-red-500/15 px-4 py-3 text-red-300 transition hover:bg-red-500 hover:text-white"
               >
                 <Trash2 size={18} />
               </button>
@@ -76,9 +86,9 @@ const PublicacionPlanCredito: React.FC<Props> = ({
           <button
             type="button"
             onClick={onAgregarPlan}
-            className="flex items-center gap-2 rounded-full border border-yellow-400 px-4 py-2 font-bold text-yellow-300 hover:bg-yellow-400 hover:text-black"
+            className="inline-flex items-center gap-2 rounded-full border border-yellow-400/60 px-4 py-2 text-sm font-bold text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
           >
-            <Plus size={18} />
+            <Plus size={17} />
             Agregar plan
           </button>
         </div>

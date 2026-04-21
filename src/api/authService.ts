@@ -10,17 +10,19 @@ const API_URL = "/Auth";
 
 // Para login clásico
 export const login = async (
-  payload: LoginRequest
+  payload: LoginRequest,
 ): Promise<LoginResponseData> => {
   const response = await instance.post<ApiResponse<LoginResponseData>>(
     `${API_URL}/login`,
-    payload
+    payload,
   );
   const result = response.data;
 
   if (!result.Success) {
     throw new Error(
-      result.Message || result.Errors?.[0] || "Usuario o contraseña incorrectos"
+      result.Message ||
+        result.Errors?.[0] ||
+        "Usuario o contraseña incorrectos",
     );
   }
 
@@ -48,7 +50,7 @@ export const loginConGoogle = async (payload: {
       nombre: payload.nombre,
       fotoUrl: payload.fotoUrl,
       proveedorId: payload.proveedorId,
-    }
+    },
   );
 
   console.log("Respuesta completa del login con Google:", response);
@@ -56,7 +58,7 @@ export const loginConGoogle = async (payload: {
 
   if (!result.Success) {
     throw new Error(
-      result.Message || result.Errors?.[0] || "Login con Google fallido"
+      result.Message || result.Errors?.[0] || "Login con Google fallido",
     );
   }
 
@@ -80,7 +82,7 @@ export const loginConGoogle = async (payload: {
 export const register = async (payload: RegisterRequest): Promise<void> => {
   const response = await instance.post<ApiResponse<any>>(
     `${API_URL}/registro`,
-    payload
+    payload,
   );
   const result = response.data;
 
@@ -90,18 +92,18 @@ export const register = async (payload: RegisterRequest): Promise<void> => {
 };
 
 export const verificarUsuarioLogin = async (
-  usuarioLogin: string
+  usuarioLogin: string,
 ): Promise<boolean> => {
   const response = await instance.get<ApiResponse<any>>(
     `${API_URL}/verificar-usuario-login`,
-    { params: { usuarioLogin } }
+    { params: { usuarioLogin } },
   );
 
   const result = response.data;
 
   if (!result.Success) {
     throw new Error(
-      result.Message || result.Errors?.[0] || "Error al verificar usuarioLogin"
+      result.Message || result.Errors?.[0] || "Error al verificar usuarioLogin",
     );
   }
 
@@ -111,14 +113,14 @@ export const verificarUsuarioLogin = async (
 export const cambiarClave = async (payload: any): Promise<any> => {
   const response = await instance.post<ApiResponse<any>>(
     "/Auth/cambiar-clave",
-    payload
+    payload,
   );
 
   const result = response.data;
 
   if (!result.Success) {
     throw new Error(
-      result.Message || result.Errors?.[0] || "Error al cambiar la contraseña"
+      result.Message || result.Errors?.[0] || "Error al cambiar la contraseña",
     );
   }
 

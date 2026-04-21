@@ -44,7 +44,7 @@ const GestionModelos: React.FC = () => {
     try {
       const data = await modelosService.obtenerModelos(
         Number(marcaSeleccionada),
-        false
+        false,
       );
       setModelos(data);
     } finally {
@@ -115,7 +115,7 @@ const GestionModelos: React.FC = () => {
           value={marcaSeleccionada}
           onChange={(e) =>
             setMarcaSeleccionada(
-              e.target.value === "" ? "" : Number(e.target.value)
+              e.target.value === "" ? "" : Number(e.target.value),
             )
           }
           className="w-full md:w-80 bg-gray-900 text-white px-4 py-2 rounded-lg

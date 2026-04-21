@@ -28,7 +28,7 @@ const CambiarClaveModal: React.FC<Props> = ({ open, onClose }) => {
       Swal.fire(
         "Contraseña demasiado corta",
         "La nueva contraseña debe tener al menos 6 caracteres.",
-        "warning"
+        "warning",
       );
       return;
     }

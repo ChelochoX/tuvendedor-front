@@ -85,11 +85,12 @@ export const useCrearPublicacionForm = () => {
   const agregarPlanCredito = () => {
     setForm((prev) => ({
       ...prev,
+      mostrarBotonesCompra: true,
       planCredito: [
         ...prev.planCredito,
         {
-          cuotas: 1,
-          valorCuota: 0,
+          cuotas: "",
+          valorCuota: "",
         },
       ],
     }));
@@ -98,18 +99,21 @@ export const useCrearPublicacionForm = () => {
   const actualizarPlanCredito = (
     index: number,
     campo: "cuotas" | "valorCuota",
-    valor: number,
+    valor: string,
   ) => {
     setForm((prev) => ({
       ...prev,
-      planCredito: prev.planCredito.map((plan, i) =>
-        i === index
-          ? {
-              ...plan,
-              [campo]: valor,
-            }
-          : plan,
-      ),
+      planCredito: prev.planCredito.map((plan, i) => {
+        if (i !== index) return plan;
+
+        return {
+          ...plan,
+          [campo]:
+            campo === "valorCuota"
+              ? formatearPrecioVisual(valor)
+              : valor.replace(/\D/g, ""),
+        };
+      }),
     }));
   };
 

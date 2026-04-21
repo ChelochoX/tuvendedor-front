@@ -91,7 +91,7 @@ const FormularioInteresado: React.FC<Props> = ({
         Swal.fire(
           "Atención",
           "Debe indicar la cantidad de aportes de IPS.",
-          "warning"
+          "warning",
         );
         return;
       }

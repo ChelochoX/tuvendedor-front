@@ -21,10 +21,9 @@ const PublicacionCamposInmuebles: React.FC<Props> = ({
         <h3 className="text-lg font-bold text-yellow-300">
           Detalles inmobiliarios
         </h3>
-
         <p className="text-sm text-gray-400">
-          Estos datos ayudan a cargar mejor una propiedad. Luego podemos
-          persistirlos en una tabla propia para búsquedas avanzadas.
+          Estos datos ayudan a presentar mejor la propiedad. Por ahora se usan
+          para ordenar la carga; luego podemos guardarlos en una tabla propia.
         </p>
       </div>
 

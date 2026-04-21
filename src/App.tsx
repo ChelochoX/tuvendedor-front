@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import RoutesHandler from "./router";
 
-// 👇 Tipamos fbq para que TypeScript no se queje
+// Tipamos fbq para que TypeScript no se queje
 declare global {
   interface Window {
     fbq?: (...args: any[]) => void;
@@ -12,7 +12,7 @@ declare global {
 function App() {
   const location = useLocation();
 
-  // 🔥 AVISAMOS A META CADA CAMBIO DE RUTA
+  // AVISAMOS A META CADA CAMBIO DE RUTA
   useEffect(() => {
     if (window.fbq) {
       window.fbq("track", "PageView");

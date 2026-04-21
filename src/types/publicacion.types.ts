@@ -1,6 +1,6 @@
 export interface PlanCreditoForm {
-  cuotas: number;
-  valorCuota: number;
+  cuotas: string;
+  valorCuota: string;
 }
 
 export interface CamposInmobiliariosForm {

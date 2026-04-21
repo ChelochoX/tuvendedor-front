@@ -14,7 +14,7 @@ const API_URL = "/Clientes";
  * Registrar un nuevo interesado
  */
 export const registrarInteresado = async (
-  payload: InteresadoRequest
+  payload: InteresadoRequest,
 ): Promise<any> => {
   const formData = new FormData();
 
@@ -40,7 +40,7 @@ export const registrarInteresado = async (
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
-    }
+    },
   );
 
   const result = response.data;
@@ -57,11 +57,11 @@ export const registrarInteresado = async (
 };
 
 export const registrarSeguimiento = async (
-  payload: SeguimientoRequest
+  payload: SeguimientoRequest,
 ): Promise<any> => {
   const response = await instance.post<ApiResponse<any>>(
     `${API_URL}/registrar-seguimiento`,
-    payload
+    payload,
   );
 
   const result = response.data;
@@ -89,7 +89,7 @@ interface InteresadosResponse {
 }
 
 export const obtenerInteresados = async (
-  filtros: FiltroInteresadosRequest
+  filtros: FiltroInteresadosRequest,
 ): Promise<{
   totalRegistros: number;
   paginaActual: number;
@@ -98,7 +98,7 @@ export const obtenerInteresados = async (
 }> => {
   const response = await instance.get<ApiResponse<InteresadosResponse>>(
     `${API_URL}/obtener-interesados`,
-    { params: filtros }
+    { params: filtros },
   );
 
   const result = response.data;
@@ -119,11 +119,11 @@ export const obtenerInteresados = async (
 };
 
 export const obtenerSeguimientos = async (
-  idInteresado: number
+  idInteresado: number,
 ): Promise<Seguimiento[]> => {
   const response = await instance.get<ApiResponse<Seguimiento[]>>(
     `${API_URL}/obtener-seguimientos`,
-    { params: { idInteresado } }
+    { params: { idInteresado } },
   );
 
   const result = response.data;
@@ -160,7 +160,7 @@ export const actualizarInteresado = async (interesado: Interesado) => {
     formData,
     {
       headers: { "Content-Type": "multipart/form-data" },
-    }
+    },
   );
 
   return response.data;

@@ -17,6 +17,7 @@ export interface PublicacionPerfilVendedor {
   imagenPrincipal?: string;
   thumbUrl?: string;
   esDestacada?: boolean;
+  imagenes?: string[];
 }
 
 export interface PerfilPublicoVendedor {
@@ -67,10 +68,10 @@ export interface ActualizarMiPerfilVendedorRequest {
 
   correoContacto?: string;
 
-  // ✅ En el front usamos mostrarCorreo
+  //En el front usamos mostrarCorreo
   mostrarCorreo?: boolean;
 
-  // ✅ Lo dejamos opcional por compatibilidad si en algún lado quedó mostrarEmail
+  //Lo dejamos opcional por compatibilidad si en algún lado quedó mostrarEmail
   mostrarEmail?: boolean;
 
   ciudadVisible: string;
@@ -81,3 +82,6 @@ export interface ActualizarMiPerfilVendedorRequest {
   fotoPerfil?: File | null;
   banner?: File | null;
 }
+
+// Alias para componentes nuevos/reutilizables
+export type PerfilPublicoPublicacion = PublicacionPerfilVendedor;

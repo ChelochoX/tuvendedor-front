@@ -1,105 +1,166 @@
 import React, { useMemo, useState } from "react";
-import { Eye, Star } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { PerfilPublicoPublicacion } from "../types/perfilVendedor.types";
+import { Eye, MapPin, Search, SlidersHorizontal, Star } from "lucide-react";
+
+import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
 
 interface Props {
-  publicaciones: PerfilPublicoPublicacion[];
+  publicaciones?: PublicacionPerfilVendedor[];
+  onVerDetalle?: (publicacion: PublicacionPerfilVendedor) => void;
 }
 
-const categoriasBaseInmuebles = [
-  "Terrenos",
-  "Casas",
-  "Departamentos",
-  "Dúplex",
-  "Salones",
-  "Locales",
-  "Oficinas",
-  "Quintas",
-  "Lotes",
-  "Depósitos",
-  "Tinglados",
-  "Campos",
-  "Alquileres",
-  "Locales comerciales",
-  "Propiedades en pozo",
-  "Inversiones",
-  "Monoambientes",
-  "Habitaciones",
-  "Garajes",
+type CategoriaCatalogo = {
+  nombre: string;
+  aliases?: string[];
+};
+
+const CATEGORIAS_CATALOGO: CategoriaCatalogo[] = [
+  { nombre: "Todos" },
+  { nombre: "Terrenos", aliases: ["Terreno"] },
+  { nombre: "Inmuebles", aliases: ["Inmueble"] },
+  {
+    nombre: "Despensa / Bodega",
+    aliases: ["Despensa", "Bodega", "Despensas / Bodegas"],
+  },
+  { nombre: "Casas", aliases: ["Casa"] },
+  { nombre: "Departamentos", aliases: ["Departamento"] },
+  { nombre: "Dúplex", aliases: ["Duplex"] },
+  { nombre: "Salones", aliases: ["Salón", "Salon"] },
+  { nombre: "Locales", aliases: ["Local"] },
+  { nombre: "Oficinas", aliases: ["Oficina"] },
+  { nombre: "Quintas", aliases: ["Quinta"] },
+  { nombre: "Lotes", aliases: ["Lote"] },
+  { nombre: "Depósitos", aliases: ["Deposito", "Depósito"] },
+  { nombre: "Tinglados", aliases: ["Tinglado"] },
+  { nombre: "Campos", aliases: ["Campo"] },
+  { nombre: "Alquileres", aliases: ["Alquiler"] },
+  { nombre: "Locales comerciales", aliases: ["Local comercial"] },
+  { nombre: "Propiedades en pozo", aliases: ["Pozo", "En pozo"] },
+  { nombre: "Inversiones", aliases: ["Inversión", "Inversion"] },
+  { nombre: "Monoambientes", aliases: ["Monoambiente"] },
+  { nombre: "Habitaciones", aliases: ["Habitación", "Habitacion"] },
+  { nombre: "Garajes", aliases: ["Garaje", "Cochera", "Cocheras"] },
 ];
 
-const formatearPrecio = (precio: number, categoria: string) => {
-  const categoriaNormalizada = categoria?.toLowerCase() || "";
+const normalizarTexto = (valor?: string | null): string => {
+  return (valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+};
 
-  const esDolar =
-    categoriaNormalizada.includes("casa") ||
-    categoriaNormalizada.includes("departamento") ||
-    categoriaNormalizada.includes("dúplex") ||
-    categoriaNormalizada.includes("duplex") ||
-    categoriaNormalizada.includes("inmueble") ||
-    categoriaNormalizada.includes("local") ||
-    categoriaNormalizada.includes("oficina") ||
-    categoriaNormalizada.includes("quinta") ||
-    categoriaNormalizada.includes("campo") ||
-    categoriaNormalizada.includes("inversión") ||
-    categoriaNormalizada.includes("inversion");
+const obtenerCategoriaCanonica = (categoria?: string | null): string => {
+  const categoriaNormalizada = normalizarTexto(categoria);
+
+  if (!categoriaNormalizada) return "Sin categoría";
+
+  const encontrada = CATEGORIAS_CATALOGO.find((item) => {
+    const nombreNormalizado = normalizarTexto(item.nombre);
+
+    if (nombreNormalizado === categoriaNormalizada) return true;
+
+    return item.aliases?.some(
+      (alias) => normalizarTexto(alias) === categoriaNormalizada,
+    );
+  });
+
+  return encontrada?.nombre || categoria?.trim() || "Sin categoría";
+};
+
+const perteneceACategoria = (
+  publicacion: PublicacionPerfilVendedor,
+  categoriaActiva: string,
+): boolean => {
+  if (categoriaActiva === "Todos") return true;
+
+  const categoriaPublicacion = obtenerCategoriaCanonica(publicacion.categoria);
+
+  return (
+    normalizarTexto(categoriaPublicacion) === normalizarTexto(categoriaActiva)
+  );
+};
+
+const formatearPrecio = (precio?: number | null): string => {
+  if (!precio || precio <= 0) return "Consultar precio";
 
   return new Intl.NumberFormat("es-PY", {
     style: "currency",
-    currency: esDolar ? "USD" : "PYG",
+    currency: "PYG",
     maximumFractionDigits: 0,
   }).format(precio);
 };
 
-const normalizar = (valor: string) => valor.trim().toLowerCase();
-
-const PerfilVendedorPublicaciones: React.FC<Props> = ({ publicaciones }) => {
-  const navigate = useNavigate();
-  const [categoriaActiva, setCategoriaActiva] = useState<string>("Todos");
+const PerfilVendedorPublicaciones: React.FC<Props> = ({
+  publicaciones = [],
+  onVerDetalle,
+}) => {
+  const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [busqueda, setBusqueda] = useState("");
 
   const categorias = useMemo(() => {
-    const categoriasReales = publicaciones
-      .map((item) => item.categoria?.trim())
-      .filter((categoria): categoria is string => Boolean(categoria));
+    const conteos = new Map<string, number>();
 
-    const mezcladas = [...categoriasReales, ...categoriasBaseInmuebles];
+    CATEGORIAS_CATALOGO.forEach((categoria) => {
+      conteos.set(categoria.nombre, 0);
+    });
 
-    const unicas = mezcladas.filter(
-      (categoria, index, array) =>
-        array.findIndex((x) => normalizar(x) === normalizar(categoria)) ===
-        index,
-    );
+    publicaciones.forEach((publicacion) => {
+      const categoriaCanonica = obtenerCategoriaCanonica(publicacion.categoria);
 
-    return ["Todos", ...unicas];
+      if (!conteos.has(categoriaCanonica)) {
+        conteos.set(categoriaCanonica, 0);
+      }
+
+      conteos.set(categoriaCanonica, (conteos.get(categoriaCanonica) || 0) + 1);
+    });
+
+    conteos.set("Todos", publicaciones.length);
+
+    const categoriasBase = CATEGORIAS_CATALOGO.map((categoria) => ({
+      nombre: categoria.nombre,
+      cantidad: conteos.get(categoria.nombre) || 0,
+    }));
+
+    const categoriasExtras = Array.from(conteos.entries())
+      .filter(
+        ([nombre]) =>
+          !CATEGORIAS_CATALOGO.some(
+            (categoria) =>
+              normalizarTexto(categoria.nombre) === normalizarTexto(nombre),
+          ),
+      )
+      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    return [...categoriasBase, ...categoriasExtras];
   }, [publicaciones]);
 
   const publicacionesFiltradas = useMemo(() => {
-    if (categoriaActiva === "Todos") return publicaciones;
+    const texto = normalizarTexto(busqueda);
 
-    return publicaciones.filter(
-      (item) =>
-        normalizar(item.categoria || "") === normalizar(categoriaActiva),
-    );
-  }, [categoriaActiva, publicaciones]);
+    return publicaciones.filter((item) => {
+      const coincideCategoria = perteneceACategoria(item, categoriaActiva);
 
-  const cantidadPorCategoria = (categoria: string) => {
-    if (categoria === "Todos") return publicaciones.length;
+      const coincideBusqueda =
+        !texto ||
+        normalizarTexto(item.titulo).includes(texto) ||
+        normalizarTexto(item.descripcion).includes(texto) ||
+        normalizarTexto(item.categoria).includes(texto) ||
+        normalizarTexto(item.ubicacion).includes(texto);
 
-    return publicaciones.filter(
-      (item) => normalizar(item.categoria || "") === normalizar(categoria),
-    ).length;
-  };
+      return coincideCategoria && coincideBusqueda;
+    });
+  }, [busqueda, categoriaActiva, publicaciones]);
 
   if (!publicaciones.length) {
     return (
-      <section id="catalogo" className="px-5 pt-4 pb-10 sm:px-8 sm:pt-5">
-        <div className="mx-auto max-w-5xl rounded-3xl border border-white/10 bg-gray-900 p-8 text-center text-gray-300">
-          <h2 className="text-xl font-bold text-white">
-            Todavía no hay publicaciones activas
-          </h2>
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center">
+          <p className="text-xl font-black text-white">
+            Esta vitrina todavía no tiene publicaciones activas.
+          </p>
           <p className="mt-2 text-sm text-gray-400">
-            Cuando este vendedor cargue productos, aparecerán en esta vitrina.
+            Cuando el vendedor cargue productos, aparecerán en esta sección.
           </p>
         </div>
       </section>
@@ -107,135 +168,165 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({ publicaciones }) => {
   }
 
   return (
-    <section id="catalogo" className="px-5 pt-4 pb-10 sm:px-8 sm:pt-4 lg:pt-2">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-5">
-          <h2 className="text-2xl font-extrabold text-white sm:text-3xl">
+    <section className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-yellow-300 ring-1 ring-yellow-400/20">
+            <SlidersHorizontal size={14} />
+            Catálogo
+          </p>
+
+          <h2 className="mt-3 text-3xl font-black text-white">
             Productos disponibles
           </h2>
+
           <p className="mt-1 text-sm text-gray-400">
-            Filtrá las publicaciones por tipo de producto.
+            Filtrá las publicaciones por tipo de producto o buscá por nombre,
+            categoría o ubicación.
           </p>
         </div>
 
-        {/* Chips de categorías visibles, sin scroll */}
-        <div className="mb-7 flex flex-wrap gap-2">
-          {categorias.map((categoria) => {
-            const activo = categoriaActiva === categoria;
-            const cantidad = cantidadPorCategoria(categoria);
-            const sinPublicaciones = cantidad === 0;
+        <div className="relative w-full lg:max-w-sm">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+          />
+
+          <input
+            value={busqueda}
+            onChange={(event) => setBusqueda(event.target.value)}
+            placeholder="Buscar publicación..."
+            className="w-full rounded-2xl border border-yellow-400/40 bg-white/[0.06] py-3 pl-11 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400 focus:bg-white/[0.09]"
+          />
+        </div>
+      </div>
+
+      <div className="mb-7 flex flex-wrap gap-2">
+        {categorias.map((categoria) => {
+          const activo = categoriaActiva === categoria.nombre;
+          const sinResultados =
+            categoria.cantidad === 0 && categoria.nombre !== "Todos";
+
+          return (
+            <button
+              key={categoria.nombre}
+              type="button"
+              onClick={() => setCategoriaActiva(categoria.nombre)}
+              className={[
+                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition",
+                activo
+                  ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20"
+                  : "border border-white/10 bg-white/[0.05] text-gray-300 hover:bg-white/[0.09] hover:text-white",
+                sinResultados ? "opacity-55" : "",
+              ].join(" ")}
+            >
+              {categoria.nombre}
+              <span
+                className={[
+                  "rounded-full px-2 py-0.5 text-[10px]",
+                  activo ? "bg-black/15" : "bg-black/30 text-gray-400",
+                ].join(" ")}
+              >
+                {categoria.cantidad}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {!publicacionesFiltradas.length ? (
+        <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center">
+          <p className="font-black text-white">No encontramos publicaciones.</p>
+          <p className="mt-2 text-sm text-gray-400">
+            Probá con otra categoría o cambiá el texto de búsqueda.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {publicacionesFiltradas.map((item) => {
+            const imagen =
+              item.imagenPrincipal ||
+              item.thumbUrl ||
+              "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900";
 
             return (
-              <button
-                key={categoria}
-                onClick={() => setCategoriaActiva(categoria)}
-                className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-extrabold transition-all sm:text-sm ${
-                  activo
-                    ? "border-yellow-400 bg-yellow-400 text-black shadow-lg"
-                    : sinPublicaciones
-                      ? "border-white/5 bg-white/[0.03] text-gray-500 hover:border-yellow-400/30 hover:bg-yellow-400/5 hover:text-yellow-300"
-                      : "border-white/10 bg-white/5 text-gray-300 hover:border-yellow-400/60 hover:bg-yellow-400/10 hover:text-yellow-300"
-                }`}
+              <article
+                key={item.id}
+                onClick={() => onVerDetalle?.(item)}
+                className="group cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-[#101722] shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-yellow-400/40 hover:shadow-yellow-400/10"
               >
-                <span className="whitespace-nowrap">{categoria}</span>
+                <div className="relative aspect-[16/10] overflow-hidden bg-black">
+                  <img
+                    src={imagen}
+                    alt={item.titulo}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                  />
 
-                <span
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-black ${
-                    activo
-                      ? "bg-black/15 text-black"
-                      : sinPublicaciones
-                        ? "bg-white/5 text-gray-600"
-                        : "bg-white/10 text-gray-400"
-                  }`}
-                >
-                  {cantidad}
-                </span>
-              </button>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
+
+                  <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                    {item.esDestacada && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-black text-black">
+                        <Star size={12} fill="currentColor" />
+                        Destacado
+                      </span>
+                    )}
+                  </div>
+
+                  {item.categoria && (
+                    <span className="absolute right-3 top-3 rounded-full bg-black/70 px-3 py-1 text-[11px] font-black text-white ring-1 ring-white/10">
+                      {item.categoria}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex min-h-[210px] flex-col p-4">
+                  <h3 className="line-clamp-2 text-lg font-black leading-tight text-white">
+                    {item.titulo}
+                  </h3>
+
+                  <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-400">
+                    {item.descripcion ||
+                      "Publicación disponible en esta vitrina."}
+                  </p>
+
+                  {item.ubicacion && (
+                    <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-gray-400">
+                      <MapPin size={14} className="text-yellow-300" />
+                      {item.ubicacion}
+                    </p>
+                  )}
+
+                  <div className="mt-auto flex items-end justify-between gap-3 pt-5">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wide text-yellow-300">
+                        Precio
+                      </p>
+                      <p className="mt-1 text-xl font-black text-yellow-300">
+                        {formatearPrecio(item.precio)}
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onVerDetalle?.(item);
+                      }}
+                      className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black text-white transition hover:bg-yellow-400 hover:text-black"
+                    >
+                      <Eye size={15} />
+                      Ver más
+                    </button>
+                  </div>
+                </div>
+              </article>
             );
           })}
         </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {publicacionesFiltradas.map((item) => (
-            <article
-              key={item.id}
-              className="group overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-xl transition hover:-translate-y-1 hover:border-yellow-400/40"
-            >
-              <div className="relative h-56 overflow-hidden">
-                <img
-                  src={
-                    item.thumbUrl ||
-                    item.imagenPrincipal ||
-                    "https://images.unsplash.com/photo-1560518883-ce09059eeffa"
-                  }
-                  alt={item.titulo}
-                  className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-105"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
-
-                {item.esDestacada && (
-                  <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-yellow-400 px-3 py-1 text-xs font-extrabold text-black shadow-lg">
-                    <Star size={13} />
-                    Destacado
-                  </span>
-                )}
-
-                {item.categoria && (
-                  <span className="absolute right-3 top-3 rounded-full bg-black/65 px-3 py-1 text-xs font-bold text-white backdrop-blur">
-                    {item.categoria}
-                  </span>
-                )}
-              </div>
-
-              <div className="p-4">
-                <h3 className="line-clamp-1 text-lg font-extrabold text-white">
-                  {item.titulo}
-                </h3>
-
-                <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-400">
-                  {item.descripcion}
-                </p>
-
-                {item.ubicacion && (
-                  <p className="mt-2 text-xs font-semibold text-gray-500">
-                    {item.ubicacion}
-                  </p>
-                )}
-
-                <div className="mt-5 flex items-center justify-between gap-3">
-                  <p className="text-lg font-black text-yellow-300">
-                    {formatearPrecio(item.precio, item.categoria)}
-                  </p>
-
-                  <button
-                    onClick={() => navigate(`/producto/${item.id}`)}
-                    className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-yellow-400 hover:text-black"
-                  >
-                    <Eye size={15} />
-                    Ver más
-                  </button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        {!publicacionesFiltradas.length && (
-          <div className="mt-8 rounded-3xl border border-white/10 bg-gray-900 p-8 text-center">
-            <h3 className="text-lg font-bold text-white">
-              No hay publicaciones en esta categoría
-            </h3>
-            <p className="mt-2 text-sm text-gray-400">
-              Este vendedor todavía no tiene publicaciones cargadas en{" "}
-              <span className="font-bold text-yellow-300">
-                {categoriaActiva}
-              </span>
-              .
-            </p>
-          </div>
-        )}
-      </div>
+      )}
     </section>
   );
 };

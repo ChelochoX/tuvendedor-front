@@ -3,87 +3,762 @@
 @tailwind utilities;
 
 :root {
-  /* Puedes definir colores o variables globales si es necesario */
+  --tv-bg: #05070b;
+  --tv-panel: #101318;
+  --tv-panel-soft: #141821;
+  --tv-border: rgba(255, 255, 255, 0.1);
+  --tv-gold: #d6b33f;
+  --tv-green: #22a66b;
 }
 
-/* Estilos globales */
+/* =========================
+   Base global / nitidez
+   ========================= */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
 body {
-  background-color: #1a1a1a !important; /* el fondo original de TuVendedor */
+  background-color: #1a1a1a !important;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
 }
 
-/* Estilos para el carrusel */
-.carrusel-container img:hover {
-  @apply transform scale-110 transition-transform duration-300 ease-in-out;
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+img {
+  image-rendering: auto;
+}
+
+/* Ocultar scrollbar */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================
+   Carrusel existente
+   ========================= */
+.carrusel-section {
+  position: relative;
+}
+
+.carrusel-viewport {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.carrusel-track {
+  max-width: 100%;
+  padding-bottom: 6px;
+  scroll-snap-type: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 .carrusel-container {
   @apply flex justify-center items-center overflow-hidden;
 }
 
-/* Estilo para el sidebar */
-.sidebar {
-  @apply bg-gray-100 p-5 rounded-lg; /* Fondo, padding y bordes redondeados */
-  position: fixed; /* Fija el sidebar para que flote */
-  top: 20px; /* Espaciado desde la parte superior */
-  left: 20px; /* Espaciado desde el lado izquierdo */
-  max-height: calc(
-    100vh - 40px
-  ); /* Para asegurarse de que no sea más alto que la ventana */
-  overflow-y: hidden; /* Permite desplazamiento si hay muchos elementos */
+.carrusel-container img:hover {
+  @apply transform scale-110 transition-transform duration-300 ease-in-out;
 }
 
-/* Sombra opcional para darle un efecto flotante */
-.sidebar {
-  @apply shadow-lg;
+.carrusel-fade {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 72px;
+  pointer-events: none;
+  z-index: 4;
 }
 
-/* Animaciones personalizadas para el botón de sacudida */
+.carrusel-fade-left {
+  left: 0;
+  background: linear-gradient(
+    to right,
+    rgba(30, 31, 35, 1),
+    rgba(30, 31, 35, 0)
+  );
+}
+
+.carrusel-fade-right {
+  right: 0;
+  background: linear-gradient(
+    to left,
+    rgba(30, 31, 35, 1),
+    rgba(30, 31, 35, 0)
+  );
+}
+
+.carrusel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6;
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  background: #facc15;
+  color: #111827;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.carrusel-left {
+  left: 8px;
+}
+
+.carrusel-right {
+  right: 8px;
+}
+
+@media (max-width: 767.98px) {
+  .carrusel-arrow {
+    display: none !important;
+  }
+}
+
+/* =========================
+   Sidebar existente
+   ========================= */
+.sidebar {
+  @apply bg-gray-100 p-5 rounded-lg shadow-lg;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  max-height: calc(100vh - 40px);
+  overflow-y: hidden;
+}
+
+/* =========================
+   Modal vitrina premium
+   ========================= */
+.tv-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.86);
+  backdrop-filter: blur(2px);
+  padding: 20px;
+}
+
+.tv-detail-shell {
+  min-height: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-detail-card {
+  position: relative;
+  width: 100%;
+  height: 91vh;
+  display: flex;
+  overflow: hidden;
+  border-radius: 26px;
+  border: 1px solid var(--tv-border);
+  background: #07090d;
+  color: white;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+}
+
+.tv-detail-close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  z-index: 50;
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  border: 1px solid var(--tv-border);
+  background: rgba(0, 0, 0, 0.72);
+  color: var(--tv-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+
+.tv-detail-close:hover {
+  background: #171b21;
+  transform: scale(1.04);
+}
+
+.tv-detail-media {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background: #000;
+  display: flex;
+}
+
+.tv-detail-media-blur {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.tv-detail-media-blur img {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 27%;
+  object-fit: cover;
+  opacity: 0.22;
+  filter: blur(34px);
+  transform: scale(1.08);
+}
+
+.tv-detail-media-blur img:first-child {
+  left: 0;
+}
+
+.tv-detail-media-blur img:last-child {
+  right: 0;
+}
+
+.tv-detail-media-inner {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tv-detail-image-area {
+  flex: 1;
+  min-height: 0;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tv-detail-main-image {
+  width: 100%;
+  max-width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  image-rendering: auto;
+}
+
+.tv-detail-badge {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 20;
+  border: 1px solid var(--tv-border);
+  background: rgba(19, 24, 32, 0.92);
+  color: #f1f5f9;
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.tv-detail-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 30;
+  width: 42px;
+  height: 42px;
+  transform: translateY(-50%);
+  border-radius: 9999px;
+  border: 1px solid var(--tv-border);
+  background: rgba(0, 0, 0, 0.72);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease;
+}
+
+.tv-detail-arrow:hover {
+  color: var(--tv-gold);
+  background: rgba(18, 22, 28, 0.95);
+}
+
+.tv-detail-arrow-left {
+  left: 16px;
+}
+
+.tv-detail-arrow-right {
+  right: 16px;
+}
+
+.tv-detail-thumbs {
+  border-top: 1px solid var(--tv-border);
+  background: #0d1014;
+  padding: 14px 18px;
+}
+
+.tv-detail-thumbs-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.tv-detail-thumb {
+  flex: 0 0 auto;
+  width: 86px;
+  height: 66px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--tv-border);
+  opacity: 0.72;
+  transition:
+    opacity 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.tv-detail-thumb:hover {
+  opacity: 1;
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.tv-detail-thumb-active {
+  opacity: 1;
+  border-color: var(--tv-gold);
+}
+
+.tv-detail-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tv-detail-info {
+  width: 420px;
+  flex: 0 0 420px;
+  overflow-y: auto;
+  border-left: 1px solid var(--tv-border);
+  background: var(--tv-panel);
+  padding: 26px;
+}
+
+.tv-detail-kicker {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.tv-detail-title {
+  margin-top: 8px;
+  color: #fff;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.tv-detail-location-line {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #d1d5db;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.tv-detail-price-card {
+  margin-top: 20px;
+  border-radius: 20px;
+  border: 1px solid rgba(214, 179, 63, 0.16);
+  background: #17150f;
+  padding: 16px 18px;
+}
+
+.tv-detail-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--tv-gold);
+}
+
+.tv-detail-price {
+  margin-top: 8px;
+  color: #fff;
+  font-size: 27px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.tv-detail-grid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tv-detail-mini-card,
+.tv-detail-section {
+  border-radius: 18px;
+  border: 1px solid var(--tv-border);
+  background: var(--tv-panel-soft);
+}
+
+.tv-detail-mini-card {
+  padding: 15px;
+}
+
+.tv-detail-muted-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.tv-detail-mini-text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 500;
+  color: #fff;
+}
+
+.tv-detail-section {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.tv-detail-section-title {
+  color: #fff;
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.tv-detail-description {
+  margin-top: 10px;
+  color: #e5e7eb;
+  font-size: 14px;
+  line-height: 1.72;
+  font-weight: 400;
+  white-space: pre-line;
+}
+
+.tv-detail-map-button {
+  margin-top: 14px;
+  width: 100%;
+  min-height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(214, 179, 63, 0.2);
+  background: #182018;
+  color: var(--tv-gold);
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 180ms ease;
+}
+
+.tv-detail-map-button:hover {
+  background: #1e281d;
+}
+
+.tv-detail-seller {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.tv-detail-seller-avatar {
+  width: 48px;
+  height: 48px;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--tv-border);
+  background: #1a1f27;
+}
+
+.tv-detail-seller-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tv-detail-seller-name {
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-detail-seller-meta {
+  margin-top: 3px;
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tv-detail-actions {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--tv-border);
+  display: grid;
+  gap: 10px;
+}
+
+.tv-detail-action-button {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 15px;
+  padding: 0 18px;
+  font-size: 14px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition:
+    background-color 180ms ease,
+    transform 180ms ease,
+    border-color 180ms ease;
+}
+
+.tv-detail-action-button:hover {
+  transform: translateY(-1px);
+}
+
+.tv-detail-action-whatsapp {
+  border: 1px solid #2f8d63;
+  background: #22a66b;
+  color: #fff;
+}
+
+.tv-detail-action-whatsapp:hover {
+  background: #28b875;
+}
+
+.tv-detail-action-visit {
+  border: 1px solid #b98c13;
+  background: #d3a71e;
+  color: #171717;
+}
+
+.tv-detail-action-visit:hover {
+  background: #dfb22a;
+}
+
+/* Mobile: imagen grande arriba + panel cómodo */
+@media (max-width: 1023.98px) {
+  .tv-detail-overlay {
+    padding: 10px;
+  }
+
+  .tv-detail-shell {
+    align-items: flex-start;
+  }
+
+  .tv-detail-card {
+    height: auto;
+    min-height: calc(100vh - 20px);
+    flex-direction: column;
+    border-radius: 18px;
+  }
+
+  .tv-detail-media {
+    flex: 0 0 auto;
+    min-height: unset;
+    height: auto;
+  }
+
+  .tv-detail-media-blur {
+    display: none;
+  }
+
+  .tv-detail-image-area {
+    padding: 12px;
+    min-height: 0;
+    height: auto;
+    background: #000;
+  }
+
+  .tv-detail-main-image {
+    width: 100%;
+    max-height: none;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+  }
+
+  .tv-detail-thumbs {
+    padding: 10px 12px;
+  }
+
+  .tv-detail-thumb {
+    width: 64px;
+    height: 54px;
+    border-radius: 8px;
+  }
+
+  .tv-detail-info {
+    width: 100%;
+    flex-basis: auto;
+    border-left: 0;
+    border-top: 1px solid var(--tv-border);
+    padding: 18px;
+    overflow-y: visible;
+  }
+
+  .tv-detail-title {
+    font-size: 24px;
+    line-height: 1.16;
+  }
+
+  .tv-detail-price-card {
+    margin-top: 16px;
+    padding: 15px;
+  }
+
+  .tv-detail-price {
+    font-size: 24px;
+  }
+
+  .tv-detail-grid {
+    gap: 10px;
+  }
+
+  .tv-detail-section {
+    margin-top: 12px;
+    padding: 15px;
+  }
+
+  .tv-detail-section-title {
+    font-size: 16px;
+  }
+
+  .tv-detail-description {
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+
+  .tv-detail-actions {
+    position: sticky;
+    bottom: 0;
+    margin-left: -18px;
+    margin-right: -18px;
+    padding: 12px 18px 14px;
+    background: rgba(16, 19, 24, 0.96);
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* =========================
+   Scroll elegante
+   ========================= */
+.scroll-elegante::-webkit-scrollbar,
+.tv-detail-info::-webkit-scrollbar,
+.tv-detail-thumbs-scroll::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.scroll-elegante::-webkit-scrollbar-track,
+.tv-detail-info::-webkit-scrollbar-track,
+.tv-detail-thumbs-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scroll-elegante::-webkit-scrollbar-thumb,
+.tv-detail-info::-webkit-scrollbar-thumb,
+.tv-detail-thumbs-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(214, 179, 63, 0.55);
+  border-radius: 10px;
+}
+
+.scroll-elegante::-webkit-scrollbar-thumb:hover,
+.tv-detail-info::-webkit-scrollbar-thumb:hover,
+.tv-detail-thumbs-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(214, 179, 63, 0.9);
+}
+
+.scroll-elegante,
+.tv-detail-info,
+.tv-detail-thumbs-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(214, 179, 63, 0.55) transparent;
+}
+
+/* =========================
+   Animaciones existentes
+   ========================= */
 @keyframes shake {
-  0% {
-    transform: translate(1px, 1px) rotate(0deg);
+  0%,
+  100% {
+    transform: translateX(0);
   }
-  10% {
-    transform: translate(-1px, -2px) rotate(-1deg);
-  }
-  20% {
-    transform: translate(-3px, 0px) rotate(1deg);
-  }
-  30% {
-    transform: translate(3px, 2px) rotate(0deg);
-  }
-  40% {
-    transform: translate(1px, -1px) rotate(1deg);
+  25% {
+    transform: translateX(-5px);
   }
   50% {
-    transform: translate(-1px, 2px) rotate(-1deg);
+    transform: translateX(5px);
   }
-  60% {
-    transform: translate(-3px, 1px) rotate(0deg);
-  }
-  70% {
-    transform: translate(3px, 1px) rotate(-1deg);
-  }
-  80% {
-    transform: translate(-1px, -1px) rotate(1deg);
-  }
-  90% {
-    transform: translate(1px, 2px) rotate(0deg);
-  }
-  100% {
-    transform: translate(1px, -2px) rotate(-1deg);
+  75% {
+    transform: translateX(-5px);
   }
 }
 
 .animate-shake {
-  animation: shake 0.5s;
-  animation-iteration-count: infinite;
+  animation: shake 0.5s ease-in-out infinite;
 }
 
-/* Clase para pausar la sacudida cuando no esté activa */
 .animate-shake-pause {
   animation-play-state: paused;
 }
-/* Animación de confetti */
+
 @keyframes confetti {
   0% {
     transform: rotate(0deg);
@@ -110,38 +785,13 @@ body {
   overflow: hidden;
   position: relative;
   height: 30px;
-  width: 100%; /* Aseguramos que ocupe todo el ancho */
+  width: 100%;
 }
 
 .marquee {
   display: flex;
   white-space: nowrap;
-  animation: scroll 20s linear infinite; /* Ajustar la velocidad */
-}
-
-.marquee-item {
-  padding-left: 5vw; /* Reducir el espaciado entre los mensajes */
-  display: inline-block; /* Mantener los mensajes en línea */
-}
-
-@media (max-width: 768px) {
-  .marquee {
-    animation: scroll 15s linear infinite; /* Aumentar la velocidad en móviles */
-  }
-
-  .marquee-item {
-    font-size: 0.85rem; /* Ajustar el tamaño de la fuente en móviles */
-    padding-left: 2vw; /* Reducir el espacio entre mensajes */
-  }
-}
-
-@keyframes scroll {
-  0% {
-    transform: translateX(100%); /* Empieza desde fuera del contenedor */
-  }
-  100% {
-    transform: translateX(-100%); /* Termina fuera del contenedor */
-  }
+  animation: scroll 20s linear infinite;
 }
 
 .marquee-item {
@@ -150,52 +800,42 @@ body {
 }
 
 .marquee-item:nth-child(1) {
-  color: #ffd700; /* Amarillo */
+  color: #ffd700;
   font-weight: bold;
 }
 
 .marquee-item:nth-child(2) {
-  color: #32cd32; /* Verde Lima */
+  color: #32cd32;
 }
 
 .marquee-item:nth-child(3) {
-  color: #ffa500; /* Naranja brillante */
+  color: #ffa500;
 }
 
-/* Efectos hover opcionales para mayor interacción */
 .marquee-item:hover {
   text-shadow: 2px 2px 8px rgba(255, 255, 255, 0.7);
 }
 
 @media (max-width: 768px) {
+  .marquee {
+    animation: scroll 15s linear infinite;
+  }
+
   .marquee-item {
     font-size: 0.85rem;
     padding-left: 2vw;
   }
 }
 
-/* Animación de sacudida para el botón */
-@keyframes shake {
-  0%,
+@keyframes scroll {
+  0% {
+    transform: translateX(100%);
+  }
   100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  50% {
-    transform: translateX(5px);
-  }
-  75% {
-    transform: translateX(-5px);
+    transform: translateX(-100%);
   }
 }
 
-.animate-shake {
-  animation: shake 0.5s ease-in-out infinite;
-}
-
-/* Animación de rebote para la flecha */
 @keyframes bounce {
   0%,
   100% {
@@ -226,7 +866,7 @@ body {
   }
 }
 
-/* 🔸 Flechas amarillas pero sin bloquear entrada */
+/* Inputs number */
 .custom-number-input::-webkit-inner-spin-button,
 .custom-number-input::-webkit-outer-spin-button {
   opacity: 1;
@@ -235,7 +875,6 @@ body {
     brightness(110%) contrast(105%);
 }
 
-/* Firefox */
 .custom-number-input {
   -moz-appearance: textfield;
 }
@@ -246,33 +885,7 @@ body {
     brightness(110%) contrast(105%);
 }
 
-/* 🎨 Scroll elegante exclusivo del panel de categorías */
-.scroll-elegante::-webkit-scrollbar {
-  width: 1px;
-}
-
-.scroll-elegante::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scroll-elegante::-webkit-scrollbar-thumb {
-  background-color: rgba(250, 204, 21, 0.7); /* amarillo TuVendedor */
-  border-radius: 10px;
-  /* TRUCO: el thumb real mide 2px y está centrado */
-  border-left: 2px solid transparent;
-  border-right: 2px solid transparent;
-}
-
-.scroll-elegante::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(250, 204, 21, 1);
-}
-
-/* Firefox */
-.scroll-elegante {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(250, 204, 21, 0.7) transparent;
-}
-
+/* Animaciones popup */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -314,26 +927,26 @@ body {
   color: white;
 }
 
-/* 🔥 Ajuste general para móvil — NO rompe nada */
-@media (max-width: 640px) {
-  html {
-    font-size: 14px; /* antes 16px */
-  }
-
-  body {
-    --padding-mobile: 0.75rem;
-    --radius-mobile: 0.6rem;
-  }
+/* Ajustes móviles sin tocar font-size global */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
 }
 
-/* 🔥 Ajuste de alto SOLO para móvil en el panel de categorías */
+body {
+  --padding-mobile: 0.75rem;
+  --radius-mobile: 0.6rem;
+}
+
 @media (max-width: 768px) {
   .categorias-mobile-altura {
     height: 55vh !important;
   }
 }
 
-/* Estilos para resaltar texto en ProductoCard */
+/* ProductoCard */
 .promo-glow {
   animation: promoPulse 1.8s ease-in-out infinite;
   box-shadow: 0 0 8px rgba(250, 204, 21, 0.8);

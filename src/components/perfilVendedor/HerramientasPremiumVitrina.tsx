@@ -606,8 +606,8 @@ Quedo atento/a a cualquier consulta.`,
                           Imagen de la publicación
                         </p>
                         <p className="mt-1 text-xs leading-relaxed text-gray-500">
-                          Para que WhatsApp muestre la imagen automáticamente,
-                          luego usaremos Open Graph en el link del producto.
+                          WhatsApp mostrará esta imagen como vista previa cuando
+                          el enlace público esté disponible en producción.
                         </p>
                       </div>
                     </div>
@@ -638,11 +638,17 @@ Quedo atento/a a cualquier consulta.`,
 
                     <button
                       type="button"
-                      onClick={compartirCampaniaConImagen}
+                      onClick={() =>
+                        copiarTexto(
+                          mensajeActual,
+                          "Campaña copiada",
+                          "El enlace público permitirá que WhatsApp muestre la vista previa con imagen.",
+                        )
+                      }
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-400/30 bg-blue-500/15 px-4 py-3 font-black text-blue-100 transition hover:bg-blue-500 hover:text-white"
                     >
                       <Share2 size={18} />
-                      Compartir con imagen
+                      Copiar enlace con preview
                     </button>
                   </aside>
                 </div>

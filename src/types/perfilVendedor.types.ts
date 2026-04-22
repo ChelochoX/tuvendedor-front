@@ -17,6 +17,11 @@ export interface PublicacionPerfilVendedor {
   imagenPrincipal?: string;
   thumbUrl?: string;
   esDestacada?: boolean;
+
+  latitud?: number | null;
+  longitud?: number | null;
+  googleMapsUrl?: string | null;
+
   imagenes?: string[];
 }
 
@@ -49,7 +54,7 @@ export interface PerfilPublicoVendedor {
 
   mostrarTelefono: boolean;
 
-  // ✅ Nuevo campo para controlar si se muestra el correo
+  // Nuevo campo para controlar si se muestra el correo
   mostrarCorreo: boolean;
 
   cantidadPublicaciones: number;

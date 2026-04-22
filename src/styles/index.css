@@ -1137,3 +1137,25 @@ textarea.premium-scroll::-webkit-scrollbar-thumb {
     transform: scale(1);
   }
 }
+
+/* =========================================================
+   FIX FINAL - OCULTAR TODA SCROLLBAR MIENTRAS EL MODAL ESTÁ ABIERTO
+   ========================================================= */
+
+body.tv-modal-vitrina-open,
+body.tv-modal-vitrina-open * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+body.tv-modal-vitrina-open::-webkit-scrollbar,
+body.tv-modal-vitrina-open *::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+  background: transparent !important;
+}
+
+body.tv-modal-vitrina-open {
+  overflow: hidden !important;
+}

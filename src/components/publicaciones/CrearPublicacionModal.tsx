@@ -1,10 +1,10 @@
 import React, { FormEvent, useMemo, useState } from "react";
 import {
   CheckCircle2,
+  ExternalLink,
   ImagePlus,
   LocateFixed,
   MapPin,
-  Navigation,
   Store,
   Wand2,
   X,
@@ -44,6 +44,39 @@ type UbicacionGpsForm = {
   latitud: string;
   longitud: string;
   googleMapsUrl: string;
+};
+
+const normalizarCoordenada = (valor?: string): string => {
+  if (!valor) return "";
+
+  const texto = valor.trim().replace(",", ".");
+  const numero = Number(texto);
+
+  if (Number.isNaN(numero)) return "";
+
+  return numero.toFixed(6);
+};
+
+const coordenadaParaBackend = (valor?: string): string => {
+  const normalizada = normalizarCoordenada(valor);
+
+  if (!normalizada) return "";
+
+  // Tu backend/model binder interpreta coma como decimal.
+  return normalizada.replace(".", ",");
+};
+
+const construirGoogleMapsUrl = (
+  latitud?: string,
+  longitud?: string,
+): string => {
+  const lat = normalizarCoordenada(latitud);
+  const lng = normalizarCoordenada(longitud);
+
+  if (!lat || !lng) return "";
+
+  // Google Maps necesita punto decimal.
+  return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
 const CrearPublicacionModal: React.FC<Props> = ({
@@ -96,6 +129,17 @@ const CrearPublicacionModal: React.FC<Props> = ({
     return categoriasGenerales.map((nombre) => ({ nombre }));
   }, [categorias, rubroVendedor]);
 
+  const googleMapsUrlFinal = useMemo(() => {
+    const urlPorCoordenadas = construirGoogleMapsUrl(
+      ubicacionGps.latitud,
+      ubicacionGps.longitud,
+    );
+
+    if (urlPorCoordenadas) return urlPorCoordenadas;
+
+    return ubicacionGps.googleMapsUrl.trim();
+  }, [ubicacionGps.latitud, ubicacionGps.longitud, ubicacionGps.googleMapsUrl]);
+
   if (!modalAbierto) return null;
 
   const validarFormulario = () => {
@@ -125,16 +169,21 @@ const CrearPublicacionModal: React.FC<Props> = ({
     campo: keyof UbicacionGpsForm,
     valor: string,
   ) => {
-    setUbicacionGps((actual) => ({
-      ...actual,
-      [campo]: valor,
-    }));
-  };
+    setUbicacionGps((actual) => {
+      const actualizado = {
+        ...actual,
+        [campo]: valor,
+      };
 
-  const generarGoogleMapsUrl = (latitud: string, longitud: string) => {
-    if (!latitud || !longitud) return "";
+      if (campo === "latitud" || campo === "longitud") {
+        actualizado.googleMapsUrl = construirGoogleMapsUrl(
+          actualizado.latitud,
+          actualizado.longitud,
+        );
+      }
 
-    return `https://www.google.com/maps?q=${latitud},${longitud}`;
+      return actualizado;
+    });
   };
 
   const usarUbicacionActual = () => {
@@ -156,7 +205,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
       (position) => {
         const latitud = position.coords.latitude.toFixed(6);
         const longitud = position.coords.longitude.toFixed(6);
-        const googleMapsUrl = generarGoogleMapsUrl(latitud, longitud);
+        const googleMapsUrl = construirGoogleMapsUrl(latitud, longitud);
 
         setUbicacionGps({
           latitud,
@@ -196,11 +245,11 @@ const CrearPublicacionModal: React.FC<Props> = ({
     );
   };
 
-  const handleGenerarLinkMaps = () => {
-    if (!ubicacionGps.latitud || !ubicacionGps.longitud) {
+  const abrirMapa = () => {
+    if (!googleMapsUrlFinal) {
       Swal.fire({
-        title: "Faltan coordenadas",
-        text: "Ingresá latitud y longitud para generar el enlace.",
+        title: "Ubicación no cargada",
+        text: "Ingresá latitud y longitud, pegá un enlace de Google Maps o usá tu ubicación actual.",
         icon: "info",
         confirmButtonColor: "#facc15",
         background: "#111827",
@@ -209,15 +258,31 @@ const CrearPublicacionModal: React.FC<Props> = ({
       return;
     }
 
-    const googleMapsUrl = generarGoogleMapsUrl(
-      ubicacionGps.latitud,
-      ubicacionGps.longitud,
-    );
+    window.open(googleMapsUrlFinal, "_blank", "noopener,noreferrer");
+  };
 
-    setUbicacionGps((actual) => ({
-      ...actual,
-      googleMapsUrl,
-    }));
+  const mostrarModalCreando = () => {
+    Swal.fire({
+      title: "Creando publicación",
+      html: `
+        <div style="padding-top: 6px;">
+          <p style="margin: 0; color: #cbd5e1; font-size: 14px;">
+            Estamos guardando los datos, subiendo las imágenes y preparando tu vitrina.
+          </p>
+          <p style="margin: 10px 0 0; color: #facc15; font-size: 13px; font-weight: 600;">
+            Aguardá un momento...
+          </p>
+        </div>
+      `,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      background: "#111827",
+      color: "#ffffff",
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -239,17 +304,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     try {
       setGuardando(true);
+      mostrarModalCreando();
 
       const formData = crearFormDataPublicacion(form);
 
-      /**
-       * Nuevos campos GPS.
-       * El backend puede ignorarlos si aún no están mapeados.
-       * Cuando se agreguen en el request/backend, ya estarán llegando.
-       */
-      formData.append("Latitud", ubicacionGps.latitud ?? "");
-      formData.append("Longitud", ubicacionGps.longitud ?? "");
-      formData.append("GoogleMapsUrl", ubicacionGps.googleMapsUrl ?? "");
+      const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
+      const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
+
+      formData.append("Latitud", latitudBackend);
+      formData.append("Longitud", longitudBackend);
+      formData.append("GoogleMapsUrl", googleMapsUrlFinal);
 
       await crearPublicacion(formData);
 
@@ -382,8 +446,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
                       Ubicación exacta / GPS
                     </h3>
                     <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
-                      Agregá coordenadas o un enlace de Google Maps. Esto ayuda
-                      muchísimo para visitas y propiedades.
+                      Si estás en el inmueble, usá tu ubicación actual. Si no,
+                      pegá un enlace de Google Maps o cargá latitud y longitud.
                     </p>
                   </div>
                 </div>
@@ -395,7 +459,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     onChange={(event) =>
                       actualizarUbicacionGps("latitud", event.target.value)
                     }
-                    placeholder="Latitud (ej: -25.263739)"
+                    placeholder="Latitud (ej: -25.289724)"
                     className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
                   />
 
@@ -405,29 +469,35 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     onChange={(event) =>
                       actualizarUbicacionGps("longitud", event.target.value)
                     }
-                    placeholder="Longitud (ej: -57.575926)"
+                    placeholder="Longitud (ej: -57.604542)"
                     className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
                   />
 
                   <input
                     type="text"
-                    value={ubicacionGps.googleMapsUrl}
+                    value={googleMapsUrlFinal}
                     onChange={(event) =>
                       actualizarUbicacionGps(
                         "googleMapsUrl",
                         event.target.value,
                       )
                     }
-                    placeholder="Pegá el enlace de Google Maps"
+                    placeholder="Pegá el enlace de Google Maps si ya lo tenés"
                     className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60 sm:col-span-2"
                   />
                 </div>
+
+                {googleMapsUrlFinal && (
+                  <div className="mt-3 rounded-2xl border border-emerald-400/10 bg-black/20 px-4 py-3 text-[12px] leading-5 text-emerald-100/80">
+                    Mapa listo para esta publicación.
+                  </div>
+                )}
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   <button
                     type="button"
                     onClick={usarUbicacionActual}
-                    disabled={obteniendoUbicacion}
+                    disabled={obteniendoUbicacion || guardando}
                     className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <LocateFixed size={16} />
@@ -438,24 +508,13 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
                   <button
                     type="button"
-                    onClick={handleGenerarLinkMaps}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-yellow-400/20 bg-yellow-500/10 px-4 py-2.5 text-sm font-medium text-yellow-100 transition hover:bg-yellow-500/15"
+                    onClick={abrirMapa}
+                    disabled={guardando}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <Navigation size={16} />
-                    Generar link Maps
+                    <ExternalLink size={16} />
+                    Ver mapa
                   </button>
-
-                  {ubicacionGps.googleMapsUrl && (
-                    <a
-                      href={ubicacionGps.googleMapsUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10"
-                    >
-                      <MapPin size={16} />
-                      Ver mapa
-                    </a>
-                  )}
                 </div>
               </div>
             )}
@@ -501,16 +560,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
             <div className="sticky top-0 space-y-5">
               <PublicacionPreview form={form} previews={previews} />
 
-              {ubicacionGps.googleMapsUrl && (
-                <a
-                  href={ubicacionGps.googleMapsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15"
+              {googleMapsUrlFinal && (
+                <button
+                  type="button"
+                  onClick={abrirMapa}
+                  disabled={guardando}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <MapPin size={17} />
                   Vista previa de ubicación en Google Maps
-                </a>
+                </button>
               )}
 
               <button

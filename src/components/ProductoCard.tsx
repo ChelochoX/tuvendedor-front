@@ -20,9 +20,11 @@ import { useUsuario } from "../context/UsuarioContext";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light.css";
 import Tippy from "@tippyjs/react";
+
 interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
+  onEditar?: (producto: Producto) => void;
   mostrarAcciones?: boolean;
   variant?: "default" | "compact";
 }
@@ -30,6 +32,7 @@ interface Props {
 const ProductoCard: React.FC<Props> = ({
   producto,
   onEliminado,
+  onEditar,
   mostrarAcciones = false,
   variant = "default",
 }) => {
@@ -43,7 +46,6 @@ const ProductoCard: React.FC<Props> = ({
   const especialActivo = !!producto.esTemporada;
   const destacadoActivo = !!producto.esDestacada;
 
-  // permisos existentes (NO TOCADOS)
   const puedeCrearDestacado =
     usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false;
 
@@ -55,10 +57,6 @@ const ProductoCard: React.FC<Props> = ({
 
   const puedeQuitarEspecial =
     usuario?.permisos?.includes("QuitarPublicacionTemporada") ?? false;
-
-  const puedeActivarEspecial =
-    (!especialActivo && puedeCrearEspecial) ||
-    (especialActivo && puedeQuitarEspecial);
 
   const handleEliminar = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -76,6 +74,7 @@ const ProductoCard: React.FC<Props> = ({
       background: "#1e1f23",
       color: "#fff",
     });
+
     if (!confirm.isConfirmed) return;
 
     try {
@@ -103,17 +102,31 @@ const ProductoCard: React.FC<Props> = ({
       });
 
       onEliminado?.(producto.id);
+      window.dispatchEvent(new Event("actualizar-publicaciones"));
     } catch (error: any) {
       Swal.fire({
         icon: "error",
         title: "Error al eliminar",
-        text: error?.message ?? "Ocurrió un error",
+        text:
+          error?.response?.data?.Errors?.[0] ||
+          error?.response?.data?.Message ||
+          error?.message ||
+          "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
     } finally {
       setEliminando(false);
     }
+  };
+
+  const handleEditar = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (producto.estado === "Vendido") return;
+
+    onEditar?.(producto);
   };
 
   const pedirDiasDestacado = async (): Promise<number | null> => {
@@ -133,6 +146,7 @@ const ProductoCard: React.FC<Props> = ({
       preConfirm: () =>
         Number((document.getElementById("dias") as HTMLSelectElement).value),
     });
+
     return res.isConfirmed ? (res.value as number) : null;
   };
 
@@ -169,7 +183,11 @@ const ProductoCard: React.FC<Props> = ({
       Swal.fire({
         icon: "error",
         title: "No se pudo quitar",
-        text: err?.message ?? "Ocurrió un error",
+        text:
+          err?.response?.data?.Errors?.[0] ||
+          err?.response?.data?.Message ||
+          err?.message ||
+          "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
@@ -179,25 +197,6 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const activarEspecialFlow = async () => {
-    // 1) No permiso → aviso y fuera
-    if (!puedeActivarEspecial) {
-      await Swal.fire({
-        icon: "info",
-        title: "Función para cuentas Premium",
-        html:
-          `<p style="color:#ddd;margin-top:6px">` +
-          `“Publicación especial” está disponible para usuarios con permiso Premium.<br/>` +
-          `Contactá con soporte para habilitarlo.` +
-          `</p>`,
-        background: "#1e1f23",
-        color: "#fff",
-        confirmButtonColor: "#facc15",
-        confirmButtonText: "Entendido",
-      });
-      return;
-    }
-
-    // 2) Ya activo → ofrecer desactivar
     if (especialActivo) {
       const confirm = await Swal.fire({
         title: "¿Quitar de publicación especial?",
@@ -209,6 +208,7 @@ const ProductoCard: React.FC<Props> = ({
         confirmButtonText: "Quitar",
         cancelButtonText: "Cancelar",
       });
+
       if (!confirm.isConfirmed) return;
 
       try {
@@ -229,19 +229,41 @@ const ProductoCard: React.FC<Props> = ({
         Swal.fire({
           icon: "error",
           title: "No se pudo quitar",
-          text: err?.message ?? "Ocurrió un error",
+          text:
+            err?.response?.data?.Errors?.[0] ||
+            err?.response?.data?.Message ||
+            err?.message ||
+            "Ocurrió un error",
           background: "#1e1f23",
           color: "#fff",
         });
       } finally {
         setOperandoEspecial(false);
       }
+
       return;
     }
 
-    // 3) Activar → elegir temporada
+    if (!puedeCrearEspecial) {
+      await Swal.fire({
+        icon: "info",
+        title: "Función para cuentas Premium",
+        html:
+          `<p style="color:#ddd;margin-top:6px">` +
+          `“Publicación especial” está disponible para usuarios con permiso Premium.<br/>` +
+          `Contactá con soporte para habilitarlo.` +
+          `</p>`,
+        background: "#1e1f23",
+        color: "#fff",
+        confirmButtonColor: "#facc15",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
+
     try {
       const temporadas = await obtenerTemporadas();
+
       if (!temporadas || temporadas.length === 0) {
         await Swal.fire({
           icon: "info",
@@ -273,6 +295,7 @@ const ProductoCard: React.FC<Props> = ({
             (document.getElementById("temporada") as HTMLSelectElement).value,
           ),
       });
+
       if (!res.isConfirmed) return;
 
       setOperandoEspecial(true);
@@ -289,11 +312,14 @@ const ProductoCard: React.FC<Props> = ({
 
       window.dispatchEvent(new Event("actualizar-publicaciones"));
     } catch (err: any) {
-      // Muestra exactamente el mensaje del backend (ej: “No tienes permiso…”)
       Swal.fire({
         icon: "error",
         title: "No se pudo activar",
-        text: err?.message ?? "Ocurrió un error",
+        text:
+          err?.response?.data?.Errors?.[0] ||
+          err?.response?.data?.Message ||
+          err?.message ||
+          "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
@@ -303,7 +329,22 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const destacarFlow = async () => {
-    if (destacadoActivo) return;
+    if (!puedeCrearDestacado) {
+      await Swal.fire({
+        icon: "info",
+        title: "Función para cuentas Premium",
+        html:
+          `<p style="color:#ddd;margin-top:6px">` +
+          `“Publicación destacada” requiere el permiso correspondiente.<br/>` +
+          `Contactá con soporte para habilitarlo.` +
+          `</p>`,
+        background: "#1e1f23",
+        color: "#fff",
+        confirmButtonColor: "#facc15",
+        confirmButtonText: "Entendido",
+      });
+      return;
+    }
 
     const dias = await pedirDiasDestacado();
     if (dias == null) return;
@@ -326,7 +367,11 @@ const ProductoCard: React.FC<Props> = ({
       Swal.fire({
         icon: "error",
         title: "No se pudo destacar",
-        text: err?.message ?? "Ocurrió un error",
+        text:
+          err?.response?.data?.Errors?.[0] ||
+          err?.response?.data?.Message ||
+          err?.message ||
+          "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
@@ -335,7 +380,6 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
-  // Palabras clave para resaltar
   const palabrasPromo = [
     "promo",
     "promoción",
@@ -352,7 +396,6 @@ const ProductoCard: React.FC<Props> = ({
     "3x2",
   ];
 
-  // Función de resaltado
   const resaltarPromo = (texto: string) => {
     let resultado = texto;
 
@@ -413,7 +456,11 @@ const ProductoCard: React.FC<Props> = ({
       Swal.fire({
         icon: "error",
         title: "No se pudo marcar como vendido",
-        text: err?.message ?? "Ocurrió un error",
+        text:
+          err?.response?.data?.Errors?.[0] ||
+          err?.response?.data?.Message ||
+          err?.message ||
+          "Ocurrió un error",
         background: "#1e1f23",
         color: "#fff",
       });
@@ -430,7 +477,6 @@ const ProductoCard: React.FC<Props> = ({
           isCompact ? "text-[13px]" : "text-sm",
         ].join(" ")}
       >
-        {/* Imagen */}
         <div
           className={[
             "w-full relative overflow-hidden rounded-t-lg bg-black",
@@ -448,7 +494,6 @@ const ProductoCard: React.FC<Props> = ({
             </div>
           )}
 
-          {/* 👇 NUEVO: badge de temporada (arriba/derecha) */}
           {producto.esTemporada && producto.badgeTexto && (
             <div
               className={[
@@ -465,18 +510,16 @@ const ProductoCard: React.FC<Props> = ({
             </div>
           )}
 
-          {/* 👇 NUEVO: badge de Vendido */}
           {producto.estado === "Vendido" && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xl font-bold z-20">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 text-xl font-bold text-white">
               🔥 VENDIDO
             </div>
           )}
 
-          {/* 👇 … imagen o video … */}
           {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
             <video
               src={producto.imagenes[0]?.mainUrl}
-              className="w-full h-full object-cover absolute top-0 left-0"
+              className="absolute left-0 top-0 h-full w-full object-cover"
               muted
               autoPlay
               loop
@@ -490,15 +533,14 @@ const ProductoCard: React.FC<Props> = ({
               loading="lazy"
               decoding="async"
               alt={producto.nombre}
-              className="w-full h-full object-cover absolute top-0 left-0"
+              className="absolute left-0 top-0 h-full w-full object-cover"
             />
           )}
         </div>
 
-        {/* Contenido */}
         <div
           className={
-            isCompact ? "p-2 flex flex-col flex-1" : "p-3 flex flex-col flex-1"
+            isCompact ? "flex flex-1 flex-col p-2" : "flex flex-1 flex-col p-3"
           }
         >
           <h3
@@ -509,7 +551,7 @@ const ProductoCard: React.FC<Props> = ({
             dangerouslySetInnerHTML={{
               __html: resaltarPromo(producto.nombre),
             }}
-          ></h3>
+          />
 
           <p
             className={[
@@ -528,19 +570,15 @@ const ProductoCard: React.FC<Props> = ({
             {producto.ubicacion}
           </p>
 
-          {/* 🟡 FILA COMPACTA: INFO + ACCIONES */}
-          <div className="flex items-center justify-between mt-2 mb-1">
-            {/* Nombre del producto + ubicación queda como está arriba */}
-
-            {/* 🔥 VENDEDOR A LA DERECHA */}
+          <div className="mb-1 mt-2 flex items-center justify-between">
             {mostrarAcciones && (
-              <div className="flex items-center gap-1 mr-1">
+              <div className="mr-1 flex items-center gap-1">
                 <img
                   src={producto.vendedor.avatar}
                   loading="lazy"
                   decoding="async"
                   alt={producto.vendedor.nombre}
-                  className="w-4 h-4 rounded-full object-cover"
+                  className="h-4 w-4 rounded-full object-cover"
                 />
                 <span className="text-[11px] text-gray-500">
                   {producto.vendedor.nombre}
@@ -549,55 +587,42 @@ const ProductoCard: React.FC<Props> = ({
             )}
           </div>
 
-          {/* 🟣 ACCIONES (EDITAR / ELIMINAR / VENDIDO) — compactados */}
           {mostrarAcciones && (
-            <div className="flex items-center justify-end gap-2 mt-1 mb-1 pr-1">
-              {/* Editar */}
-              <Tippy content="Editar publicación (próximamente)" theme="light">
+            <div className="mb-1 mt-1 flex items-center justify-end gap-2 pr-1">
+              <Tippy content="Editar publicación" theme="light">
                 <button
+                  type="button"
                   disabled={producto.estado === "Vendido"}
                   className={`transition ${
                     producto.estado === "Vendido"
-                      ? "text-gray-300 cursor-not-allowed"
+                      ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-blue-500"
                   }`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    Swal.fire({
-                      icon: "info",
-                      title: "✨ ¡Estamos trabajando en ello!",
-                      html: `<p style="color:#ddd;font-size:14px;">La edición estará disponible pronto.</p>`,
-                      background: "#1e1f23",
-                      color: "#fff",
-                    });
-                  }}
+                  onClick={handleEditar}
                 >
-                  <PencilSquareIcon className="w-4 h-4" />
+                  <PencilSquareIcon className="h-4 w-4" />
                 </button>
               </Tippy>
 
-              {/* Eliminar */}
               <Tippy content="Eliminar publicación" theme="light">
                 <button
                   disabled={eliminando}
                   className={`transition ${
                     eliminando
-                      ? "text-gray-300 cursor-not-allowed"
+                      ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-red-500"
                   }`}
                   onClick={handleEliminar}
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <TrashIcon className="h-4 w-4" />
                 </button>
               </Tippy>
 
-              {/* Vendido */}
               <Tippy content="Marcar como vendido" theme="light">
                 <button
                   className={`transition ${
                     producto.estado === "Vendido"
-                      ? "text-green-400 cursor-not-allowed"
+                      ? "cursor-not-allowed text-green-400"
                       : "text-gray-400 hover:text-green-500"
                   }`}
                   onClick={(e) => {
@@ -607,21 +632,18 @@ const ProductoCard: React.FC<Props> = ({
                     marcarVendidoFlow();
                   }}
                 >
-                  <CheckBadgeIcon className="w-4 h-4" />
+                  <CheckBadgeIcon className="h-4 w-4" />
                 </button>
               </Tippy>
             </div>
           )}
 
-          {/* Botones inferiores */}
           {mostrarAcciones && (
-            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-gray-200">
-              {/* ⭐ Destacar */}
+            <div className="mt-2 flex flex-col gap-2 border-t border-gray-200 pt-2">
               <button
                 disabled={
                   producto.estado === "Vendido" ||
                   operandoDestacado ||
-                  (destacadoActivo && !puedeQuitarDestacado) ||
                   (!destacadoActivo && !puedeCrearDestacado)
                 }
                 onClick={(e) => {
@@ -641,16 +663,24 @@ const ProductoCard: React.FC<Props> = ({
                     ? "bg-yellow-300 text-black"
                     : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
                 ].join(" ")}
+                title={
+                  destacadoActivo
+                    ? puedeQuitarDestacado
+                      ? "Quitar destacado"
+                      : "Quitar destacado"
+                    : puedeCrearDestacado
+                      ? "Destacar publicación"
+                      : "Permiso requerido"
+                }
               >
                 ⭐ {destacadoActivo ? "Quitar destacado" : "Destacar"}
               </button>
 
-              {/* 🎉 Especial (con permiso + estado) */}
               <button
                 disabled={
                   producto.estado === "Vendido" ||
                   operandoEspecial ||
-                  (!puedeActivarEspecial && !especialActivo)
+                  (!especialActivo && !puedeCrearEspecial)
                 }
                 onClick={(e) => {
                   e.preventDefault();
@@ -659,18 +689,17 @@ const ProductoCard: React.FC<Props> = ({
                 }}
                 className={[
                   "w-full rounded-md font-semibold transition shadow-sm flex items-center justify-center gap-1",
-                  // 👇 NUEVO: más finito + compacto
                   "text-[12px] py-[4px] px-2",
                   especialActivo
                     ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
-                    : puedeActivarEspecial
+                    : puedeCrearEspecial
                       ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
-                      : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                      : "cursor-not-allowed bg-gray-300 text-gray-500",
                 ].join(" ")}
                 title={
                   especialActivo
                     ? "Quitar de publicación especial"
-                    : puedeActivarEspecial
+                    : puedeCrearEspecial
                       ? "Activar como publicación especial"
                       : "Función Premium"
                 }

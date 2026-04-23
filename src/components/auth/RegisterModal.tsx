@@ -22,7 +22,7 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     null,
   );
   const [checkingUsuario, setCheckingUsuario] = useState(false);
-  const [mostrarClave, setMostrarClave] = useState(false); // 👁️ Nuevo estado
+  const [mostrarClave, setMostrarClave] = useState(false);
   const [formData, setFormData] = useState({
     nombreUsuario: "",
     usuarioLogin: "",

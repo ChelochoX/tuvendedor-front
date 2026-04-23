@@ -9,7 +9,8 @@ import {
   Star,
   Store,
 } from "lucide-react";
-import { PerfilPublicoVendedor } from "../types/perfilVendedor.types";
+import { PerfilPublicoVendedor } from "../../types/perfilVendedor.types";
+import { abrirWhatsapp, limpiarTelefonoWhatsapp } from "../../utils/whatsapp";
 
 interface Props {
   perfil: PerfilPublicoVendedor;
@@ -24,15 +25,23 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
     perfil.fotoPerfil ||
     "https://ui-avatars.com/api/?name=Vendedor&background=111827&color=fff";
 
-  const whatsappUrl = perfil.whatsapp
-    ? `https://wa.me/${perfil.whatsapp}`
-    : undefined;
+  // ✅ Unificamos contacto comercial de vitrina:
+  // tanto teléfono como WhatsApp salen del número del vendedor
+  const telefonoComercial = perfil.whatsapp || perfil.telefono || "";
+  const telefonoComercialLimpio = limpiarTelefonoWhatsapp(telefonoComercial);
 
   const esVideoBanner =
     perfil.bannerTipo?.toUpperCase() === "VIDEO" ||
     banner.toLowerCase().includes(".mp4") ||
     banner.toLowerCase().includes(".webm") ||
     banner.toLowerCase().includes(".mov");
+
+  const handleWhatsapp = () => {
+    abrirWhatsapp(
+      telefonoComercial,
+      "Hola, vi tu vitrina y me interesa conocer más detalles sobre tus publicaciones disponibles.",
+    );
+  };
 
   return (
     <section className="relative overflow-hidden bg-gray-950 text-white shadow-2xl">
@@ -190,7 +199,7 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                 </a>
               )}
 
-              {perfil.telefono && perfil.mostrarTelefono && (
+              {telefonoComercial && perfil.mostrarTelefono && (
                 <div className="col-span-2 flex min-h-[54px] items-center justify-between gap-3 rounded-2xl border border-yellow-400/40 bg-yellow-400 px-4 py-3 text-black shadow-xl backdrop-blur-md lg:col-span-1 lg:min-h-[48px] lg:py-2.5">
                   <span className="flex shrink-0 items-center gap-2 text-sm font-extrabold">
                     <Phone size={19} />
@@ -198,16 +207,15 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                   </span>
 
                   <span className="text-right text-xl font-black leading-none tracking-wide sm:text-2xl lg:text-xl">
-                    {perfil.telefono}
+                    {telefonoComercial}
                   </span>
                 </div>
               )}
 
-              {whatsappUrl && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
+              {telefonoComercialLimpio && (
+                <button
+                  type="button"
+                  onClick={handleWhatsapp}
                   className="group col-span-2 flex min-h-[52px] items-center justify-between rounded-2xl border border-green-400/30 bg-green-500/15 px-4 py-3 text-sm font-bold text-green-200 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-green-500 hover:text-black sm:col-span-1 lg:col-span-1 lg:min-h-[48px] lg:py-2.5"
                 >
                   <span className="flex items-center gap-2">
@@ -215,14 +223,13 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                     WhatsApp
                   </span>
                   <span className="text-xs opacity-80">Chat</span>
-                </a>
+                </button>
               )}
 
               {!perfil.instagramUrl &&
                 !perfil.facebookUrl &&
                 !perfil.email &&
-                !perfil.telefono &&
-                !whatsappUrl && (
+                !telefonoComercial && (
                   <div className="col-span-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-gray-300 backdrop-blur-md lg:col-span-1">
                     Sin redes configuradas.
                   </div>

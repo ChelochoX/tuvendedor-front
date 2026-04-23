@@ -1,4 +1,4 @@
-import React, { FormEvent, useMemo, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   ExternalLink,
@@ -11,8 +11,14 @@ import {
 } from "lucide-react";
 import Swal from "sweetalert2";
 
-import { crearPublicacion } from "../../api/publicacionesService";
-import { CategoriaPublicacionOption } from "../../types/publicacion.types";
+import {
+  actualizarPublicacion,
+  crearPublicacion,
+} from "../../api/publicacionesService";
+import {
+  CategoriaPublicacionOption,
+  PublicacionEditable,
+} from "../../types/publicacion.types";
 
 import { useCrearPublicacionForm } from "./hooks/useCrearPublicacionForm";
 import PublicacionDatosBasicos from "./crear-publicacion/PublicacionDatosBasicos";
@@ -35,9 +41,11 @@ interface Props {
   onClose: () => void;
   onCreado?: () => void;
   onPublicacionCreada?: () => void;
+  onActualizada?: () => void;
   categorias?: CategoriaPublicacionOption[];
   rubroVendedor?: string;
   modo?: "marketplace" | "perfil-vendedor";
+  publicacionAEditar?: PublicacionEditable | null;
 }
 
 type UbicacionGpsForm = {
@@ -62,7 +70,6 @@ const coordenadaParaBackend = (valor?: string): string => {
 
   if (!normalizada) return "";
 
-  // Tu backend/model binder interpreta coma como decimal.
   return normalizada.replace(".", ",");
 };
 
@@ -75,7 +82,6 @@ const construirGoogleMapsUrl = (
 
   if (!lat || !lng) return "";
 
-  // Google Maps necesita punto decimal.
   return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
@@ -85,9 +91,11 @@ const CrearPublicacionModal: React.FC<Props> = ({
   onClose,
   onCreado,
   onPublicacionCreada,
+  onActualizada,
   categorias,
   rubroVendedor,
   modo = "marketplace",
+  publicacionAEditar = null,
 }) => {
   const modalAbierto = abierto ?? isOpen ?? false;
   const [guardando, setGuardando] = useState(false);
@@ -111,7 +119,31 @@ const CrearPublicacionModal: React.FC<Props> = ({
     actualizarPlanCredito,
     eliminarPlanCredito,
     limpiarFormulario,
-  } = useCrearPublicacionForm();
+    esEdicion,
+  } = useCrearPublicacionForm(publicacionAEditar, modalAbierto);
+
+  useEffect(() => {
+    if (!modalAbierto) return;
+
+    if (publicacionAEditar) {
+      setUbicacionGps({
+        latitud: publicacionAEditar.latitud
+          ? String(publicacionAEditar.latitud).replace(".", ",")
+          : "",
+        longitud: publicacionAEditar.longitud
+          ? String(publicacionAEditar.longitud).replace(".", ",")
+          : "",
+        googleMapsUrl: publicacionAEditar.googleMapsUrl ?? "",
+      });
+      return;
+    }
+
+    setUbicacionGps({
+      latitud: "",
+      longitud: "",
+      googleMapsUrl: "",
+    });
+  }, [publicacionAEditar, modalAbierto]);
 
   const esModoVitrina = modo === "perfil-vendedor";
 
@@ -140,6 +172,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
     return ubicacionGps.googleMapsUrl.trim();
   }, [ubicacionGps.latitud, ubicacionGps.longitud, ubicacionGps.googleMapsUrl]);
 
+  const imagenesExistentes = publicacionAEditar?.imagenesExistentes ?? [];
+
   if (!modalAbierto) return null;
 
   const validarFormulario = () => {
@@ -147,7 +181,9 @@ const CrearPublicacionModal: React.FC<Props> = ({
     if (!form.descripcion.trim()) return "Ingresá la descripción.";
     if (!limpiarPrecio(form.precio)) return "Ingresá un precio válido.";
     if (!form.categoria.trim()) return "Seleccioná una categoría.";
-    if (!form.archivos.length) return "Seleccioná al menos una imagen o video.";
+    if (!esEdicion && !form.archivos.length) {
+      return "Seleccioná al menos una imagen o video.";
+    }
 
     return null;
   };
@@ -261,13 +297,17 @@ const CrearPublicacionModal: React.FC<Props> = ({
     window.open(googleMapsUrlFinal, "_blank", "noopener,noreferrer");
   };
 
-  const mostrarModalCreando = () => {
+  const mostrarModalProcesando = () => {
     Swal.fire({
-      title: "Creando publicación",
+      title: esEdicion ? "Actualizando publicación" : "Creando publicación",
       html: `
         <div style="padding-top: 6px;">
           <p style="margin: 0; color: #cbd5e1; font-size: 14px;">
-            Estamos guardando los datos, subiendo las imágenes y preparando tu vitrina.
+            ${
+              esEdicion
+                ? "Estamos guardando los cambios de tu publicación."
+                : "Estamos guardando los datos, subiendo las imágenes y preparando tu vitrina."
+            }
           </p>
           <p style="margin: 10px 0 0; color: #facc15; font-size: 13px; font-weight: 600;">
             Aguardá un momento...
@@ -304,7 +344,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     try {
       setGuardando(true);
-      mostrarModalCreando();
+      mostrarModalProcesando();
 
       const formData = crearFormDataPublicacion(form);
 
@@ -315,13 +355,19 @@ const CrearPublicacionModal: React.FC<Props> = ({
       formData.append("Longitud", longitudBackend);
       formData.append("GoogleMapsUrl", googleMapsUrlFinal);
 
-      await crearPublicacion(formData);
+      if (esEdicion && publicacionAEditar?.id) {
+        await actualizarPublicacion(publicacionAEditar.id, formData);
+      } else {
+        await crearPublicacion(formData);
+      }
 
       Swal.fire({
-        title: "¡Publicación creada!",
+        title: esEdicion ? "¡Publicación actualizada!" : "¡Publicación creada!",
         text: esModoVitrina
           ? "La publicación ya puede verse en tu vitrina pública y también en el marketplace."
-          : "La publicación fue creada correctamente.",
+          : esEdicion
+            ? "Los cambios se guardaron correctamente."
+            : "La publicación fue creada correctamente.",
         icon: "success",
         confirmButtonColor: "#facc15",
         background: "#111827",
@@ -330,20 +376,33 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
       limpiarFormulario();
       limpiarUbicacionGps();
-      onCreado?.();
-      onPublicacionCreada?.();
+
+      if (esEdicion) {
+        onActualizada?.();
+      } else {
+        onCreado?.();
+        onPublicacionCreada?.();
+      }
+
       onClose();
     } catch (error: any) {
-      console.error("Error al crear publicación:", error);
+      console.error(
+        esEdicion
+          ? "Error al actualizar publicación:"
+          : "Error al crear publicación:",
+        error,
+      );
 
       const mensaje =
         error?.response?.data?.Errors?.[0] ||
         error?.response?.data?.Message ||
         error?.message ||
-        "No se pudo crear la publicación.";
+        (esEdicion
+          ? "No se pudo actualizar la publicación."
+          : "No se pudo crear la publicación.");
 
       Swal.fire({
-        title: "No se pudo publicar",
+        title: esEdicion ? "No se pudo actualizar" : "No se pudo publicar",
         text: mensaje,
         icon: "error",
         confirmButtonColor: "#facc15",
@@ -364,12 +423,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
               <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-yellow-300">
                 {esModoVitrina ? <Store size={13} /> : <Wand2 size={13} />}
                 {esModoVitrina
-                  ? "Nueva publicación para tu vitrina"
-                  : "Marketplace"}
+                  ? esEdicion
+                    ? "Editar publicación de tu vitrina"
+                    : "Nueva publicación para tu vitrina"
+                  : esEdicion
+                    ? "Editar publicación"
+                    : "Marketplace"}
               </div>
 
               <h2 className="mt-3 text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                Crear publicación
+                {esEdicion ? "Editar publicación" : "Crear publicación"}
               </h2>
 
               <p className="mt-1 max-w-3xl text-sm font-normal leading-relaxed text-gray-400">
@@ -530,11 +593,43 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     Fotos y videos
                   </h3>
                   <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
-                    Agregá varias fotos para que la galería de la publicación se
-                    vea completa y profesional.
+                    {esEdicion
+                      ? "Podés agregar nuevas fotos o videos. Si no cargás archivos nuevos, se conservan los actuales."
+                      : "Agregá varias fotos para que la galería de la publicación se vea completa y profesional."}
                   </p>
                 </div>
               </div>
+
+              {esEdicion && imagenesExistentes.length > 0 && (
+                <div className="mb-5 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.04] p-4">
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-sm font-semibold text-emerald-200">
+                        Imágenes actuales
+                      </h4>
+                      <p className="mt-1 text-xs leading-5 text-emerald-100/70">
+                        Estas imágenes ya están guardadas. Si agregás nuevas, se
+                        sumarán a la publicación.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                    {imagenesExistentes.map((img, index) => (
+                      <div
+                        key={`${img.mainUrl}-${index}`}
+                        className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
+                      >
+                        <img
+                          src={img.thumbUrl || img.mainUrl}
+                          alt={`Imagen actual ${index + 1}`}
+                          className="h-28 w-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <PublicacionMediaUploader
                 previews={previews}
@@ -584,7 +679,13 @@ const CrearPublicacionModal: React.FC<Props> = ({
                 "
               >
                 <CheckCircle2 size={18} strokeWidth={2} />
-                {guardando ? "Publicando..." : "Publicar ahora"}
+                {guardando
+                  ? esEdicion
+                    ? "Guardando cambios..."
+                    : "Publicando..."
+                  : esEdicion
+                    ? "Guardar cambios"
+                    : "Publicar ahora"}
               </button>
 
               <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-[13px] font-normal leading-6 text-slate-300">

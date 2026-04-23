@@ -17,6 +17,52 @@ import { useUsuario } from "../context/UsuarioContext";
 import CambiarClaveModal from "../components/auth/CambiarClaveModal";
 import { obtenerIconoCategoria } from "../utils/categoriaIconos";
 import CarruselEspeciales from "../components/CarruselEspeciales";
+import { PublicacionEditable } from "../types/publicacion.types";
+
+type DatosPreviosRegistro = {
+  email?: string;
+  nombre?: string;
+  fotoUrl?: string;
+  tipoLogin?: string;
+  proveedor?: string;
+  proveedorId?: string;
+} | null;
+
+const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
+  const planCreditoNormalizado = Array.isArray(producto.planCredito)
+    ? producto.planCredito.map((plan: any) => ({
+        cuotas: plan?.cuotas,
+        valorCuota: plan?.valorCuota,
+      }))
+    : Array.isArray((producto.planCredito as any)?.opciones)
+      ? (producto.planCredito as any).opciones.map((plan: any) => ({
+          cuotas: plan?.cuotas,
+          valorCuota: plan?.valorCuota,
+        }))
+      : [];
+
+  const imagenesExistentes = Array.isArray(producto.imagenes)
+    ? producto.imagenes.map((img: any) => ({
+        mainUrl: img?.mainUrl || img?.url || "",
+        thumbUrl: img?.thumbUrl || img?.mainUrl || img?.url || "",
+      }))
+    : [];
+
+  return {
+    id: producto.id,
+    titulo: producto.nombre,
+    descripcion: producto.descripcion,
+    precio: producto.precio,
+    categoria: producto.categoria,
+    ubicacion: producto.ubicacion,
+    mostrarBotonesCompra: producto.mostrarBotonesCompra,
+    planCredito: planCreditoNormalizado,
+    latitud: (producto as any).latitud ?? null,
+    longitud: (producto as any).longitud ?? null,
+    googleMapsUrl: (producto as any).googleMapsUrl ?? null,
+    imagenesExistentes,
+  };
+};
 
 const Marketplace: React.FC = () => {
   const [categoriaSeleccionada, setCategoriaSeleccionada] =
@@ -29,7 +75,12 @@ const Marketplace: React.FC = () => {
   const [openRegister, setOpenRegister] = useState(false);
   const [openRecuperar, setOpenRecuperar] = useState(false);
 
-  const [datosPrevios, setDatosPrevios] = useState<any>(null);
+  const [publicacionAEditar, setPublicacionAEditar] =
+    useState<PublicacionEditable | null>(null);
+
+  const [datosPreviosRegistro, setDatosPreviosRegistro] =
+    useState<DatosPreviosRegistro>(null);
+
   const [quierePublicar, setQuierePublicar] = useState(false);
 
   const [busqueda, setBusqueda] = useState("");
@@ -137,7 +188,7 @@ const Marketplace: React.FC = () => {
     const handleLoginExitoso = () => {
       if (quierePublicar) {
         setModalOpen(true);
-        setQuierePublicar(false);
+        setQuerePublicarFalse();
       }
     };
 
@@ -147,6 +198,8 @@ const Marketplace: React.FC = () => {
       window.removeEventListener("login-exitoso", handleLoginExitoso);
     };
   }, [quierePublicar]);
+
+  const setQuerePublicarFalse = () => setQuierePublicar(false);
 
   useEffect(() => {
     const handleVerMisPublicaciones = () => {
@@ -218,6 +271,7 @@ const Marketplace: React.FC = () => {
     const token = localStorage.getItem("token");
 
     if (token) {
+      setPublicacionAEditar(null);
       setModalOpen(true);
       return;
     }
@@ -226,8 +280,14 @@ const Marketplace: React.FC = () => {
     setOpenLogin(true);
   };
 
-  const handlePublicacionCreada = async () => {
+  const handleEditarPublicacion = (producto: Producto) => {
+    setPublicacionAEditar(mapearProductoAEditable(producto));
+    setModalOpen(true);
+  };
+
+  const handlePublicacionGuardada = async () => {
     setModalOpen(false);
+    setPublicacionAEditar(null);
     await cargarPublicaciones();
     await cargarEspeciales();
   };
@@ -312,6 +372,7 @@ const Marketplace: React.FC = () => {
                     onEliminado={(id) =>
                       setProductos((prev) => prev.filter((x) => x.id !== id))
                     }
+                    onEditar={handleEditarPublicacion}
                     mostrarAcciones={mostrarSoloMias}
                     variant={mostrarSoloMias ? "compact" : "default"}
                   />
@@ -328,9 +389,14 @@ const Marketplace: React.FC = () => {
 
       <CrearPublicacionModal
         abierto={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onCreado={handlePublicacionCreada}
+        onClose={() => {
+          setModalOpen(false);
+          setPublicacionAEditar(null);
+        }}
+        onCreado={handlePublicacionGuardada}
+        onActualizada={handlePublicacionGuardada}
         modo="marketplace"
+        publicacionAEditar={publicacionAEditar}
       />
 
       {showFab && (
@@ -347,10 +413,10 @@ const Marketplace: React.FC = () => {
         open={openLogin}
         onClose={() => setOpenLogin(false)}
         onSwitchToRegister={(datos?: any) => {
-          setDatosPrevios(null);
+          setDatosPreviosRegistro(null);
 
           setTimeout(() => {
-            setDatosPrevios(datos || null);
+            setDatosPreviosRegistro(datos || null);
             setOpenLogin(false);
             setOpenRegister(true);
           }, 0);
@@ -360,7 +426,7 @@ const Marketplace: React.FC = () => {
       <RegisterModal
         open={openRegister}
         onClose={() => setOpenRegister(false)}
-        datosPrevios={datosPrevios}
+        datosPrevios={datosPreviosRegistro}
       />
 
       <CambiarClaveModal

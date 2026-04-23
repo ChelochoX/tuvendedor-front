@@ -453,3 +453,31 @@ export const marcarComoVendido = async (
     );
   }
 };
+
+export const actualizarPublicacion = async (
+  id: number,
+  request: FormData,
+): Promise<void> => {
+  await instance.put(`/Publicaciones/actualizar-publicacion/${id}`, request, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const obtenerPublicacionPorId = async (id: number): Promise<any> => {
+  try {
+    const response = await instance.get<ApiResponse<any>>(
+      `${API_URL}/obtener-publicacion/${id}`,
+    );
+
+    return validarRespuesta(
+      response.data,
+      "Error al obtener detalle de la publicación.",
+    );
+  } catch (error: any) {
+    throw new Error(
+      obtenerMensajeError(error, "Error al obtener detalle de la publicación."),
+    );
+  }
+};

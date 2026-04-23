@@ -20,7 +20,14 @@ export const obtenerUrlCompartirProducto = (idProducto: number): string => {
 export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
   if (!telefono) return "";
 
-  return telefono.replace(/\D/g, "");
+  let limpio = telefono.replace(/\D/g, "");
+
+  // Si viene en formato local Paraguay: 0994xxxxxx -> 595994xxxxxx
+  if (limpio.startsWith("0")) {
+    limpio = `595${limpio.substring(1)}`;
+  }
+
+  return limpio;
 };
 
 export const formatearPrecioGs = (precio?: number | string | null): string => {
@@ -44,16 +51,23 @@ export const generarMensajeProductoWhatsapp = (
 
   return `Hola 👋
 
-Te comparto esta publicación disponible:
+Vi tu publicación y me gustaría saber más.
 
-🏷️ ${producto.titulo}
-📌 ${producto.categoria || "Sin categoría"}
-📍 ${producto.ubicacion || "Ubicación no especificada"}
-💰 ${formatearPrecioGs(producto.precio)}
+🏷️ Publicación: ${producto.titulo}
+📌 Categoría: ${producto.categoria || "Sin categoría"}
+📍 Ubicación: ${producto.ubicacion || "Ubicación no especificada"}
+💰 Precio: ${formatearPrecioGs(producto.precio)}
 
-${producto.descripcion || ""}
+${
+  producto.descripcion
+    ? `📝 Detalle:
+${producto.descripcion}
 
-Ver publicación:
+`
+    : ""
+}¿Sigue disponible? Me interesa recibir más información.
+
+🔗 Ver publicación:
 ${urlCompartir}`;
 };
 

@@ -15,6 +15,8 @@ import {
 } from "../../api/perfilVendedorService";
 
 import HerramientasPremiumVitrina from "../../components/perfilVendedor/HerramientasPremiumVitrina";
+
+import GestionPublicacionesVitrina from "./GestionPublicacionesVitrina";
 interface MiPerfilVendedorForm {
   idVendedor?: number;
   idUsuario?: number;
@@ -663,6 +665,7 @@ const MiPerfilVendedor: React.FC = () => {
             </form>
           </div>
         </section>
+        <GestionPublicacionesVitrina />
       </div>
     </div>
   );

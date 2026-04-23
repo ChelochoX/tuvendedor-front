@@ -1,5 +1,8 @@
-import { useMemo, useState } from "react";
-import { CrearPublicacionForm } from "../../../types/publicacion.types";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CrearPublicacionForm,
+  PublicacionEditable,
+} from "../../../types/publicacion.types";
 import { formatearPrecioVisual } from "../crear-publicacion/helpers";
 
 const estadoInicial: CrearPublicacionForm = {
@@ -25,8 +28,59 @@ const estadoInicial: CrearPublicacionForm = {
   },
 };
 
-export const useCrearPublicacionForm = () => {
+const mapearPublicacionAFormulario = (
+  publicacion?: PublicacionEditable | null,
+): CrearPublicacionForm => {
+  if (!publicacion) return estadoInicial;
+
+  return {
+    titulo: publicacion.titulo ?? "",
+    descripcion: publicacion.descripcion ?? "",
+    precio: publicacion.precio
+      ? formatearPrecioVisual(String(publicacion.precio))
+      : "",
+    categoria: publicacion.categoria ?? "",
+    ubicacion: publicacion.ubicacion ?? "",
+    mostrarBotonesCompra: Boolean(publicacion.mostrarBotonesCompra),
+    planCredito:
+      publicacion.planCredito?.map((plan) => ({
+        cuotas: plan.cuotas ? String(plan.cuotas) : "",
+        valorCuota: plan.valorCuota
+          ? formatearPrecioVisual(String(plan.valorCuota))
+          : "",
+      })) ?? [],
+    archivos: [],
+    camposInmuebles: {
+      tipoOperacion: "",
+      tipoPropiedad: "",
+      moneda: "PYG",
+      ciudad: "",
+      barrio: "",
+      superficieTerreno: "",
+      superficieConstruida: "",
+      dormitorios: "",
+      banos: "",
+      cocheras: "",
+    },
+  };
+};
+
+export const useCrearPublicacionForm = (
+  publicacionInicial?: PublicacionEditable | null,
+  abierto?: boolean,
+) => {
   const [form, setForm] = useState<CrearPublicacionForm>(estadoInicial);
+
+  useEffect(() => {
+    if (!abierto) return;
+
+    if (publicacionInicial) {
+      setForm(mapearPublicacionAFormulario(publicacionInicial));
+      return;
+    }
+
+    setForm(estadoInicial);
+  }, [publicacionInicial, abierto]);
 
   const previews = useMemo(() => {
     return form.archivos.map((archivo) => ({
@@ -141,5 +195,6 @@ export const useCrearPublicacionForm = () => {
     actualizarPlanCredito,
     eliminarPlanCredito,
     limpiarFormulario,
+    esEdicion: Boolean(publicacionInicial),
   };
 };

@@ -33,3 +33,26 @@ export interface CategoriaPublicacionOption {
   nombre: string;
   icono?: string;
 }
+
+export interface ImagenExistenteEditable {
+  mainUrl: string;
+  thumbUrl?: string;
+}
+
+export interface PublicacionEditable {
+  id: number;
+  titulo?: string;
+  descripcion?: string;
+  precio?: number;
+  categoria?: string;
+  ubicacion?: string;
+  mostrarBotonesCompra?: boolean;
+  planCredito?: Array<{
+    cuotas?: number;
+    valorCuota?: number;
+  }>;
+  latitud?: number | null;
+  longitud?: number | null;
+  googleMapsUrl?: string | null;
+  imagenesExistentes?: ImagenExistenteEditable[];
+}

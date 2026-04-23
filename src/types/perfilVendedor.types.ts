@@ -35,6 +35,7 @@ export interface PerfilPublicoVendedor {
 
   descripcion: string;
   bannerUrl: string;
+  bannerTipo?: string;
   fotoPerfil: string;
 
   rubro: string;
@@ -53,8 +54,6 @@ export interface PerfilPublicoVendedor {
   esPremium: boolean;
 
   mostrarTelefono: boolean;
-
-  // Nuevo campo para controlar si se muestra el correo
   mostrarCorreo: boolean;
 
   cantidadPublicaciones: number;

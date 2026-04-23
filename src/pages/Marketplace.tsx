@@ -11,12 +11,10 @@ import {
   obtenerPublicaciones,
   obtenerMisPublicaciones,
   obtenerCategorias,
-  obtenerPublicacionesEspeciales,
 } from "../api/publicacionesService";
 import { useUsuario } from "../context/UsuarioContext";
 import CambiarClaveModal from "../components/auth/CambiarClaveModal";
 import { obtenerIconoCategoria } from "../utils/categoriaIconos";
-import CarruselEspeciales from "../components/CarruselEspeciales";
 import { PublicacionEditable } from "../types/publicacion.types";
 
 type DatosPreviosRegistro = {
@@ -85,7 +83,6 @@ const Marketplace: React.FC = () => {
 
   const [busqueda, setBusqueda] = useState("");
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [especialesGlobales, setEspecialesGlobales] = useState<Producto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
 
   const [cargando, setCargando] = useState(false);
@@ -115,7 +112,7 @@ const Marketplace: React.FC = () => {
         data = await obtenerPublicaciones(categoria, busqueda || undefined);
       }
 
-      setProductos(data);
+      setProductos(data || []);
     } catch (error) {
       console.error("Error al obtener publicaciones:", error);
       setProductos([]);
@@ -123,16 +120,6 @@ const Marketplace: React.FC = () => {
       setCargando(false);
     }
   }, [categoriaSeleccionada, busqueda, mostrarSoloMias]);
-
-  const cargarEspeciales = useCallback(async () => {
-    try {
-      const data = await obtenerPublicacionesEspeciales();
-      setEspecialesGlobales(data);
-    } catch (error) {
-      console.error("Error al cargar especiales globales:", error);
-      setEspecialesGlobales([]);
-    }
-  }, []);
 
   useEffect(() => {
     const cargarCategorias = async () => {
@@ -150,18 +137,15 @@ const Marketplace: React.FC = () => {
         ]);
       } catch (error) {
         console.error("Error al cargar categorías:", error);
+        setCategorias([{ id: 0, nombre: "Todos", icono: "🌐" }]);
       }
     };
 
-    cargarCategorias();
+    void cargarCategorias();
   }, []);
 
   useEffect(() => {
-    cargarEspeciales();
-  }, [cargarEspeciales]);
-
-  useEffect(() => {
-    cargarPublicaciones();
+    void cargarPublicaciones();
   }, [cargarPublicaciones, usuario]);
 
   useEffect(() => {
@@ -188,7 +172,7 @@ const Marketplace: React.FC = () => {
     const handleLoginExitoso = () => {
       if (quierePublicar) {
         setModalOpen(true);
-        setQuerePublicarFalse();
+        setQuierePublicar(false);
       }
     };
 
@@ -198,8 +182,6 @@ const Marketplace: React.FC = () => {
       window.removeEventListener("login-exitoso", handleLoginExitoso);
     };
   }, [quierePublicar]);
-
-  const setQuerePublicarFalse = () => setQuierePublicar(false);
 
   useEffect(() => {
     const handleVerMisPublicaciones = () => {
@@ -219,25 +201,25 @@ const Marketplace: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const handler = (e: any) => {
-      const texto = e.detail || "";
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      const texto = customEvent.detail || "";
 
       setBusqueda(texto);
       setCategoriaSeleccionada(null);
       setMostrarSoloMias(false);
     };
 
-    window.addEventListener("buscar-productos", handler);
+    window.addEventListener("buscar-productos", handler as EventListener);
 
     return () => {
-      window.removeEventListener("buscar-productos", handler);
+      window.removeEventListener("buscar-productos", handler as EventListener);
     };
   }, []);
 
   useEffect(() => {
     const actualizar = () => {
-      cargarPublicaciones();
-      cargarEspeciales();
+      void cargarPublicaciones();
     };
 
     window.addEventListener("actualizar-publicaciones", actualizar);
@@ -245,7 +227,7 @@ const Marketplace: React.FC = () => {
     return () => {
       window.removeEventListener("actualizar-publicaciones", actualizar);
     };
-  }, [cargarPublicaciones, cargarEspeciales]);
+  }, [cargarPublicaciones]);
 
   useEffect(() => {
     const toggle = () => {
@@ -289,7 +271,6 @@ const Marketplace: React.FC = () => {
     setModalOpen(false);
     setPublicacionAEditar(null);
     await cargarPublicaciones();
-    await cargarEspeciales();
   };
 
   return (
@@ -348,20 +329,14 @@ const Marketplace: React.FC = () => {
               </button>
             )}
 
-            {!mostrarSoloMias && especialesGlobales.length > 0 && (
-              <CarruselEspeciales
-                productos={especialesGlobales}
-                mostrarAcciones={false}
-                onEliminarProducto={(id) =>
-                  setProductos((prev) => prev.filter((x) => x.id !== id))
-                }
-              />
-            )}
-
             {cargando ? (
               <div className="flex items-center justify-center py-10 text-yellow-400">
                 <div className="mr-3 h-8 w-8 animate-spin rounded-full border-t-2 border-yellow-400 border-opacity-70" />
                 Cargando publicaciones...
+              </div>
+            ) : itemsEnGrid.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10 text-center text-gray-300">
+                No hay publicaciones disponibles.
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">

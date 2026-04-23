@@ -359,60 +359,6 @@ export const desactivarTemporada = async (
 };
 
 /**
- * Obtiene publicaciones especiales para el carrusel.
- *
- * Primero intenta usar /listar-especiales.
- * Si no existe o falla, cae a /obtener-publicaciones y filtra en front.
- */
-export const obtenerPublicacionesEspeciales = async (): Promise<Producto[]> => {
-  try {
-    const response = await instance.get<ApiResponse<any[]>>(
-      `${API_URL}/listar-especiales`,
-    );
-
-    if (response.data?.Success && Array.isArray(response.data.Data)) {
-      return response.data.Data.map(mapearProducto);
-    }
-  } catch {
-    // Fallback silencioso
-  }
-
-  try {
-    const response = await instance.get<ApiResponse<any[]>>(
-      `${API_URL}/obtener-publicaciones`,
-    );
-
-    const data = validarRespuesta(
-      response.data,
-      "Error al obtener publicaciones especiales.",
-    );
-
-    const ahora = new Date();
-
-    const especiales = (data || []).filter((p: any) => {
-      const esTemporada = p.esTemporada ?? p.EsTemporada ?? false;
-
-      if (!esTemporada) return false;
-
-      const fechaFin = p.fechaFinTemporada ?? p.FechaFinTemporada;
-
-      if (fechaFin) {
-        const fin = new Date(fechaFin);
-        return fin >= ahora;
-      }
-
-      return true;
-    });
-
-    return especiales.map(mapearProducto);
-  } catch (error: any) {
-    throw new Error(
-      obtenerMensajeError(error, "Error al obtener publicaciones especiales."),
-    );
-  }
-};
-
-/**
  * Envía sugerencia.
  */
 export const enviarSugerencia = async (comentario: string): Promise<void> => {

@@ -3,6 +3,7 @@ import {
   ActualizarMiPerfilVendedorRequest,
   ApiResponse,
   PerfilPublicoVendedor,
+  PublicacionPerfilVendedor,
 } from "../types/perfilVendedor.types";
 
 export const obtenerPerfilPublicoVendedor = async (
@@ -76,4 +77,75 @@ const crearFormDataPerfilVendedor = (
   }
 
   return formData;
+};
+
+const normalizarImagen = (img: any) => {
+  if (!img) return null;
+
+  if (typeof img === "string") {
+    return {
+      mainUrl: img,
+      thumbUrl: img,
+    };
+  }
+
+  const mainUrl = img?.mainUrl || img?.url || img?.Url || img?.thumbUrl || "";
+  const thumbUrl = img?.thumbUrl || img?.mainUrl || img?.url || img?.Url || "";
+
+  if (!mainUrl && !thumbUrl) return null;
+
+  return {
+    mainUrl: mainUrl || thumbUrl,
+    thumbUrl: thumbUrl || mainUrl,
+  };
+};
+
+const mapearDetallePublicacionPerfil = (p: any): PublicacionPerfilVendedor => {
+  const imagenesOriginales = Array.isArray(p?.imagenes || p?.Imagenes)
+    ? p.imagenes || p.Imagenes
+    : [];
+
+  const imagenes = imagenesOriginales.map(normalizarImagen).filter(Boolean);
+
+  const imagenPrincipal =
+    imagenes[0]?.mainUrl ||
+    p?.imagenPrincipal ||
+    p?.ImagenPrincipal ||
+    p?.thumbUrl ||
+    p?.ThumbUrl ||
+    "";
+
+  const thumbUrl =
+    imagenes[0]?.thumbUrl ||
+    p?.thumbUrl ||
+    p?.ThumbUrl ||
+    imagenPrincipal ||
+    "";
+
+  return {
+    id: p?.id ?? p?.Id ?? 0,
+    titulo: p?.titulo ?? p?.Titulo ?? p?.nombre ?? p?.Nombre ?? "",
+    descripcion: p?.descripcion ?? p?.Descripcion ?? "",
+    precio: p?.precio ?? p?.Precio ?? 0,
+    categoria: p?.categoria ?? p?.Categoria ?? "",
+    ubicacion: p?.ubicacion ?? p?.Ubicacion ?? "",
+    estado: p?.estado ?? p?.Estado ?? "Activo",
+    imagenPrincipal,
+    thumbUrl,
+    esDestacada: p?.esDestacada ?? p?.EsDestacada ?? false,
+    googleMapsUrl: p?.googleMapsUrl ?? p?.GoogleMapsUrl ?? null,
+    latitud: p?.latitud ?? p?.Latitud ?? null,
+    longitud: p?.longitud ?? p?.Longitud ?? null,
+    imagenes,
+  } as PublicacionPerfilVendedor;
+};
+
+export const obtenerDetallePublicacionPerfil = async (
+  idPublicacion: number,
+): Promise<PublicacionPerfilVendedor> => {
+  const response = await axiosInstance.get<ApiResponse<any>>(
+    `/Publicaciones/obtener-publicacion/${idPublicacion}`,
+  );
+
+  return mapearDetallePublicacionPerfil(response.data.Data);
 };

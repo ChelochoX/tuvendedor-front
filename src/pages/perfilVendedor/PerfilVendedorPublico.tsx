@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
+import { obtenerPublicaciones } from "../../api/publicacionesService";
 import {
   PublicacionPerfilVendedor,
   PerfilPublicoVendedor,
@@ -33,8 +34,50 @@ const PerfilVendedorPublico: React.FC = () => {
         setCargando(true);
         setError(null);
 
-        const data = await obtenerPerfilPublicoVendedor(slug);
-        setPerfil(data);
+        const [perfilData, publicacionesMarketplace] = await Promise.all([
+          obtenerPerfilPublicoVendedor(slug),
+          obtenerPublicaciones(),
+        ]);
+
+        const mapaMarketplace = new Map(
+          (publicacionesMarketplace || []).map((p: any) => [p.id, p]),
+        );
+
+        const publicacionesEnriquecidas = (perfilData.publicaciones || []).map(
+          (pub: any) => {
+            const full = mapaMarketplace.get(pub.id);
+
+            if (!full) {
+              return {
+                ...pub,
+                imagenes: pub.imagenes || [],
+              };
+            }
+
+            return {
+              ...pub,
+              titulo: full.nombre || pub.titulo,
+              descripcion: full.descripcion ?? pub.descripcion,
+              precio: full.precio ?? pub.precio,
+              categoria: full.categoria ?? pub.categoria,
+              ubicacion: full.ubicacion ?? pub.ubicacion,
+              estado: full.estado ?? pub.estado,
+              imagenPrincipal:
+                full.imagenes?.[0]?.mainUrl || pub.imagenPrincipal,
+              thumbUrl: full.imagenes?.[0]?.thumbUrl || pub.thumbUrl,
+              esDestacada: full.esDestacada ?? pub.esDestacada,
+              latitud: full.latitud ?? pub.latitud ?? null,
+              longitud: full.longitud ?? pub.longitud ?? null,
+              googleMapsUrl: full.googleMapsUrl ?? pub.googleMapsUrl ?? null,
+              imagenes: Array.isArray(full.imagenes) ? full.imagenes : [],
+            };
+          },
+        );
+
+        setPerfil({
+          ...perfilData,
+          publicaciones: publicacionesEnriquecidas,
+        });
       } catch (err) {
         console.error("Error al cargar perfil público:", err);
         setError("No se pudo cargar el perfil del vendedor.");

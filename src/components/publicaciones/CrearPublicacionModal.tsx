@@ -56,20 +56,15 @@ type UbicacionGpsForm = {
 
 const normalizarCoordenada = (valor?: string): string => {
   if (!valor) return "";
-
   const texto = valor.trim().replace(",", ".");
   const numero = Number(texto);
-
   if (Number.isNaN(numero)) return "";
-
   return numero.toFixed(6);
 };
 
 const coordenadaParaBackend = (valor?: string): string => {
   const normalizada = normalizarCoordenada(valor);
-
   if (!normalizada) return "";
-
   return normalizada.replace(".", ",");
 };
 
@@ -79,9 +74,7 @@ const construirGoogleMapsUrl = (
 ): string => {
   const lat = normalizarCoordenada(latitud);
   const lng = normalizarCoordenada(longitud);
-
   if (!lat || !lng) return "";
-
   return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
@@ -417,7 +410,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
   return (
     <div className="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 px-3 py-4 backdrop-blur-md">
       <div className="relative flex max-h-[94vh] w-full max-w-7xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-[#0b111c] text-white shadow-2xl">
-        <div className="border-b border-white/10 bg-gradient-to-r from-yellow-400/10 via-white/[0.03] to-green-500/10 px-5 py-4 sm:px-7">
+        <div className="shrink-0 border-b border-white/10 bg-gradient-to-r from-yellow-400/10 via-white/[0.03] to-green-500/10 px-5 py-4 sm:px-7">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-yellow-300">
@@ -455,266 +448,286 @@ const CrearPublicacionModal: React.FC<Props> = ({
         </div>
 
         <form
+          id="crear-publicacion-form"
           onSubmit={handleSubmit}
-          className="
-            premium-scroll grid flex-1 gap-5 overflow-y-auto p-5 sm:p-6
-            lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.82fr)]
-          "
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="space-y-5">
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
-              <div className="mb-4 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-yellow-400/15 text-yellow-300">
-                  <Wand2 size={19} />
-                </div>
+          <div className="premium-scroll min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+            <div className="grid gap-5 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.82fr)]">
+              <div className="space-y-5">
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+                  <div className="mb-4 flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-yellow-400/15 text-yellow-300">
+                      <Wand2 size={19} />
+                    </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Datos principales
-                  </h3>
-                  <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
-                    Usá un título claro, una descripción útil y una ubicación
-                    visible para que el cliente entienda rápido la publicación.
-                  </p>
-                </div>
-              </div>
-
-              <PublicacionDatosBasicos
-                form={form}
-                categorias={categoriasFinales}
-                esInmobiliario={Boolean(esInmobiliario)}
-                onCampo={actualizarCampo}
-                onPrecio={actualizarPrecio}
-              />
-            </div>
-
-            {esInmobiliario && (
-              <div className="rounded-3xl border border-yellow-400/15 bg-yellow-400/[0.04] p-4 sm:p-5">
-                <PublicacionCamposInmuebles
-                  form={form}
-                  onCampoInmueble={actualizarCampoInmueble}
-                />
-              </div>
-            )}
-
-            {esInmobiliario && (
-              <div className="rounded-3xl border border-emerald-400/15 bg-emerald-500/[0.045] p-4 sm:p-5">
-                <div className="mb-4 flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-200">
-                    <MapPin size={19} />
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      Ubicación exacta / GPS
-                    </h3>
-                    <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
-                      Si estás en el inmueble, usá tu ubicación actual. Si no,
-                      pegá un enlace de Google Maps o cargá latitud y longitud.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <input
-                    type="text"
-                    value={ubicacionGps.latitud}
-                    onChange={(event) =>
-                      actualizarUbicacionGps("latitud", event.target.value)
-                    }
-                    placeholder="Latitud (ej: -25.289724)"
-                    className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
-                  />
-
-                  <input
-                    type="text"
-                    value={ubicacionGps.longitud}
-                    onChange={(event) =>
-                      actualizarUbicacionGps("longitud", event.target.value)
-                    }
-                    placeholder="Longitud (ej: -57.604542)"
-                    className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
-                  />
-
-                  <input
-                    type="text"
-                    value={googleMapsUrlFinal}
-                    onChange={(event) =>
-                      actualizarUbicacionGps(
-                        "googleMapsUrl",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Pegá el enlace de Google Maps si ya lo tenés"
-                    className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60 sm:col-span-2"
-                  />
-                </div>
-
-                {googleMapsUrlFinal && (
-                  <div className="mt-3 rounded-2xl border border-emerald-400/10 bg-black/20 px-4 py-3 text-[12px] leading-5 text-emerald-100/80">
-                    Mapa listo para esta publicación.
-                  </div>
-                )}
-
-                <div className="mt-4 flex flex-wrap gap-3">
-                  <button
-                    type="button"
-                    onClick={usarUbicacionActual}
-                    disabled={obteniendoUbicacion || guardando}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <LocateFixed size={16} />
-                    {obteniendoUbicacion
-                      ? "Obteniendo ubicación..."
-                      : "Usar mi ubicación actual"}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={abrirMapa}
-                    disabled={guardando}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    <ExternalLink size={16} />
-                    Ver mapa
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
-              <div className="mb-4 flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-200">
-                  <ImagePlus size={20} />
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-white">
-                    Fotos y videos
-                  </h3>
-                  <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
-                    {esEdicion
-                      ? "Podés agregar nuevas fotos o videos. Si no cargás archivos nuevos, se conservan los actuales."
-                      : "Agregá varias fotos para que la galería de la publicación se vea completa y profesional."}
-                  </p>
-                </div>
-              </div>
-
-              {esEdicion && imagenesExistentes.length > 0 && (
-                <div className="mb-5 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.04] p-4">
-                  <div className="mb-3 flex items-center justify-between gap-3">
                     <div>
-                      <h4 className="text-sm font-semibold text-emerald-200">
-                        Imágenes actuales
-                      </h4>
-                      <p className="mt-1 text-xs leading-5 text-emerald-100/70">
-                        Estas imágenes ya están guardadas. Si agregás nuevas, se
-                        sumarán a la publicación.
+                      <h3 className="text-lg font-semibold text-white">
+                        Datos principales
+                      </h3>
+                      <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
+                        Usá un título claro, una descripción útil y una
+                        ubicación visible para que el cliente entienda rápido la
+                        publicación.
                       </p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                    {imagenesExistentes.map((img, index) => (
-                      <div
-                        key={`${img.mainUrl}-${index}`}
-                        className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
-                      >
-                        <img
-                          src={img.thumbUrl || img.mainUrl}
-                          alt={`Imagen actual ${index + 1}`}
-                          className="h-28 w-full object-cover"
-                        />
+                  <PublicacionDatosBasicos
+                    form={form}
+                    categorias={categoriasFinales}
+                    esInmobiliario={Boolean(esInmobiliario)}
+                    onCampo={actualizarCampo}
+                    onPrecio={actualizarPrecio}
+                  />
+                </div>
+
+                {esInmobiliario && (
+                  <div className="rounded-3xl border border-yellow-400/15 bg-yellow-400/[0.04] p-4 sm:p-5">
+                    <PublicacionCamposInmuebles
+                      form={form}
+                      onCampoInmueble={actualizarCampoInmueble}
+                    />
+                  </div>
+                )}
+
+                {esInmobiliario && (
+                  <div className="rounded-3xl border border-emerald-400/15 bg-emerald-500/[0.045] p-4 sm:p-5">
+                    <div className="mb-4 flex items-start gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-200">
+                        <MapPin size={19} />
                       </div>
-                    ))}
+
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">
+                          Ubicación exacta / GPS
+                        </h3>
+                        <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
+                          Si estás en el inmueble, usá tu ubicación actual. Si
+                          no, pegá un enlace de Google Maps o cargá latitud y
+                          longitud.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
+                        type="text"
+                        value={ubicacionGps.latitud}
+                        onChange={(event) =>
+                          actualizarUbicacionGps("latitud", event.target.value)
+                        }
+                        placeholder="Latitud (ej: -25.289724)"
+                        className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
+                      />
+
+                      <input
+                        type="text"
+                        value={ubicacionGps.longitud}
+                        onChange={(event) =>
+                          actualizarUbicacionGps("longitud", event.target.value)
+                        }
+                        placeholder="Longitud (ej: -57.604542)"
+                        className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60"
+                      />
+
+                      <input
+                        type="text"
+                        value={googleMapsUrlFinal}
+                        onChange={(event) =>
+                          actualizarUbicacionGps(
+                            "googleMapsUrl",
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Pegá el enlace de Google Maps si ya lo tenés"
+                        className="premium-input rounded-2xl border border-white/10 bg-[#020817] px-4 py-3 text-sm font-normal text-white outline-none placeholder:text-slate-500 focus:border-emerald-300/60 sm:col-span-2"
+                      />
+                    </div>
+
+                    {googleMapsUrlFinal && (
+                      <div className="mt-3 rounded-2xl border border-emerald-400/10 bg-black/20 px-4 py-3 text-[12px] leading-5 text-emerald-100/80">
+                        Mapa listo para esta publicación.
+                      </div>
+                    )}
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={usarUbicacionActual}
+                        disabled={obteniendoUbicacion || guardando}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-2.5 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <LocateFixed size={16} />
+                        {obteniendoUbicacion
+                          ? "Obteniendo ubicación..."
+                          : "Usar mi ubicación actual"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={abrirMapa}
+                        disabled={guardando}
+                        className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <ExternalLink size={16} />
+                        Ver mapa
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+                  <div className="mb-4 flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-200">
+                      <ImagePlus size={20} />
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        Fotos y videos
+                      </h3>
+                      <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
+                        {esEdicion
+                          ? "Podés agregar nuevas fotos o videos. Si no cargás archivos nuevos, se conservan los actuales."
+                          : "Agregá varias fotos para que la galería de la publicación se vea completa y profesional."}
+                      </p>
+                    </div>
+                  </div>
+
+                  {esEdicion && imagenesExistentes.length > 0 && (
+                    <div className="mb-5 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.04] p-4">
+                      <div className="mb-3 flex items-center justify-between gap-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-emerald-200">
+                            Imágenes actuales
+                          </h4>
+                          <p className="mt-1 text-xs leading-5 text-emerald-100/70">
+                            Estas imágenes ya están guardadas. Si agregás
+                            nuevas, se sumarán a la publicación.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                        {imagenesExistentes.map((img, index) => (
+                          <div
+                            key={`${img.mainUrl}-${index}`}
+                            className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
+                          >
+                            <img
+                              src={img.thumbUrl || img.mainUrl}
+                              alt={`Imagen actual ${index + 1}`}
+                              className="h-28 w-full object-cover"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <PublicacionMediaUploader
+                    previews={previews}
+                    onAgregarArchivos={agregarArchivos}
+                    onEliminarArchivo={eliminarArchivo}
+                  />
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+                  <PublicacionPlanCredito
+                    form={form}
+                    onMostrarCompra={(valor) =>
+                      actualizarCampo("mostrarBotonesCompra", valor)
+                    }
+                    onAgregarPlan={agregarPlanCredito}
+                    onActualizarPlan={actualizarPlanCredito}
+                    onEliminarPlan={eliminarPlanCredito}
+                  />
+                </div>
+              </div>
+
+              <aside className="flex flex-col gap-5">
+                <div className="sticky top-0 space-y-5">
+                  <PublicacionPreview form={form} previews={previews} />
+
+                  {googleMapsUrlFinal && (
+                    <button
+                      type="button"
+                      onClick={abrirMapa}
+                      disabled={guardando}
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <MapPin size={17} />
+                      Vista previa de ubicación en Google Maps
+                    </button>
+                  )}
+
+                  <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-[13px] font-normal leading-6 text-slate-300">
+                    {esModoVitrina ? (
+                      <>
+                        Tu publicación se mostrará en tu vitrina pública, en el
+                        marketplace y también podrá compartirse desde campañas
+                        de WhatsApp.
+                      </>
+                    ) : (
+                      <>
+                        Tu publicación se mostrará en el marketplace. Si tenés
+                        perfil público de vendedor, también aparecerá en tu
+                        vitrina.
+                      </>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.07] px-4 py-3.5 text-[13px] font-normal leading-6 text-emerald-100/90">
+                    <p className="text-[13px] font-semibold text-emerald-200">
+                      Consejo para vender mejor
+                    </p>
+                    <p className="mt-1 text-[13px] font-normal leading-6 text-emerald-100/75">
+                      Subí al menos 3 fotos nítidas, agregá ubicación clara y
+                      una descripción concreta. Eso ayuda mucho en WhatsApp y en
+                      la vitrina.
+                    </p>
                   </div>
                 </div>
-              )}
-
-              <PublicacionMediaUploader
-                previews={previews}
-                onAgregarArchivos={agregarArchivos}
-                onEliminarArchivo={eliminarArchivo}
-              />
-            </div>
-
-            <div className="rounded-3xl border border-white/10 bg-white/[0.035] p-4 sm:p-5">
-              <PublicacionPlanCredito
-                form={form}
-                onMostrarCompra={(valor) =>
-                  actualizarCampo("mostrarBotonesCompra", valor)
-                }
-                onAgregarPlan={agregarPlanCredito}
-                onActualizarPlan={actualizarPlanCredito}
-                onEliminarPlan={eliminarPlanCredito}
-              />
+              </aside>
             </div>
           </div>
 
-          <aside className="flex flex-col gap-5">
-            <div className="sticky top-0 space-y-5">
-              <PublicacionPreview form={form} previews={previews} />
+          <div className="shrink-0 border-t border-white/10 bg-[#0b111c]/95 px-5 py-4 backdrop-blur sm:px-7">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-xs leading-5 text-slate-400">
+                {esModoVitrina
+                  ? "La publicación aparecerá en tu vitrina pública y en el marketplace."
+                  : "La publicación aparecerá en el marketplace."}
+              </p>
 
-              {googleMapsUrlFinal && (
+              <div className="flex flex-col gap-3 sm:flex-row">
                 <button
                   type="button"
-                  onClick={abrirMapa}
+                  onClick={cerrarModal}
                   disabled={guardando}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-400/20 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-100 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <MapPin size={17} />
-                  Vista previa de ubicación en Google Maps
+                  Cancelar
                 </button>
-              )}
 
-              <button
-                type="submit"
-                disabled={guardando}
-                className="
-                  flex w-full items-center justify-center gap-2 rounded-2xl
-                  border border-yellow-300/30 bg-yellow-400 px-6 py-3.5
-                  text-[15px] font-semibold text-slate-950 shadow-sm
-                  transition hover:bg-yellow-300
-                  disabled:cursor-not-allowed disabled:opacity-60
-                "
-              >
-                <CheckCircle2 size={18} strokeWidth={2} />
-                {guardando
-                  ? esEdicion
-                    ? "Guardando cambios..."
-                    : "Publicando..."
-                  : esEdicion
-                    ? "Guardar cambios"
-                    : "Publicar ahora"}
-              </button>
-
-              <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-[13px] font-normal leading-6 text-slate-300">
-                {esModoVitrina ? (
-                  <>
-                    Tu publicación se mostrará en tu vitrina pública, en el
-                    marketplace y también podrá compartirse desde campañas de
-                    WhatsApp.
-                  </>
-                ) : (
-                  <>
-                    Tu publicación se mostrará en el marketplace. Si tenés
-                    perfil público de vendedor, también aparecerá en tu vitrina.
-                  </>
-                )}
-              </div>
-
-              <div className="rounded-2xl border border-emerald-400/15 bg-emerald-500/[0.07] px-4 py-3.5 text-[13px] font-normal leading-6 text-emerald-100/90">
-                <p className="text-[13px] font-semibold text-emerald-200">
-                  Consejo para vender mejor
-                </p>
-                <p className="mt-1 text-[13px] font-normal leading-6 text-emerald-100/75">
-                  Subí al menos 3 fotos nítidas, agregá ubicación clara y una
-                  descripción concreta. Eso ayuda mucho en WhatsApp y en la
-                  vitrina.
-                </p>
+                <button
+                  type="submit"
+                  disabled={guardando}
+                  className="flex items-center justify-center gap-2 rounded-2xl border border-yellow-300/30 bg-yellow-400 px-6 py-3 text-sm font-semibold text-slate-950 shadow-sm transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <CheckCircle2 size={18} strokeWidth={2} />
+                  {guardando
+                    ? esEdicion
+                      ? "Guardando cambios..."
+                      : "Publicando..."
+                    : esEdicion
+                      ? "Guardar cambios"
+                      : "Publicar ahora"}
+                </button>
               </div>
             </div>
-          </aside>
+          </div>
         </form>
       </div>
     </div>

@@ -17,12 +17,13 @@ export interface PublicacionPerfilVendedor {
   imagenPrincipal?: string;
   thumbUrl?: string;
   esDestacada?: boolean;
-
+  googleMapsUrl?: string | null;
   latitud?: number | null;
   longitud?: number | null;
-  googleMapsUrl?: string | null;
-
-  imagenes?: string[];
+  imagenes?: Array<{
+    mainUrl: string;
+    thumbUrl?: string;
+  }>;
 }
 
 export interface PerfilPublicoVendedor {

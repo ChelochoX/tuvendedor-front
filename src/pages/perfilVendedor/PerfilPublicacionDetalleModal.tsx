@@ -14,7 +14,7 @@ import {
   PublicacionPerfilVendedor,
   PerfilPublicoVendedor,
 } from "../../types/perfilVendedor.types";
-import { buildProductoShareUrl } from "../../config/appConfig";
+import { buildVitrinaUrl } from "../../config/appConfig";
 
 interface Props {
   publicacion: PublicacionPerfilVendedor;
@@ -122,14 +122,6 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
   }, [publicacion.id]);
 
   useEffect(() => {
-    document.body.classList.add("tv-modal-vitrina-open");
-
-    return () => {
-      document.body.classList.remove("tv-modal-vitrina-open");
-    };
-  }, []);
-
-  useEffect(() => {
     document.body.style.overflow = "hidden";
 
     const handleEscape = (event: KeyboardEvent) => {
@@ -155,7 +147,8 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
     perfil.nombreUsuario?.trim() ||
     "Tu Vendedor";
 
-  const urlCompartir = buildProductoShareUrl(publicacion.id);
+  const urlCompartir = buildVitrinaUrl(perfil.slug);
+
   const urlMapa = construirUrlMapa(publicacion);
 
   const mensajeConsulta = `Hola,
@@ -168,7 +161,7 @@ ${publicacion.ubicacion ? `📍 ${publicacion.ubicacion}` : ""}
 💰 ${precio}
 
 Ver publicación:
-${urlCompartir}`;
+${urlCompartir}?producto=${publicacion.id}`;
 
   const esInmueble = useMemo(() => {
     const texto =
@@ -195,8 +188,6 @@ ${urlCompartir}`;
       "oficinas",
       "quinta",
       "quintas",
-      "despensa",
-      "bodega",
     ].some((palabra) => texto.includes(palabra));
   }, [publicacion.categoria, perfil.rubro]);
 
@@ -212,19 +203,19 @@ ${urlCompartir}`;
 
   return (
     <>
-      <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm">
-        <div className="flex h-full w-full items-center justify-center p-3 md:p-6">
-          <div className="relative flex h-[95vh] w-full max-w-7xl overflow-hidden rounded-[28px] border border-white/10 bg-[#0b0b0b] shadow-2xl">
+      <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm">
+        <div className="flex h-full w-full items-center justify-center p-2 md:p-6">
+          <div className="relative h-[96dvh] w-full max-w-7xl overflow-hidden rounded-[24px] border border-white/10 bg-[#080b12] shadow-2xl">
             <button
               type="button"
               onClick={onClose}
-              className="absolute right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-black/60 text-yellow-300 transition hover:bg-black/80 hover:text-yellow-200"
+              className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-yellow-300 transition hover:bg-black/80"
             >
-              <X size={22} />
+              <X size={21} />
             </button>
 
-            <section className="grid h-full w-full grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]">
-              <div className="relative flex min-h-[360px] items-center justify-center bg-black p-4 md:p-6">
+            <section className="flex h-full flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+              <div className="relative flex h-[48dvh] min-h-[330px] shrink-0 items-center justify-center bg-black p-3 lg:h-full lg:p-6">
                 <img
                   src={imagenActiva}
                   alt={publicacion.titulo}
@@ -236,7 +227,7 @@ ${urlCompartir}`;
                     <button
                       type="button"
                       onClick={irAnterior}
-                      className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+                      className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white"
                     >
                       <ChevronLeft size={22} />
                     </button>
@@ -244,7 +235,7 @@ ${urlCompartir}`;
                     <button
                       type="button"
                       onClick={irSiguiente}
-                      className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/60 text-white transition hover:bg-black/80"
+                      className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white"
                     >
                       <ChevronRight size={22} />
                     </button>
@@ -252,14 +243,14 @@ ${urlCompartir}`;
                 )}
 
                 {imagenes.length > 1 && (
-                  <div className="absolute bottom-4 left-0 right-0 flex justify-center px-4">
-                    <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-black/50 px-3 py-2 backdrop-blur">
+                  <div className="absolute bottom-3 left-0 right-0 flex justify-center px-3">
+                    <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-black/55 px-2 py-2 backdrop-blur">
                       {imagenes.map((img, index) => (
                         <button
                           key={`${img}-${index}`}
                           type="button"
                           onClick={() => setIndiceActual(index)}
-                          className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 transition ${
+                          className={`h-12 w-12 shrink-0 overflow-hidden rounded-xl border-2 transition md:h-16 md:w-16 ${
                             indiceActual === index
                               ? "border-yellow-400"
                               : "border-transparent"
@@ -277,35 +268,39 @@ ${urlCompartir}`;
                 )}
               </div>
 
-              <aside className="flex h-full flex-col overflow-y-auto border-l border-white/10 bg-[#101722] p-5 text-white">
-                <div className="mb-3">
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-gray-400">
+              <aside className="flex min-h-0 flex-col overflow-visible bg-[#101722] p-4 text-white lg:h-full lg:overflow-y-auto lg:border-l lg:border-white/10 lg:p-5">
+                <div className="mb-3 pr-10 lg:pr-0">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">
                     Publicación
                   </p>
-                  <h2 className="mt-2 text-3xl font-bold leading-tight">
+
+                  <h2 className="mt-2 text-[22px] font-bold leading-tight text-white lg:text-3xl">
                     {publicacion.titulo}
                   </h2>
 
                   {publicacion.ubicacion && (
-                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-300">
-                      <MapPin size={15} className="text-yellow-300" />
+                    <div className="mt-2 flex items-start gap-2 text-xs leading-5 text-gray-300 lg:text-sm">
+                      <MapPin
+                        size={14}
+                        className="mt-0.5 shrink-0 text-yellow-300"
+                      />
                       <span>{publicacion.ubicacion}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="rounded-2xl bg-[#181f2b] p-5 ring-1 ring-yellow-400/20">
-                  <p className="text-[11px] uppercase tracking-[0.2em] text-yellow-300">
+                <div className="rounded-2xl bg-[#181f2b] p-4 ring-1 ring-yellow-400/20 lg:p-5">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-yellow-300">
                     Precio
                   </p>
-                  <p className="mt-2 text-3xl font-extrabold text-white">
+                  <p className="mt-1 text-2xl font-extrabold text-white lg:text-3xl">
                     {precio}
                   </p>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-3 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl bg-[#151922] p-4 ring-1 ring-white/10">
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-gray-400">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-400">
                       Categoría
                     </p>
                     <p className="mt-2 text-sm font-semibold text-white">
@@ -314,30 +309,30 @@ ${urlCompartir}`;
                   </div>
 
                   <div className="rounded-2xl bg-[#151922] p-4 ring-1 ring-white/10">
-                    <p className="text-[11px] uppercase tracking-[0.15em] text-gray-400">
+                    <p className="text-[10px] uppercase tracking-[0.15em] text-gray-400">
                       Ubicación
                     </p>
-                    <p className="mt-2 text-sm font-semibold text-white">
+                    <p className="mt-2 text-xs font-semibold leading-5 text-white lg:text-sm">
                       {publicacion.ubicacion || "No especificada"}
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 rounded-2xl bg-[#151922] p-5 ring-1 ring-white/10">
-                  <p className="text-[17px] font-semibold text-white">
+                <div className="mt-3 rounded-2xl bg-[#151922] p-4 ring-1 ring-white/10 lg:p-5">
+                  <p className="text-base font-semibold text-white">
                     Descripción
                   </p>
-                  <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-gray-300">
+                  <p className="mt-3 whitespace-pre-line text-[13px] leading-6 text-gray-300 lg:text-sm lg:leading-7">
                     {publicacion.descripcion || "Sin descripción."}
                   </p>
                 </div>
 
                 {urlMapa && (
-                  <div className="mt-4 rounded-2xl bg-[#151922] p-5 ring-1 ring-white/10">
-                    <p className="text-[17px] font-semibold text-white">
+                  <div className="mt-3 rounded-2xl bg-[#151922] p-4 ring-1 ring-white/10 lg:p-5">
+                    <p className="text-base font-semibold text-white">
                       Ubicación
                     </p>
-                    <p className="mt-3 text-sm text-gray-300">
+                    <p className="mt-2 text-xs leading-5 text-gray-300 lg:text-sm">
                       {publicacion.ubicacion || "Ver ubicación"}
                     </p>
 
@@ -345,20 +340,18 @@ ${urlCompartir}`;
                       href={urlMapa}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 flex min-h-11 w-full items-center justify-center rounded-xl bg-[#1f3b17] px-5 py-3 text-[14px] font-semibold text-yellow-300 transition hover:bg-[#28501d]"
+                      className="mt-3 flex min-h-10 w-full items-center justify-center rounded-xl bg-[#1f3b17] px-4 py-2.5 text-[13px] font-semibold text-yellow-300 transition hover:bg-[#28501d]"
                     >
                       Ver en Google Maps
                     </a>
                   </div>
                 )}
 
-                <div className="mt-4 rounded-2xl bg-[#151922] p-5 ring-1 ring-white/10">
-                  <p className="text-[17px] font-semibold text-white">
-                    Vendedor
-                  </p>
+                <div className="mt-3 rounded-2xl bg-[#151922] p-4 ring-1 ring-white/10 lg:p-5">
+                  <p className="text-base font-semibold text-white">Vendedor</p>
 
-                  <div className="mt-4 flex items-center gap-3">
-                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-[#1f1f1f] ring-1 ring-white/10">
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="h-11 w-11 shrink-0 overflow-hidden rounded-xl bg-[#1f1f1f] ring-1 ring-white/10">
                       {perfil.fotoPerfil ? (
                         <img
                           src={perfil.fotoPerfil}
@@ -373,10 +366,10 @@ ${urlCompartir}`;
                     </div>
 
                     <div className="min-w-0">
-                      <p className="truncate text-[14px] font-medium text-white">
+                      <p className="truncate text-sm font-medium text-white">
                         {vendedor}
                       </p>
-                      <p className="truncate text-[12px] text-gray-400">
+                      <p className="truncate text-xs text-gray-400">
                         {perfil.rubro || "Vendedor"}
                         {perfil.ciudadVisible
                           ? ` · ${perfil.ciudadVisible}`
@@ -386,15 +379,15 @@ ${urlCompartir}`;
                   </div>
                 </div>
 
-                <div className="sticky bottom-0 mt-5 space-y-3 border-t border-white/10 bg-[#101722]/95 pt-5 backdrop-blur-md">
+                <div className="mt-4 space-y-2 border-t border-white/10 bg-[#101722]/95 pt-4 lg:sticky lg:bottom-0 lg:mt-5 lg:space-y-3 lg:pt-5 lg:backdrop-blur-md">
                   <button
                     type="button"
                     onClick={() =>
                       abrirWhatsapp(perfil.whatsapp, mensajeConsulta)
                     }
-                    className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#22c55e] px-5 py-3 text-[14px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a]"
+                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#22c55e] px-4 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a] lg:min-h-11 lg:text-[14px]"
                   >
-                    <MessageCircle size={16} strokeWidth={2} />
+                    <MessageCircle size={15} strokeWidth={2} />
                     Hablar con el vendedor
                   </button>
 
@@ -402,9 +395,9 @@ ${urlCompartir}`;
                     <button
                       type="button"
                       onClick={() => setMostrarModalVisita(true)}
-                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-5 py-3 text-[14px] font-semibold text-black shadow-sm transition hover:bg-yellow-300"
+                      className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-[13px] font-semibold text-black shadow-sm transition hover:bg-yellow-300 lg:min-h-11 lg:text-[14px]"
                     >
-                      <CalendarDays size={16} strokeWidth={2} />
+                      <CalendarDays size={15} strokeWidth={2} />
                       Agendar visita
                     </button>
                   )}
@@ -415,13 +408,11 @@ ${urlCompartir}`;
         </div>
       </div>
 
-      {mostrarModalVisita && (
-        <SolicitarVisitaModal
-          abierto={mostrarModalVisita}
-          publicacion={publicacion}
-          onClose={() => setMostrarModalVisita(false)}
-        />
-      )}
+      <SolicitarVisitaModal
+        abierto={mostrarModalVisita}
+        publicacion={publicacion}
+        onClose={() => setMostrarModalVisita(false)}
+      />
     </>
   );
 };

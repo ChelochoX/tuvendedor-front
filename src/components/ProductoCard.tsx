@@ -639,72 +639,45 @@ const ProductoCard: React.FC<Props> = ({
           )}
 
           {mostrarAcciones && (
-            <div className="mt-2 flex flex-col gap-2 border-t border-gray-200 pt-2">
+            <div className="mt-3 space-y-2 pb-6">
               <button
-                disabled={
-                  producto.estado === "Vendido" ||
-                  operandoDestacado ||
-                  (!destacadoActivo && !puedeCrearDestacado)
-                }
-                onClick={(e) => {
+                type="button"
+                disabled={operandoDestacado}
+                onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
 
                   if (destacadoActivo) {
-                    quitarDestacadoFlow();
+                    await quitarDestacadoFlow();
                   } else {
-                    destacarFlow();
+                    await destacarFlow();
                   }
                 }}
-                className={[
-                  "w-full rounded-md font-semibold transition flex items-center justify-center gap-1",
-                  "text-[12px] py-[4px] px-2",
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
                   destacadoActivo
-                    ? "bg-yellow-300 text-black"
-                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200",
-                ].join(" ")}
-                title={
-                  destacadoActivo
-                    ? puedeQuitarDestacado
-                      ? "Quitar destacado"
-                      : "Quitar destacado"
-                    : puedeCrearDestacado
-                      ? "Destacar publicación"
-                      : "Permiso requerido"
-                }
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                ⭐ {destacadoActivo ? "Quitar destacado" : "Destacar"}
+                {destacadoActivo ? "⭐ Quitar destacado" : "⭐ Destacar"}
               </button>
 
               <button
-                disabled={
-                  producto.estado === "Vendido" ||
-                  operandoEspecial ||
-                  (!especialActivo && !puedeCrearEspecial)
-                }
-                onClick={(e) => {
+                type="button"
+                disabled={operandoEspecial}
+                onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  activarEspecialFlow();
+
+                  await activarEspecialFlow();
                 }}
-                className={[
-                  "w-full rounded-md font-semibold transition shadow-sm flex items-center justify-center gap-1",
-                  "text-[12px] py-[4px] px-2",
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
                   especialActivo
-                    ? "bg-gradient-to-r from-purple-400 via-fuchsia-400 to-pink-400 text-white"
-                    : puedeCrearEspecial
-                      ? "bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white hover:shadow-md"
-                      : "cursor-not-allowed bg-gray-300 text-gray-500",
-                ].join(" ")}
-                title={
-                  especialActivo
-                    ? "Quitar de publicación especial"
-                    : puedeCrearEspecial
-                      ? "Activar como publicación especial"
-                      : "Función Premium"
-                }
+                    ? "bg-red-100 text-red-700"
+                    : "bg-fuchsia-100 text-fuchsia-700"
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
-                🎉 {especialActivo ? "Especial (activo)" : "Especial"}
+                {especialActivo ? "🎉 Quitar especial" : "🎉 Especial"}
               </button>
             </div>
           )}

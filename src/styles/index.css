@@ -1159,3 +1159,7 @@ body.tv-modal-vitrina-open *::-webkit-scrollbar {
 body.tv-modal-vitrina-open {
   overflow: hidden !important;
 }
+
+.swal2-container {
+  z-index: 99999 !important;
+}

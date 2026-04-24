@@ -1,3 +1,5 @@
+import { buildProductoUrl, buildVitrinaUrl } from "../config/appConfig";
+
 type ProductoWhatsapp = {
   id: number;
   titulo: string;
@@ -7,14 +9,12 @@ type ProductoWhatsapp = {
   precio?: number | string | null;
 };
 
-const normalizarBaseUrl = (url?: string): string => {
-  return (url ?? "").replace(/\/$/, "");
-};
-
-const SHARE_URL = normalizarBaseUrl(import.meta.env.VITE_SHARE_URL);
-
-export const obtenerUrlCompartirProducto = (idProducto: number): string => {
-  return `${SHARE_URL}/Compartir/producto/${idProducto}`;
+type PerfilWhatsapp = {
+  slug?: string | null;
+  nombreNegocio?: string | null;
+  nombreUsuario?: string | null;
+  ciudadVisible?: string | null;
+  rubro?: string | null;
 };
 
 export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
@@ -22,9 +22,12 @@ export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
 
   let limpio = telefono.replace(/\D/g, "");
 
-  // Si viene en formato local Paraguay: 0994xxxxxx -> 595994xxxxxx
   if (limpio.startsWith("0")) {
     limpio = `595${limpio.substring(1)}`;
+  }
+
+  if (!limpio.startsWith("595")) {
+    limpio = `595${limpio}`;
   }
 
   return limpio;
@@ -44,47 +47,85 @@ export const formatearPrecioGs = (precio?: number | string | null): string => {
   return `Gs. ${valorNumerico.toLocaleString("es-PY")}`;
 };
 
+export const obtenerUrlCompartirProducto = (
+  idProducto: number,
+  slug?: string | null,
+): string => {
+  const base = buildVitrinaUrl(slug);
+
+  return `${base}?producto=${idProducto}`;
+};
+
+export const obtenerUrlCompartirVitrina = (slug?: string | null): string => {
+  return buildVitrinaUrl(slug);
+};
+
 export const generarMensajeProductoWhatsapp = (
   producto: ProductoWhatsapp,
+  slug?: string | null,
 ): string => {
-  const urlCompartir = obtenerUrlCompartirProducto(producto.id);
+  const urlCompartir = obtenerUrlCompartirProducto(producto.id, slug);
 
   return `Hola 👋
 
-Vi tu publicación y me gustaría saber más.
+Vi esta publicación y me interesa:
 
-🏷️ Publicación: ${producto.titulo}
-📌 Categoría: ${producto.categoria || "Sin categoría"}
-📍 Ubicación: ${producto.ubicacion || "Ubicación no especificada"}
-💰 Precio: ${formatearPrecioGs(producto.precio)}
-
-${
-  producto.descripcion
-    ? `📝 Detalle:
-${producto.descripcion}
-
-`
-    : ""
-}¿Sigue disponible? Me interesa recibir más información.
+🏷️ ${producto.titulo}
+📍 ${producto.ubicacion || ""}
+💰 ${formatearPrecioGs(producto.precio)}
 
 🔗 Ver publicación:
 ${urlCompartir}`;
 };
 
-export const abrirWhatsappConMensaje = (
-  telefono: string | null | undefined,
-  mensaje: string,
-): void => {
+export const generarMensajeVitrinaWhatsapp = (
+  perfil: PerfilWhatsapp,
+): string => {
+  const urlVitrina = obtenerUrlCompartirVitrina(perfil.slug);
+
+  const nombre =
+    perfil.nombreNegocio?.trim() ||
+    perfil.nombreUsuario?.trim() ||
+    "Tu Vendedor";
+
+  return `Hola 👋
+
+Te comparto mi vitrina pública:
+
+🏪 ${nombre}
+${perfil.rubro ? `📌 ${perfil.rubro}` : ""}
+${perfil.ciudadVisible ? `📍 ${perfil.ciudadVisible}` : ""}
+
+Mirá mis publicaciones disponibles acá:
+
+${urlVitrina}`;
+};
+
+export const construirLinkWhatsapp = (
+  telefono?: string | null,
+  mensaje?: string,
+): string => {
   const telefonoLimpio = limpiarTelefonoWhatsapp(telefono);
 
-  if (!telefonoLimpio) {
+  if (!telefonoLimpio) return "";
+
+  const texto = mensaje?.trim() ? `?text=${encodeURIComponent(mensaje)}` : "";
+
+  return `https://wa.me/${telefonoLimpio}${texto}`;
+};
+
+export const abrirWhatsapp = (
+  telefono?: string | null,
+  mensaje?: string,
+): void => {
+  const url = construirLinkWhatsapp(telefono, mensaje);
+
+  if (!url) {
     window.alert("El vendedor no tiene WhatsApp configurado.");
     return;
   }
 
-  const whatsappUrl = `https://wa.me/${telefonoLimpio}?text=${encodeURIComponent(
-    mensaje,
-  )}`;
-
-  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  window.open(url, "_blank", "noopener,noreferrer");
 };
+
+export const abrirWhatsappConMensaje = abrirWhatsapp;

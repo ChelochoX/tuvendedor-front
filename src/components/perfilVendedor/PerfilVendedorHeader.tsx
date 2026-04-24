@@ -10,7 +10,10 @@ import {
   Store,
 } from "lucide-react";
 import { PerfilPublicoVendedor } from "../../types/perfilVendedor.types";
-import { abrirWhatsapp, limpiarTelefonoWhatsapp } from "../../utils/whatsapp";
+import {
+  abrirWhatsapp,
+  limpiarTelefonoWhatsapp,
+} from "../../utils/whatsappShare";
 
 interface Props {
   perfil: PerfilPublicoVendedor;

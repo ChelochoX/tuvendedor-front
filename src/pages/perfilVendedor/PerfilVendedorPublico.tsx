@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 import { obtenerPublicaciones } from "../../api/publicacionesService";
@@ -15,6 +15,7 @@ import PerfilPublicacionDetalleModal from "./PerfilPublicacionDetalleModal";
 const PerfilVendedorPublico: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [perfil, setPerfil] = useState<PerfilPublicoVendedor | null>(null);
   const [publicacionSeleccionada, setPublicacionSeleccionada] =
@@ -88,6 +89,20 @@ const PerfilVendedorPublico: React.FC = () => {
 
     cargarPerfil();
   }, [slug]);
+
+  useEffect(() => {
+    const productoId = searchParams.get("producto");
+
+    if (!productoId || !perfil?.publicaciones?.length) return;
+
+    const publicacion = perfil.publicaciones.find(
+      (p) => p.id === Number(productoId),
+    );
+
+    if (publicacion) {
+      setPublicacionSeleccionada(publicacion);
+    }
+  }, [searchParams, perfil]);
 
   if (cargando) {
     return (

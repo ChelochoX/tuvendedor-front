@@ -80,14 +80,23 @@ const perteneceACategoria = (
   );
 };
 
-const formatearPrecio = (precio?: number | null): string => {
+const formatearPrecio = (
+  precio?: number | null,
+  moneda?: string | null,
+): string => {
   if (!precio || precio <= 0) return "Consultar precio";
 
-  return new Intl.NumberFormat("es-PY", {
-    style: "currency",
-    currency: "PYG",
+  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+  if (monedaNormalizada === "USD") {
+    return `USD ${Number(precio).toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
+  }
+
+  return `Gs. ${Number(precio).toLocaleString("es-PY", {
     maximumFractionDigits: 0,
-  }).format(precio);
+  })}`;
 };
 
 const PerfilVendedorPublicaciones: React.FC<Props> = ({
@@ -305,7 +314,7 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                         Precio
                       </p>
                       <p className="mt-1 text-xl font-black text-yellow-300">
-                        {formatearPrecio(item.precio)}
+                        {formatearPrecio(item.precio, item.moneda)}
                       </p>
                     </div>
 

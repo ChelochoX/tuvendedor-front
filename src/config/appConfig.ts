@@ -25,6 +25,21 @@ export const buildProductoUrl = (id?: number | string | null) => {
   return `${baseUrl}/producto/${id}`;
 };
 
-export const buildProductoShareUrl = (id?: number | string | null) => {
+export const buildProductoShareUrl = (
+  id?: number | string | null,
+  slug?: string | null,
+) => {
+  const slugLimpio = slug?.trim();
+
+  if (slugLimpio && id) {
+    return `${buildVitrinaUrl(slugLimpio)}?producto=${encodeURIComponent(
+      String(id),
+    )}`;
+  }
+
+  if (slugLimpio) {
+    return buildVitrinaUrl(slugLimpio);
+  }
+
   return buildProductoUrl(id);
 };

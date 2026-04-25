@@ -11,6 +11,7 @@ export interface PublicacionPerfilVendedor {
   titulo: string;
   descripcion?: string;
   precio?: number;
+  moneda?: "PYG" | "USD" | string | null;
   categoria?: string;
   ubicacion?: string;
   estado?: string;

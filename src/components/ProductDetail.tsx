@@ -40,8 +40,12 @@ const ProductDetail: React.FC<Props> = ({
   const navigate = useNavigate();
 
   const cuotas =
-    producto.planCredito?.opciones.map(
-      (op) => `${op.cuotas} X Gs. ${op.valorCuota.toLocaleString()}`,
+    producto.planCredito?.opciones?.map(
+      (opcion) =>
+        `${opcion.cuotas} cuotas de ${formatearPrecio(
+          opcion.valorCuota,
+          producto.moneda,
+        )}`,
     ) || [];
 
   const handlePrevImage = () => {
@@ -76,7 +80,7 @@ const ProductDetail: React.FC<Props> = ({
       return;
     }
 
-    // 🟡 Normalización automática a formato WhatsApp
+    // Normalización automática a formato WhatsApp
     // Si empieza con 0 → quitamos el 0 y agregamos +595
     let numero = numeroCrudo;
 
@@ -102,6 +106,25 @@ const ProductDetail: React.FC<Props> = ({
 
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");
+  };
+
+  const formatearPrecio = (
+    precio?: number | null,
+    moneda?: string | null,
+  ): string => {
+    if (!precio || precio <= 0) return "Consultar precio";
+
+    const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+    if (monedaNormalizada === "USD") {
+      return `USD ${Number(precio).toLocaleString("es-PY", {
+        maximumFractionDigits: 0,
+      })}`;
+    }
+
+    return `Gs. ${Number(precio).toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
   };
 
   return (
@@ -317,7 +340,7 @@ const ProductDetail: React.FC<Props> = ({
       >
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h5" fontWeight="bold" color="#fff">
-            {producto.nombre}
+            {formatearPrecio(producto.precio, producto.moneda)}
           </Typography>
           <Button onClick={onToggleFavorite}>
             {isFavorite ? (
@@ -343,7 +366,7 @@ const ProductDetail: React.FC<Props> = ({
               Precio CONTADO
             </Typography>
             <Typography variant="h5" fontWeight="bold" color="#fff">
-              Gs. {producto.precio.toLocaleString()}
+              {formatearPrecio(producto.precio, producto.moneda)}
             </Typography>
           </Box>
 

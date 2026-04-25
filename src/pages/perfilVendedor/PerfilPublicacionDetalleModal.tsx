@@ -22,14 +22,23 @@ interface Props {
   onClose: () => void;
 }
 
-const formatearPrecio = (precio?: number | null): string => {
+const formatearPrecio = (
+  precio?: number | null,
+  moneda?: string | null,
+): string => {
   if (!precio || precio <= 0) return "Consultar precio";
 
-  return new Intl.NumberFormat("es-PY", {
-    style: "currency",
-    currency: "PYG",
+  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+  if (monedaNormalizada === "USD") {
+    return `USD ${Number(precio).toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
+  }
+
+  return `Gs. ${Number(precio).toLocaleString("es-PY", {
     maximumFractionDigits: 0,
-  }).format(precio);
+  })}`;
 };
 
 const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
@@ -125,7 +134,9 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
     document.body.style.overflow = "hidden";
 
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") {
+        onClose();
+      }
     };
 
     window.addEventListener("keydown", handleEscape);
@@ -140,14 +151,18 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
     imagenes[indiceActual] ||
     "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1600";
 
-  const precio = formatearPrecio(publicacion.precio);
+  const precio = formatearPrecio(publicacion.precio, publicacion.moneda);
 
   const vendedor =
     perfil.nombreNegocio?.trim() ||
     perfil.nombreUsuario?.trim() ||
     "Tu Vendedor";
 
-  const urlCompartir = buildVitrinaUrl(perfil.slug);
+  const urlVitrina = buildVitrinaUrl(perfil.slug);
+
+  const urlPublicacion = `${urlVitrina}?producto=${encodeURIComponent(
+    String(publicacion.id),
+  )}`;
 
   const urlMapa = construirUrlMapa(publicacion);
 
@@ -161,7 +176,7 @@ ${publicacion.ubicacion ? `📍 ${publicacion.ubicacion}` : ""}
 💰 ${precio}
 
 Ver publicación:
-${urlCompartir}?producto=${publicacion.id}`;
+${urlPublicacion}`;
 
   const esInmueble = useMemo(() => {
     const texto =
@@ -193,12 +208,19 @@ ${urlCompartir}?producto=${publicacion.id}`;
 
   const irAnterior = () => {
     if (imagenes.length <= 1) return;
+
     setIndiceActual((prev) => (prev === 0 ? imagenes.length - 1 : prev - 1));
   };
 
   const irSiguiente = () => {
     if (imagenes.length <= 1) return;
+
     setIndiceActual((prev) => (prev === imagenes.length - 1 ? 0 : prev + 1));
+  };
+
+  const cerrarModal = () => {
+    setMostrarModalVisita(false);
+    onClose();
   };
 
   return (
@@ -208,14 +230,25 @@ ${urlCompartir}?producto=${publicacion.id}`;
           <div className="relative h-[96dvh] w-full max-w-7xl overflow-hidden rounded-[24px] border border-white/10 bg-[#080b12] shadow-2xl">
             <button
               type="button"
-              onClick={onClose}
-              className="absolute right-4 top-4 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-black/60 text-yellow-300 transition hover:bg-black/80"
+              onClick={cerrarModal}
+              aria-label="Ver publicaciones"
+              className="absolute left-4 top-4 z-50 flex items-center gap-2 rounded-full border border-white/10 bg-black/75 px-4 py-2 text-sm font-bold text-yellow-300 shadow-xl backdrop-blur-md transition hover:bg-black/90 hover:text-yellow-200"
             >
-              <X size={21} />
+              <span className="text-base leading-none">←</span>
+              <span>Ver publicaciones</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={cerrarModal}
+              aria-label="Cerrar publicación"
+              className="absolute right-4 top-4 z-50 flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/75 text-yellow-300 shadow-xl backdrop-blur-md transition hover:bg-black/90 hover:text-yellow-200"
+            >
+              <X size={23} />
             </button>
 
             <section className="flex h-full flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
-              <div className="relative flex h-[48dvh] min-h-[330px] shrink-0 items-center justify-center bg-black p-3 lg:h-full lg:p-6">
+              <div className="relative flex h-[48dvh] min-h-[330px] shrink-0 items-center justify-center bg-black p-3 pt-16 lg:h-full lg:p-6 lg:pt-16">
                 <img
                   src={imagenActiva}
                   alt={publicacion.titulo}
@@ -227,7 +260,8 @@ ${urlCompartir}?producto=${publicacion.id}`;
                     <button
                       type="button"
                       onClick={irAnterior}
-                      className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white"
+                      aria-label="Imagen anterior"
+                      className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75"
                     >
                       <ChevronLeft size={22} />
                     </button>
@@ -235,7 +269,8 @@ ${urlCompartir}?producto=${publicacion.id}`;
                     <button
                       type="button"
                       onClick={irSiguiente}
-                      className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white"
+                      aria-label="Imagen siguiente"
+                      className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/55 text-white transition hover:bg-black/75"
                     >
                       <ChevronRight size={22} />
                     </button>
@@ -250,6 +285,7 @@ ${urlCompartir}?producto=${publicacion.id}`;
                           key={`${img}-${index}`}
                           type="button"
                           onClick={() => setIndiceActual(index)}
+                          aria-label={`Ver imagen ${index + 1}`}
                           className={`h-12 w-12 shrink-0 overflow-hidden rounded-xl border-2 transition md:h-16 md:w-16 ${
                             indiceActual === index
                               ? "border-yellow-400"
@@ -268,8 +304,8 @@ ${urlCompartir}?producto=${publicacion.id}`;
                 )}
               </div>
 
-              <aside className="flex min-h-0 flex-col overflow-visible bg-[#101722] p-4 text-white lg:h-full lg:overflow-y-auto lg:border-l lg:border-white/10 lg:p-5">
-                <div className="mb-3 pr-10 lg:pr-0">
+              <aside className="flex min-h-0 flex-col overflow-visible bg-[#101722] p-4 pt-16 text-white lg:h-full lg:overflow-y-auto lg:border-l lg:border-white/10 lg:p-5 lg:pt-16">
+                <div className="mb-3">
                   <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">
                     Publicación
                   </p>

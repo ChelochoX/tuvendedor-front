@@ -13,8 +13,36 @@ interface Props {
   previews: PreviewArchivo[];
 }
 
+const formatearPrecioPreview = (
+  precio?: string | number | null,
+  moneda?: string | null,
+): string => {
+  if (precio === null || precio === undefined || precio === "") {
+    return moneda?.toUpperCase() === "USD" ? "USD 0" : "Gs. 0";
+  }
+
+  const textoPrecio = String(precio).trim();
+
+  if (!textoPrecio) {
+    return moneda?.toUpperCase() === "USD" ? "USD 0" : "Gs. 0";
+  }
+
+  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+  if (monedaNormalizada === "USD") {
+    return `USD ${textoPrecio}`;
+  }
+
+  return `Gs. ${textoPrecio}`;
+};
+
 const PublicacionPreview: React.FC<Props> = ({ form, previews }) => {
   const principal = previews[0];
+
+  const monedaSeleccionada =
+    form.moneda?.trim().toUpperCase() ||
+    form.camposInmuebles?.moneda?.trim().toUpperCase() ||
+    "PYG";
 
   return (
     <section className="flex h-full min-h-[420px] flex-col rounded-3xl border border-white/10 bg-[#070b13] p-4">
@@ -57,7 +85,7 @@ const PublicacionPreview: React.FC<Props> = ({ form, previews }) => {
           </p>
 
           <p className="mt-4 text-xl font-black text-yellow-300">
-            {form.precio ? `Gs. ${form.precio}` : "Gs. 0"}
+            {formatearPrecioPreview(form.precio, monedaSeleccionada)}
           </p>
 
           {form.mostrarBotonesCompra && form.planCredito.length > 0 && (
@@ -78,7 +106,10 @@ const PublicacionPreview: React.FC<Props> = ({ form, previews }) => {
                     </span>
 
                     <span className="font-black text-white">
-                      Gs. {plan.valorCuota || "0"}
+                      {formatearPrecioPreview(
+                        plan.valorCuota || "0",
+                        monedaSeleccionada,
+                      )}
                     </span>
                   </div>
                 ))}

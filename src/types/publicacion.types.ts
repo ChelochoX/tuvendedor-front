@@ -6,7 +6,7 @@ export interface PlanCreditoForm {
 export interface CamposInmobiliariosForm {
   tipoOperacion: string;
   tipoPropiedad: string;
-  moneda: string;
+  moneda: "PYG" | "USD" | string;
   ciudad: string;
   barrio: string;
   superficieTerreno: string;
@@ -20,6 +20,8 @@ export interface CrearPublicacionForm {
   titulo: string;
   descripcion: string;
   precio: string;
+  moneda: "PYG" | "USD" | string;
+
   categoria: string;
   ubicacion: string;
   mostrarBotonesCompra: boolean;
@@ -44,6 +46,7 @@ export interface PublicacionEditable {
   titulo?: string;
   descripcion?: string;
   precio?: number;
+  moneda?: "PYG" | "USD" | string | null;
   categoria?: string;
   ubicacion?: string;
   mostrarBotonesCompra?: boolean;

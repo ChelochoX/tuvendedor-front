@@ -1,4 +1,4 @@
-import { buildProductoUrl, buildVitrinaUrl } from "../config/appConfig";
+import { buildVitrinaUrl } from "../config/appConfig";
 
 type ProductoWhatsapp = {
   id: number;
@@ -7,6 +7,7 @@ type ProductoWhatsapp = {
   categoria?: string | null;
   ubicacion?: string | null;
   precio?: number | string | null;
+  moneda?: "PYG" | "USD" | string | null;
 };
 
 type PerfilWhatsapp = {
@@ -33,7 +34,10 @@ export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
   return limpio;
 };
 
-export const formatearPrecioGs = (precio?: number | string | null): string => {
+export const formatearPrecio = (
+  precio?: number | string | null,
+  moneda?: string | null,
+): string => {
   if (precio === null || precio === undefined || precio === "") {
     return "Consultar precio";
   }
@@ -44,7 +48,17 @@ export const formatearPrecioGs = (precio?: number | string | null): string => {
     return "Consultar precio";
   }
 
-  return `Gs. ${valorNumerico.toLocaleString("es-PY")}`;
+  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+  if (monedaNormalizada === "USD") {
+    return `USD ${valorNumerico.toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
+  }
+
+  return `Gs. ${valorNumerico.toLocaleString("es-PY", {
+    maximumFractionDigits: 0,
+  })}`;
 };
 
 export const obtenerUrlCompartirProducto = (
@@ -72,7 +86,7 @@ Vi esta publicación y me interesa:
 
 🏷️ ${producto.titulo}
 📍 ${producto.ubicacion || ""}
-💰 ${formatearPrecioGs(producto.precio)}
+💰 ${formatearPrecio(producto.precio, producto.moneda)}
 
 🔗 Ver publicación:
 ${urlCompartir}`;

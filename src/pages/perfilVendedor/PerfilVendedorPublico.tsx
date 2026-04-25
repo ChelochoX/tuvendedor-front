@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 import { obtenerPublicaciones } from "../../api/publicacionesService";
@@ -51,6 +56,7 @@ const PerfilVendedorPublico: React.FC = () => {
             if (!full) {
               return {
                 ...pub,
+                moneda: pub.moneda ?? "PYG",
                 imagenes: pub.imagenes || [],
               };
             }
@@ -60,6 +66,7 @@ const PerfilVendedorPublico: React.FC = () => {
               titulo: full.nombre || pub.titulo,
               descripcion: full.descripcion ?? pub.descripcion,
               precio: full.precio ?? pub.precio,
+              moneda: full.moneda ?? pub.moneda ?? "PYG",
               categoria: full.categoria ?? pub.categoria,
               ubicacion: full.ubicacion ?? pub.ubicacion,
               estado: full.estado ?? pub.estado,
@@ -93,7 +100,12 @@ const PerfilVendedorPublico: React.FC = () => {
   useEffect(() => {
     const productoId = searchParams.get("producto");
 
-    if (!productoId || !perfil?.publicaciones?.length) return;
+    if (!productoId) {
+      setPublicacionSeleccionada(null);
+      return;
+    }
+
+    if (!perfil?.publicaciones?.length) return;
 
     const publicacion = perfil.publicaciones.find(
       (p) => p.id === Number(productoId),
@@ -103,6 +115,40 @@ const PerfilVendedorPublico: React.FC = () => {
       setPublicacionSeleccionada(publicacion);
     }
   }, [searchParams, perfil]);
+
+  const abrirDetalle = (publicacion: PublicacionPerfilVendedor) => {
+    setPublicacionSeleccionada(publicacion);
+
+    if (slug) {
+      navigate(`/vendedor/${slug}?producto=${publicacion.id}`, {
+        replace: false,
+      });
+    }
+  };
+
+  const location = useLocation();
+
+  const state = location.state as
+    | {
+        returnTo?: string;
+        origen?: string;
+      }
+    | undefined;
+
+  const cerrarDetalle = () => {
+    setPublicacionSeleccionada(null);
+
+    if (state?.returnTo) {
+      navigate(state.returnTo, { replace: true });
+      return;
+    }
+
+    if (slug) {
+      navigate(`/vendedor/${slug}`, {
+        replace: true,
+      });
+    }
+  };
 
   if (cargando) {
     return (
@@ -144,14 +190,14 @@ const PerfilVendedorPublico: React.FC = () => {
 
       <PerfilVendedorPublicaciones
         publicaciones={perfil.publicaciones || []}
-        onVerDetalle={setPublicacionSeleccionada}
+        onVerDetalle={abrirDetalle}
       />
 
       {publicacionSeleccionada && (
         <PerfilPublicacionDetalleModal
           perfil={perfil}
           publicacion={publicacionSeleccionada}
-          onClose={() => setPublicacionSeleccionada(null)}
+          onClose={cerrarDetalle}
         />
       )}
     </main>

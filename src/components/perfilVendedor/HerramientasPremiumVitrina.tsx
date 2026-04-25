@@ -33,6 +33,7 @@ interface PublicacionCampania {
   titulo: string;
   descripcion?: string;
   precio?: number;
+  moneda?: "PYG" | "USD" | string | null;
   categoria?: string;
   ubicacion?: string;
   imagenPrincipal?: string;
@@ -121,20 +122,29 @@ const HerramientasPremiumVitrina: React.FC<Props> = ({
     );
   };
 
-  const formatearPrecio = (precio?: number) => {
+  const formatearPrecio = (
+    precio?: number | null,
+    moneda?: string | null,
+  ): string => {
     if (!precio || precio <= 0) return "Consultar precio";
 
-    return new Intl.NumberFormat("es-PY", {
-      style: "currency",
-      currency: "PYG",
+    const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+    if (monedaNormalizada === "USD") {
+      return `USD ${Number(precio).toLocaleString("es-PY", {
+        maximumFractionDigits: 0,
+      })}`;
+    }
+
+    return `Gs. ${Number(precio).toLocaleString("es-PY", {
       maximumFractionDigits: 0,
-    }).format(precio);
+    })}`;
   };
 
   const urlProducto = (id?: number) => {
     if (!id) return urlVitrina;
 
-    return buildProductoShareUrl(id);
+    return buildProductoShareUrl(id, slugSeguro);
   };
 
   const cargarPublicaciones = async () => {
@@ -219,7 +229,7 @@ ${urlVitrina}`;
     }
 
     const producto = publicacionSeleccionada;
-    const precio = formatearPrecio(producto.precio);
+    const precio = formatearPrecio(producto.precio, producto.moneda);
     const link = urlProducto(producto.id);
 
     const descripcionProducto =
@@ -273,7 +283,7 @@ ${link}
 
 Quedo atento/a a cualquier consulta.`,
     };
-  }, [publicacionSeleccionada]);
+  }, [publicacionSeleccionada, slugSeguro, urlVitrina]);
 
   const mensajeActual =
     mensajesCampania[plantillaSeleccionada as keyof typeof mensajesCampania];
@@ -546,7 +556,7 @@ Quedo atento/a a cualquier consulta.`,
                                 "Sin ubicación"}
                             </p>
                             <p className="mt-1 text-xs font-black text-yellow-300">
-                              {formatearPrecio(item.precio)}
+                              {formatearPrecio(item.precio, item.moneda)}
                             </p>
                           </div>
                         </button>

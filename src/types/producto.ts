@@ -9,6 +9,7 @@ export interface Producto {
   id: number;
   nombre: string;
   precio: number;
+  moneda?: "PYG" | "USD" | string | null;
   categoria: string;
   ubicacion: string;
   descripcion?: string;

@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Swal from "sweetalert2";
-
+import { useLocation, useNavigate } from "react-router-dom";
 import ProductoCard from "../../components/ProductoCard";
 import CrearPublicacionModal from "../../components/publicaciones/CrearPublicacionModal";
 import { obtenerMisPublicaciones } from "../../api/publicacionesService";
 import { Producto } from "../../types/producto";
 import { PublicacionEditable } from "../../types/publicacion.types";
+
+interface Props {
+  slug?: string | null;
+}
 
 const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
   const planCreditoNormalizado = Array.isArray(producto.planCredito)
@@ -32,6 +36,7 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
     titulo: producto.nombre,
     descripcion: producto.descripcion,
     precio: producto.precio,
+    moneda: producto.moneda ?? "PYG",
     categoria: producto.categoria,
     ubicacion: producto.ubicacion,
     mostrarBotonesCompra: producto.mostrarBotonesCompra,
@@ -43,7 +48,11 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
   };
 };
 
-const GestionPublicacionesVitrina: React.FC = () => {
+const GestionPublicacionesVitrina: React.FC<Props> = ({ slug }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const publicacionesRef = useRef<HTMLElement | null>(null);
+
   const [publicaciones, setPublicaciones] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -53,6 +62,7 @@ const GestionPublicacionesVitrina: React.FC = () => {
   const cargarPublicaciones = async () => {
     try {
       setCargando(true);
+
       const data = await obtenerMisPublicaciones();
       setPublicaciones(data);
     } catch (error) {
@@ -87,28 +97,65 @@ const GestionPublicacionesVitrina: React.FC = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (location.hash !== "#publicaciones") return;
+
+    const timer = window.setTimeout(() => {
+      publicacionesRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [location.hash, cargando, publicaciones.length]);
+
   const handleEditar = (producto: Producto) => {
     setPublicacionAEditar(mapearProductoAEditable(producto));
     setModalOpen(true);
   };
 
+  const handleVerDetalle = (producto: Producto) => {
+    const slugSeguro = slug?.trim();
+
+    if (!slugSeguro) {
+      navigate(`/producto/${producto.id}`);
+      return;
+    }
+
+    navigate(`/vendedor/${slugSeguro}?producto=${producto.id}`, {
+      state: {
+        returnTo: "/clientes/perfil-vendedor#publicaciones",
+        origen: "gestion-vendedor",
+      },
+    });
+  };
+
   const handleGuardado = async () => {
     setModalOpen(false);
     setPublicacionAEditar(null);
+
     await cargarPublicaciones();
+
     window.dispatchEvent(new Event("actualizar-publicaciones"));
   };
 
   return (
     <>
-      <section className="mt-8 rounded-[28px] border border-white/10 bg-[#0f1724] p-5 shadow-xl">
+      <section
+        id="publicaciones"
+        ref={publicacionesRef}
+        className="mt-8 scroll-mt-32 rounded-[28px] border border-white/10 bg-[#0f1724] p-5 shadow-xl"
+      >
         <div className="mb-5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-yellow-300">
             Gestión premium
           </p>
+
           <h3 className="mt-2 text-2xl font-semibold text-white">
             Tus publicaciones
           </h3>
+
           <p className="mt-1 text-sm text-slate-400">
             Desde acá podés editar, eliminar, destacar y administrar tu
             catálogo.
@@ -130,6 +177,7 @@ const GestionPublicacionesVitrina: React.FC = () => {
                 key={producto.id}
                 producto={producto}
                 onEditar={handleEditar}
+                onVerDetalle={handleVerDetalle}
                 onEliminado={(id: number) =>
                   setPublicaciones((prev) => prev.filter((x) => x.id !== id))
                 }

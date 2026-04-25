@@ -666,7 +666,7 @@ const MiPerfilVendedor: React.FC = () => {
         </section>
 
         <div className="pb-32 sm:pb-10">
-          <GestionPublicacionesVitrina />
+          <GestionPublicacionesVitrina slug={form.slug} />
         </div>
       </div>
     </div>

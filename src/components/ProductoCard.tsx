@@ -25,6 +25,7 @@ interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
   onEditar?: (producto: Producto) => void;
+  onVerDetalle?: (producto: Producto) => void;
   mostrarAcciones?: boolean;
   variant?: "default" | "compact";
 }
@@ -33,6 +34,7 @@ const ProductoCard: React.FC<Props> = ({
   producto,
   onEliminado,
   onEditar,
+  onVerDetalle,
   mostrarAcciones = false,
   variant = "default",
 }) => {
@@ -46,17 +48,24 @@ const ProductoCard: React.FC<Props> = ({
   const especialActivo = !!producto.esTemporada;
   const destacadoActivo = !!producto.esDestacada;
 
+  const imagenesProducto = Array.isArray(producto.imagenes)
+    ? producto.imagenes
+    : [];
+
   const puedeCrearDestacado =
     usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false;
-
-  const puedeQuitarDestacado =
-    usuario?.permisos?.includes("QuitarPublicacionDestacada") ?? false;
 
   const puedeCrearEspecial =
     usuario?.permisos?.includes("CrearPublicacionTemporada") ?? false;
 
-  const puedeQuitarEspecial =
-    usuario?.permisos?.includes("QuitarPublicacionTemporada") ?? false;
+  const handleVerDetalle = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!onVerDetalle) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    onVerDetalle(producto);
+  };
 
   const handleEliminar = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -397,7 +406,7 @@ const ProductoCard: React.FC<Props> = ({
   ];
 
   const resaltarPromo = (texto: string) => {
-    let resultado = texto;
+    let resultado = texto || "";
 
     palabrasPromo.forEach((palabra) => {
       const regex = new RegExp(`(${palabra})`, "ig");
@@ -467,8 +476,31 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
+  const formatearPrecio = (
+    precio?: number | null,
+    moneda?: string | null,
+  ): string => {
+    if (!precio || precio <= 0) return "Consultar precio";
+
+    const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+    if (monedaNormalizada === "USD") {
+      return `USD ${Number(precio).toLocaleString("es-PY", {
+        maximumFractionDigits: 0,
+      })}`;
+    }
+
+    return `Gs. ${Number(precio).toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
+  };
+
   return (
-    <Link to={`/producto/${producto.id}`} className="block">
+    <Link
+      to={`/producto/${producto.id}`}
+      onClick={handleVerDetalle}
+      className="block"
+    >
       <div
         className={[
           "bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer",
@@ -516,9 +548,9 @@ const ProductoCard: React.FC<Props> = ({
             </div>
           )}
 
-          {producto.imagenes[0]?.mainUrl?.endsWith(".mp4") ? (
+          {imagenesProducto[0]?.mainUrl?.endsWith(".mp4") ? (
             <video
-              src={producto.imagenes[0]?.mainUrl}
+              src={imagenesProducto[0]?.mainUrl}
               className="absolute left-0 top-0 h-full w-full object-cover"
               muted
               autoPlay
@@ -528,7 +560,9 @@ const ProductoCard: React.FC<Props> = ({
           ) : (
             <img
               src={
-                producto.imagenes[0]?.thumbUrl || producto.imagenes[0]?.mainUrl
+                imagenesProducto[0]?.thumbUrl ||
+                imagenesProducto[0]?.mainUrl ||
+                "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900"
               }
               loading="lazy"
               decoding="async"
@@ -559,7 +593,7 @@ const ProductoCard: React.FC<Props> = ({
               isCompact ? "text-[13px]" : "text-sm",
             ].join(" ")}
           >
-            {producto.precio.toLocaleString()} ₲
+            {formatearPrecio(producto.precio, producto.moneda)}
           </p>
 
           <p
@@ -571,7 +605,7 @@ const ProductoCard: React.FC<Props> = ({
           </p>
 
           <div className="mb-1 mt-2 flex items-center justify-between">
-            {mostrarAcciones && (
+            {mostrarAcciones && producto.vendedor && (
               <div className="mr-1 flex items-center gap-1">
                 <img
                   src={producto.vendedor.avatar}
@@ -606,6 +640,7 @@ const ProductoCard: React.FC<Props> = ({
 
               <Tippy content="Eliminar publicación" theme="light">
                 <button
+                  type="button"
                   disabled={eliminando}
                   className={`transition ${
                     eliminando
@@ -620,6 +655,7 @@ const ProductoCard: React.FC<Props> = ({
 
               <Tippy content="Marcar como vendido" theme="light">
                 <button
+                  type="button"
                   className={`transition ${
                     producto.estado === "Vendido"
                       ? "cursor-not-allowed text-green-400"

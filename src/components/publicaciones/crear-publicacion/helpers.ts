@@ -79,9 +79,15 @@ export const limpiarPrecio = (valor: string) => {
 export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
   const formData = new FormData();
 
+  const monedaSeleccionada =
+    form.moneda?.trim().toUpperCase() ||
+    form.camposInmuebles?.moneda?.trim().toUpperCase() ||
+    "PYG";
+
   formData.append("Titulo", form.titulo);
   formData.append("Descripcion", form.descripcion);
   formData.append("Precio", String(limpiarPrecio(form.precio)));
+  formData.append("Moneda", monedaSeleccionada);
   formData.append("Categoria", form.categoria);
   formData.append("Ubicacion", form.ubicacion);
   formData.append("MostrarBotonesCompra", String(form.mostrarBotonesCompra));
@@ -96,6 +102,7 @@ export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
         `PlanCredito[${index}].Cuotas`,
         String(Number(plan.cuotas) || 0),
       );
+
       formData.append(
         `PlanCredito[${index}].ValorCuota`,
         String(limpiarPrecio(plan.valorCuota)),

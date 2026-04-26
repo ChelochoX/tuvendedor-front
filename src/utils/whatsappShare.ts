@@ -1,4 +1,10 @@
-import { getPublicAppUrl, buildVitrinaUrl } from "../config/appConfig";
+import { buildProductoShareUrl, buildVitrinaUrl } from "../config/appConfig";
+import {
+  abrirWhatsapp,
+  abrirWhatsappConMensaje,
+  construirLinkWhatsapp,
+  limpiarTelefonoWhatsapp,
+} from "./whatsapp";
 
 type ProductoWhatsapp = {
   id: number;
@@ -16,22 +22,6 @@ type PerfilWhatsapp = {
   nombreUsuario?: string | null;
   ciudadVisible?: string | null;
   rubro?: string | null;
-};
-
-export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
-  if (!telefono) return "";
-
-  let limpio = telefono.replace(/\D/g, "");
-
-  if (limpio.startsWith("0")) {
-    limpio = `595${limpio.substring(1)}`;
-  }
-
-  if (!limpio.startsWith("595")) {
-    limpio = `595${limpio}`;
-  }
-
-  return limpio;
 };
 
 export const formatearPrecio = (
@@ -65,9 +55,7 @@ export const obtenerUrlCompartirProducto = (
   idProducto: number,
   slug?: string | null,
 ): string => {
-  const baseUrl = getPublicAppUrl();
-
-  return `${baseUrl}/share/producto/${idProducto}`;
+  return buildProductoShareUrl(idProducto, slug);
 };
 
 export const obtenerUrlCompartirVitrina = (slug?: string | null): string => {
@@ -80,15 +68,18 @@ export const generarMensajeProductoWhatsapp = (
 ): string => {
   const urlCompartir = obtenerUrlCompartirProducto(producto.id, slug);
 
-  return `Hola 👋
+  return `Hola
 
-Vi esta publicación y me interesa:
+Te comparto esta publicación disponible:
 
-🏷️ ${producto.titulo}
-📍 ${producto.ubicacion || ""}
-💰 ${formatearPrecio(producto.precio, producto.moneda)}
+${producto.titulo}
+${producto.categoria ? `Categoria: ${producto.categoria}` : ""}
+${producto.ubicacion ? `Ubicacion: ${producto.ubicacion}` : ""}
+Precio: ${formatearPrecio(producto.precio, producto.moneda)}
 
-🔗 Ver publicación:
+${producto.descripcion?.trim() || ""}
+
+Ver publicación:
 ${urlCompartir}`;
 };
 
@@ -115,31 +106,9 @@ Mirá mis publicaciones disponibles acá:
 ${urlVitrina}`;
 };
 
-export const construirLinkWhatsapp = (
-  telefono?: string | null,
-  mensaje?: string,
-): string => {
-  const telefonoLimpio = limpiarTelefonoWhatsapp(telefono);
-
-  if (!telefonoLimpio) return "";
-
-  const texto = mensaje?.trim() ? `?text=${encodeURIComponent(mensaje)}` : "";
-
-  return `https://wa.me/${telefonoLimpio}${texto}`;
+export {
+  abrirWhatsapp,
+  abrirWhatsappConMensaje,
+  construirLinkWhatsapp,
+  limpiarTelefonoWhatsapp,
 };
-
-export const abrirWhatsapp = (
-  telefono?: string | null,
-  mensaje?: string,
-): void => {
-  const url = construirLinkWhatsapp(telefono, mensaje);
-
-  if (!url) {
-    window.alert("El vendedor no tiene WhatsApp configurado.");
-    return;
-  }
-
-  window.open(url, "_blank", "noopener,noreferrer");
-};
-
-export const abrirWhatsappConMensaje = abrirWhatsapp;

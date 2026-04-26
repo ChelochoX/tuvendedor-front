@@ -62,6 +62,7 @@ const HerramientasPremiumVitrina: React.FC<Props> = ({
     useState<PublicacionCampania | null>(null);
   const [cargandoPublicaciones, setCargandoPublicaciones] = useState(false);
   const [busqueda, setBusqueda] = useState("");
+  const [mensajeEditable, setMensajeEditable] = useState("");
 
   const slugSeguro = slug?.trim();
   const urlVitrina = useMemo(() => buildVitrinaUrl(slugSeguro), [slugSeguro]);
@@ -288,6 +289,10 @@ Quedo atento/a a cualquier consulta.`,
   const mensajeActual =
     mensajesCampania[plantillaSeleccionada as keyof typeof mensajesCampania];
 
+  useEffect(() => {
+    setMensajeEditable(mensajeActual);
+  }, [mensajeActual]);
+
   const imagenProducto =
     publicacionSeleccionada?.imagenPrincipal ||
     publicacionSeleccionada?.thumbUrl ||
@@ -305,8 +310,10 @@ Quedo atento/a a cualquier consulta.`,
       return;
     }
 
+    const textoFinal = mensajeEditable.trim() || mensajeActual;
+
     if (!imagenProducto) {
-      abrirWhatsAppConTexto(mensajeActual);
+      abrirWhatsAppConTexto(textoFinal);
       return;
     }
 
@@ -338,7 +345,7 @@ Quedo atento/a a cualquier consulta.`,
 
       const data: ShareData = {
         title: publicacionSeleccionada.titulo,
-        text: mensajeActual,
+        text: textoFinal,
         files: [archivo],
       };
 
@@ -348,7 +355,7 @@ Quedo atento/a a cualquier consulta.`,
       }
 
       await copiarTexto(
-        mensajeActual,
+        textoFinal,
         "Campaña copiada",
         "Tu navegador no permite compartir imagen desde la web. Copiamos el texto para que lo pegues en WhatsApp.",
       );
@@ -356,11 +363,29 @@ Quedo atento/a a cualquier consulta.`,
       console.error("Error al compartir campaña con imagen:", error);
 
       await copiarTexto(
-        mensajeActual,
+        textoFinal,
         "Campaña copiada",
         "No se pudo adjuntar la imagen automáticamente. Copiamos el texto para que lo pegues en WhatsApp.",
       );
     }
+  };
+
+  const copiarEnlacePreview = async () => {
+    if (!publicacionSeleccionada) {
+      Swal.fire({
+        title: "Seleccioná una publicación",
+        text: "Primero elegí qué producto querés compartir.",
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+      });
+      return;
+    }
+
+    await copiarTexto(
+      urlProducto(publicacionSeleccionada.id),
+      "Enlace copiado",
+      "Este enlace permite que WhatsApp muestre la vista previa con imagen.",
+    );
   };
 
   return (
@@ -481,8 +506,8 @@ Quedo atento/a a cualquier consulta.`,
                 </h3>
 
                 <p className="mt-2 text-sm text-gray-400">
-                  Elegí un producto de tu vitrina y generá un mensaje listo para
-                  enviar.
+                  Elegí un producto de tu vitrina, ajustá el mensaje y envialo
+                  cuando esté listo.
                 </p>
               </div>
 
@@ -590,12 +615,35 @@ Quedo atento/a a cualquier consulta.`,
                 </div>
 
                 <div className="grid gap-4 lg:grid-cols-[1fr_260px]">
-                  <textarea
-                    value={mensajeActual}
-                    readOnly
-                    rows={15}
-                    className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-relaxed text-gray-100 outline-none"
-                  />
+                  <div>
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="text-xs font-bold uppercase tracking-wide text-gray-400">
+                        Mensaje editable
+                      </p>
+
+                      <button
+                        type="button"
+                        onClick={() => setMensajeEditable(mensajeActual)}
+                        className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs font-bold text-gray-300 transition hover:bg-white/10 hover:text-white"
+                      >
+                        Restaurar plantilla
+                      </button>
+                    </div>
+
+                    <textarea
+                      value={mensajeEditable}
+                      onChange={(e) => setMensajeEditable(e.target.value)}
+                      rows={15}
+                      className="w-full resize-none rounded-2xl border border-white/10 bg-black/30 p-4 text-sm leading-relaxed text-gray-100 outline-none transition focus:border-yellow-400/70 focus:bg-black/40"
+                      placeholder="Escribí o personalizá tu mensaje..."
+                    />
+
+                    <p className="mt-2 text-xs leading-relaxed text-gray-500">
+                      Podés modificar el texto antes de copiarlo o enviarlo por
+                      WhatsApp. El enlace de la publicación se mantiene dentro
+                      del mensaje.
+                    </p>
+                  </div>
 
                   <aside className="space-y-3">
                     <div className="overflow-hidden rounded-2xl border border-white/10 bg-black/30">
@@ -626,7 +674,7 @@ Quedo atento/a a cualquier consulta.`,
                       type="button"
                       onClick={() =>
                         copiarTexto(
-                          mensajeActual,
+                          mensajeEditable.trim() || mensajeActual,
                           "Campaña copiada",
                           "Pegala en WhatsApp, estados o redes sociales.",
                         )
@@ -639,7 +687,11 @@ Quedo atento/a a cualquier consulta.`,
 
                     <button
                       type="button"
-                      onClick={() => abrirWhatsAppConTexto(mensajeActual)}
+                      onClick={() =>
+                        abrirWhatsAppConTexto(
+                          mensajeEditable.trim() || mensajeActual,
+                        )
+                      }
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-green-400/30 bg-green-500/15 px-4 py-3 font-black text-green-200 transition hover:bg-green-500 hover:text-white"
                     >
                       <MessageCircle size={18} />
@@ -648,13 +700,7 @@ Quedo atento/a a cualquier consulta.`,
 
                     <button
                       type="button"
-                      onClick={() =>
-                        copiarTexto(
-                          mensajeActual,
-                          "Campaña copiada",
-                          "El enlace público permitirá que WhatsApp muestre la vista previa con imagen.",
-                        )
-                      }
+                      onClick={copiarEnlacePreview}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-400/30 bg-blue-500/15 px-4 py-3 font-black text-blue-100 transition hover:bg-blue-500 hover:text-white"
                     >
                       <Share2 size={18} />

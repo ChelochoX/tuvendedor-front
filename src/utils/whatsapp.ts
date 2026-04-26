@@ -3,10 +3,12 @@ export const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
 
   let limpio = telefono.replace(/\D/g, "");
 
-  // Paraguay local -> internacional
-  // 0994xxxxxx => 595994xxxxxx
   if (limpio.startsWith("0")) {
     limpio = `595${limpio.substring(1)}`;
+  }
+
+  if (!limpio.startsWith("595")) {
+    limpio = `595${limpio}`;
   }
 
   return limpio;
@@ -38,3 +40,5 @@ export const abrirWhatsapp = (
 
   window.open(url, "_blank", "noopener,noreferrer");
 };
+
+export const abrirWhatsappConMensaje = abrirWhatsapp;

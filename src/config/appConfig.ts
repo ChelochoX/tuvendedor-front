@@ -22,7 +22,7 @@ export const buildProductoUrl = (id?: number | string | null) => {
 
   if (!id) return baseUrl;
 
-  return `${baseUrl}/producto/${id}`;
+  return `${baseUrl}/producto/${encodeURIComponent(String(id))}`;
 };
 
 export const buildProductoShareUrl = (

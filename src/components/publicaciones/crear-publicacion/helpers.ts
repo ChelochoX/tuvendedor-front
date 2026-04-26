@@ -43,24 +43,44 @@ export const esCategoriaInmobiliaria = (valor?: string | null) => {
 
   return [
     "inmueble",
+    "inmuebles",
     "terreno",
+    "terrenos",
     "casa",
+    "casas",
     "departamento",
+    "departamentos",
     "dúplex",
     "duplex",
     "salon",
     "salón",
+    "salones",
     "local",
+    "locales",
     "oficina",
+    "oficinas",
     "quinta",
+    "quintas",
     "lote",
+    "lotes",
     "deposito",
     "depósito",
+    "depósitos",
     "tinglado",
+    "tinglados",
     "campo",
+    "campos",
     "alquiler",
+    "alquileres",
+    "propiedad",
+    "propiedades",
     "monoambiente",
+    "monoambientes",
+    "habitacion",
+    "habitación",
+    "habitaciones",
     "garaje",
+    "garajes",
   ].some((x) => normalizado.includes(x));
 };
 
@@ -76,20 +96,27 @@ export const limpiarPrecio = (valor: string) => {
   return Number(valor.replace(/\D/g, "")) || 0;
 };
 
+export const normalizarMoneda = (valor?: string | null) => {
+  const moneda = valor?.trim().toUpperCase();
+
+  if (moneda === "USD") return "USD";
+
+  return "PYG";
+};
+
 export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
   const formData = new FormData();
 
-  const monedaSeleccionada =
-    form.moneda?.trim().toUpperCase() ||
-    form.camposInmuebles?.moneda?.trim().toUpperCase() ||
-    "PYG";
+  const monedaSeleccionada = normalizarMoneda(
+    form.moneda || form.camposInmuebles?.moneda,
+  );
 
-  formData.append("Titulo", form.titulo);
-  formData.append("Descripcion", form.descripcion);
+  formData.append("Titulo", form.titulo.trim());
+  formData.append("Descripcion", form.descripcion.trim());
   formData.append("Precio", String(limpiarPrecio(form.precio)));
   formData.append("Moneda", monedaSeleccionada);
-  formData.append("Categoria", form.categoria);
-  formData.append("Ubicacion", form.ubicacion);
+  formData.append("Categoria", form.categoria.trim());
+  formData.append("Ubicacion", form.ubicacion?.trim() || "");
   formData.append("MostrarBotonesCompra", String(form.mostrarBotonesCompra));
 
   form.archivos.forEach((archivo) => {

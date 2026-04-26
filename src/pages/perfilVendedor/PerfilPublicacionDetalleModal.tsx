@@ -57,6 +57,27 @@ const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
   return numero;
 };
 
+const normalizarCoordenada = (
+  valor?: string | number | null,
+): number | null => {
+  if (valor === null || valor === undefined || valor === "") return null;
+
+  const texto = String(valor).trim().replace(",", ".");
+  const numero = Number(texto);
+
+  if (Number.isNaN(numero)) return null;
+
+  return numero;
+};
+
+const coordenadaEnRango = (
+  valor: number | null,
+  minimo: number,
+  maximo: number,
+): boolean => {
+  return valor !== null && valor >= minimo && valor <= maximo;
+};
+
 const abrirWhatsapp = (
   telefono: string | null | undefined,
   mensaje: string,
@@ -84,13 +105,14 @@ const construirUrlMapa = (publicacion: PublicacionPerfilVendedor): string => {
 
   if (googleMapsUrl) return googleMapsUrl;
 
+  const latitud = normalizarCoordenada(publicacion.latitud);
+  const longitud = normalizarCoordenada(publicacion.longitud);
+
   if (
-    publicacion.latitud !== null &&
-    publicacion.latitud !== undefined &&
-    publicacion.longitud !== null &&
-    publicacion.longitud !== undefined
+    coordenadaEnRango(latitud, -90, 90) &&
+    coordenadaEnRango(longitud, -180, 180)
   ) {
-    return `https://www.google.com/maps?q=${publicacion.latitud},${publicacion.longitud}`;
+    return `https://www.google.com/maps?q=${latitud},${longitud}`;
   }
 
   if (publicacion.ubicacion) {

@@ -19,8 +19,8 @@ export interface PublicacionPerfilVendedor {
   thumbUrl?: string;
   esDestacada?: boolean;
   googleMapsUrl?: string | null;
-  latitud?: number | null;
-  longitud?: number | null;
+  latitud?: number | string | null;
+  longitud?: number | string | null;
   imagenes?: Array<{
     mainUrl: string;
     thumbUrl?: string;
@@ -74,10 +74,7 @@ export interface ActualizarMiPerfilVendedorRequest {
 
   correoContacto?: string;
 
-  //En el front usamos mostrarCorreo
   mostrarCorreo?: boolean;
-
-  //Lo dejamos opcional por compatibilidad si en algún lado quedó mostrarEmail
   mostrarEmail?: boolean;
 
   ciudadVisible: string;
@@ -89,5 +86,4 @@ export interface ActualizarMiPerfilVendedorRequest {
   banner?: File | null;
 }
 
-// Alias para componentes nuevos/reutilizables
 export type PerfilPublicoPublicacion = PublicacionPerfilVendedor;

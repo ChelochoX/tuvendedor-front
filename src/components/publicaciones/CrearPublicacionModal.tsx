@@ -54,27 +54,49 @@ type UbicacionGpsForm = {
   googleMapsUrl: string;
 };
 
-const normalizarCoordenada = (valor?: string): string => {
-  if (!valor) return "";
-  const texto = valor.trim().replace(",", ".");
+const normalizarCoordenada = (valor?: string | number | null): string => {
+  if (valor === null || valor === undefined || valor === "") return "";
+
+  const texto = String(valor).trim().replace(",", ".");
   const numero = Number(texto);
+
   if (Number.isNaN(numero)) return "";
+
   return numero.toFixed(6);
 };
 
-const coordenadaParaBackend = (valor?: string): string => {
+const coordenadaParaBackend = (valor?: string | number | null): string => {
   const normalizada = normalizarCoordenada(valor);
+
   if (!normalizada) return "";
-  return normalizada.replace(".", ",");
+
+  // IMPORTANTE:
+  // Al backend enviamos siempre con punto decimal.
+  // No usar coma, porque en producción puede romper el valor decimal.
+  return normalizada;
+};
+
+const coordenadaEstaEnRango = (
+  valor: string,
+  minimo: number,
+  maximo: number,
+): boolean => {
+  if (!valor) return true;
+
+  const numero = Number(valor);
+
+  return !Number.isNaN(numero) && numero >= minimo && numero <= maximo;
 };
 
 const construirGoogleMapsUrl = (
-  latitud?: string,
-  longitud?: string,
+  latitud?: string | number | null,
+  longitud?: string | number | null,
 ): string => {
   const lat = normalizarCoordenada(latitud);
   const lng = normalizarCoordenada(longitud);
+
   if (!lat || !lng) return "";
+
   return `https://www.google.com/maps?q=${lat},${lng}`;
 };
 
@@ -120,12 +142,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     if (publicacionAEditar) {
       setUbicacionGps({
-        latitud: publicacionAEditar.latitud
-          ? String(publicacionAEditar.latitud).replace(".", ",")
-          : "",
-        longitud: publicacionAEditar.longitud
-          ? String(publicacionAEditar.longitud).replace(".", ",")
-          : "",
+        latitud:
+          publicacionAEditar.latitud !== null &&
+          publicacionAEditar.latitud !== undefined
+            ? normalizarCoordenada(publicacionAEditar.latitud)
+            : "",
+        longitud:
+          publicacionAEditar.longitud !== null &&
+          publicacionAEditar.longitud !== undefined
+            ? normalizarCoordenada(publicacionAEditar.longitud)
+            : "",
         googleMapsUrl: publicacionAEditar.googleMapsUrl ?? "",
       });
       return;
@@ -176,6 +202,17 @@ const CrearPublicacionModal: React.FC<Props> = ({
     if (!form.categoria.trim()) return "Seleccioná una categoría.";
     if (!esEdicion && !form.archivos.length) {
       return "Seleccioná al menos una imagen o video.";
+    }
+
+    const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
+    const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
+
+    if (latitudBackend && !coordenadaEstaEnRango(latitudBackend, -90, 90)) {
+      return "La latitud debe estar entre -90 y 90. Ejemplo: -25.296120";
+    }
+
+    if (longitudBackend && !coordenadaEstaEnRango(longitudBackend, -180, 180)) {
+      return "La longitud debe estar entre -180 y 180. Ejemplo: -57.590290";
     }
 
     return null;
@@ -232,8 +269,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        const latitud = position.coords.latitude.toFixed(6);
-        const longitud = position.coords.longitude.toFixed(6);
+        const latitud = normalizarCoordenada(position.coords.latitude);
+        const longitud = normalizarCoordenada(position.coords.longitude);
         const googleMapsUrl = construirGoogleMapsUrl(latitud, longitud);
 
         setUbicacionGps({
@@ -344,9 +381,17 @@ const CrearPublicacionModal: React.FC<Props> = ({
       const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
       const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
 
-      formData.append("Latitud", latitudBackend);
-      formData.append("Longitud", longitudBackend);
-      formData.append("GoogleMapsUrl", googleMapsUrlFinal);
+      if (latitudBackend) {
+        formData.append("Latitud", latitudBackend);
+      }
+
+      if (longitudBackend) {
+        formData.append("Longitud", longitudBackend);
+      }
+
+      if (googleMapsUrlFinal) {
+        formData.append("GoogleMapsUrl", googleMapsUrlFinal);
+      }
 
       if (esEdicion && publicacionAEditar?.id) {
         await actualizarPublicacion(publicacionAEditar.id, formData);
@@ -513,6 +558,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     <div className="grid gap-3 sm:grid-cols-2">
                       <input
                         type="text"
+                        inputMode="decimal"
                         value={ubicacionGps.latitud}
                         onChange={(event) =>
                           actualizarUbicacionGps("latitud", event.target.value)
@@ -523,6 +569,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
                       <input
                         type="text"
+                        inputMode="decimal"
                         value={ubicacionGps.longitud}
                         onChange={(event) =>
                           actualizarUbicacionGps("longitud", event.target.value)

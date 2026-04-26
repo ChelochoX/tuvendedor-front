@@ -1,4 +1,4 @@
-// ProductDetail con soporte híbrido imágenes + videos, manteniendo diseño original
+// ProductDetail con soporte híbrido imágenes + videos
 import React, { useState } from "react";
 import {
   Box,
@@ -36,77 +36,9 @@ const ProductDetail: React.FC<Props> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const navigate = useNavigate();
 
-  const cuotas =
-    producto.planCredito?.opciones?.map(
-      (opcion) =>
-        `${opcion.cuotas} cuotas de ${formatearPrecio(
-          opcion.valorCuota,
-          producto.moneda,
-        )}`,
-    ) || [];
-
-  const handlePrevImage = () => {
-    setSelectedImageIndex((prev) =>
-      prev === 0 ? producto.imagenes.length - 1 : prev - 1,
-    );
-  };
-
-  const handleNextImage = () => {
-    setSelectedImageIndex((prev) =>
-      prev === producto.imagenes.length - 1 ? 0 : prev + 1,
-    );
-  };
-
-  const currentUrl = producto.imagenes[selectedImageIndex].mainUrl;
-  const isVideo = currentUrl?.toLowerCase().endsWith(".mp4");
-
-  const handleContactarVendedor = () => {
-    const numeroCrudo = producto.vendedor.telefono?.trim();
-
-    if (!numeroCrudo) {
-      Swal.fire({
-        toast: true,
-        position: "top-end",
-        icon: "info",
-        title: "El vendedor no configuró un número de WhatsApp.",
-        background: "#1e1e1e",
-        color: "#fff",
-        showConfirmButton: false,
-        timer: 2500,
-      });
-      return;
-    }
-
-    // Normalización automática a formato WhatsApp
-    // Si empieza con 0 → quitamos el 0 y agregamos +595
-    let numero = numeroCrudo;
-
-    if (numero.startsWith("0")) {
-      numero = "595" + numero.slice(1);
-    }
-
-    // Si ya empieza con 595 → lo usamos directo
-    if (!numero.startsWith("595")) {
-      numero = "595" + numero;
-    }
-
-    const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
-
-    // 🔥 EVENTO META: contacto por WhatsApp
-    if (window.fbq) {
-      window.fbq("track", "Contact", {
-        content_name: producto.nombre,
-        content_id: producto.id,
-        content_type: "product",
-      });
-    }
-
-    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
-    window.open(url, "_blank");
-  };
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const formatearPrecio = (
     precio?: number | null,
@@ -127,6 +59,131 @@ const ProductDetail: React.FC<Props> = ({
     })}`;
   };
 
+  const obtenerUrlMedia = (media: any): string => {
+    if (!media) return "";
+
+    if (typeof media === "string") return media;
+
+    return media.mainUrl || media.url || media.thumbUrl || "";
+  };
+
+  const obtenerThumbMedia = (media: any): string => {
+    if (!media) return "";
+
+    if (typeof media === "string") return media;
+
+    return media.thumbUrl || media.mainUrl || media.url || "";
+  };
+
+  const esVideoUrl = (url?: string): boolean => {
+    if (!url) return false;
+
+    const limpia = url.split("?")[0].toLowerCase();
+
+    return (
+      limpia.includes("/video/upload/") ||
+      /\.(mp4|mov|webm|avi|mkv)$/i.test(limpia)
+    );
+  };
+
+  const imagenes = Array.isArray(producto.imagenes) ? producto.imagenes : [];
+  const totalMedia = imagenes.length;
+
+  const mediaActual = imagenes[selectedImageIndex];
+  const currentUrl = obtenerUrlMedia(mediaActual);
+  const isVideo = esVideoUrl(currentUrl);
+
+  const cuotas =
+    producto.planCredito?.opciones?.map(
+      (opcion) =>
+        `${opcion.cuotas} cuotas de ${formatearPrecio(
+          opcion.valorCuota,
+          producto.moneda,
+        )}`,
+    ) || [];
+
+  const handlePrevImage = () => {
+    if (totalMedia === 0) return;
+
+    setSelectedImageIndex((prev) => (prev === 0 ? totalMedia - 1 : prev - 1));
+  };
+
+  const handleNextImage = () => {
+    if (totalMedia === 0) return;
+
+    setSelectedImageIndex((prev) => (prev === totalMedia - 1 ? 0 : prev + 1));
+  };
+
+  const handleContactarVendedor = () => {
+    const numeroCrudo = producto.vendedor?.telefono?.trim();
+
+    if (!numeroCrudo) {
+      Swal.fire({
+        toast: true,
+        position: "top-end",
+        icon: "info",
+        title: "El vendedor no configuró un número de WhatsApp.",
+        background: "#1e1e1e",
+        color: "#fff",
+        showConfirmButton: false,
+        timer: 2500,
+      });
+      return;
+    }
+
+    let numero = numeroCrudo.replace(/\D/g, "");
+
+    if (numero.startsWith("0")) {
+      numero = "595" + numero.slice(1);
+    }
+
+    if (!numero.startsWith("595")) {
+      numero = "595" + numero;
+    }
+
+    const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
+
+    if (window.fbq) {
+      window.fbq("track", "Contact", {
+        content_name: producto.nombre,
+        content_id: producto.id,
+        content_type: "product",
+      });
+    }
+
+    const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+    window.open(url, "_blank");
+  };
+
+  if (totalMedia === 0 || !currentUrl) {
+    return (
+      <Box
+        padding={4}
+        bgcolor="#111"
+        color="#fff"
+        minHeight="100vh"
+        display="flex"
+        flexDirection="column"
+        gap={2}
+      >
+        <Button
+          onClick={() => navigate("/")}
+          sx={{
+            color: "#FFD700",
+            textTransform: "none",
+            width: "fit-content",
+          }}
+        >
+          🏠 Ver todos los productos
+        </Button>
+
+        <Typography>
+          No hay imágenes o videos disponibles para este producto.
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box
       position="relative"
@@ -136,8 +193,9 @@ const ProductDetail: React.FC<Props> = ({
       padding={isMobile ? 2 : 4}
       bgcolor="#111"
       color="#fff"
+      minHeight="100vh"
     >
-      {/* 🔸 Galería principal */}
+      {/* Galería principal */}
       <Box flex={isMobile ? undefined : 2} position="relative">
         <Box
           position="relative"
@@ -145,8 +203,9 @@ const ProductDetail: React.FC<Props> = ({
           height={isMobile ? "65vh" : "80vh"}
           borderRadius={2}
           overflow="hidden"
+          bgcolor="#000"
         >
-          {/* ✅ OVERLAY CORRECTO (ACÁ) */}
+          {/* Overlay superior */}
           <Box
             sx={{
               position: "absolute",
@@ -169,6 +228,9 @@ const ProductDetail: React.FC<Props> = ({
                 borderRadius: 2,
                 backgroundColor: "rgba(0,0,0,0.55)",
                 backdropFilter: "blur(6px)",
+                "&:hover": {
+                  backgroundColor: "rgba(0,0,0,0.75)",
+                },
               }}
             >
               🏠 Ver todos los productos
@@ -179,13 +241,16 @@ const ProductDetail: React.FC<Props> = ({
               sx={{
                 color: "#FFD700",
                 backgroundColor: "rgba(0,0,0,0.55)",
+                "&:hover": {
+                  backgroundColor: "rgba(0,0,0,0.75)",
+                },
               }}
             >
               <CloseIcon sx={{ fontSize: 30 }} />
             </IconButton>
           </Box>
 
-          {/* Fondo difuminado solo si es imagen */}
+          {/* Fondo difuminado solo para imágenes */}
           {!isVideo && (
             <Box
               sx={{
@@ -202,23 +267,16 @@ const ProductDetail: React.FC<Props> = ({
             />
           )}
 
-          {/* Contenido dinámico */}
+          {/* Media principal */}
           {isVideo ? (
             <video
-              key={currentUrl} // fuerza reinicio si cambiás de video
+              key={currentUrl}
               src={currentUrl}
-              autoPlay
-              loop
+              controls
               playsInline
-              controls={false} // lo ocultamos si querés que se vea automático, o ponelo true si preferís visible
               className="relative z-10 w-full h-full object-contain bg-black"
               style={{
                 maxHeight: isMobile ? "65vh" : "80vh",
-              }}
-              onEnded={(e) => {
-                const vid = e.currentTarget;
-                vid.currentTime = 0;
-                vid.play();
               }}
             />
           ) : (
@@ -236,8 +294,8 @@ const ProductDetail: React.FC<Props> = ({
             />
           )}
 
-          {/* Flechas de navegación */}
-          {producto.imagenes.length > 1 && (
+          {/* Flechas */}
+          {totalMedia > 1 && (
             <>
               <IconButton
                 onClick={handlePrevImage}
@@ -288,13 +346,16 @@ const ProductDetail: React.FC<Props> = ({
           )}
         </Box>
 
-        {/* 🔸 Miniaturas (imágenes + videos) */}
+        {/* Miniaturas */}
         <Box mt={2} display="flex" gap={1} overflow="auto" pb={1}>
-          {producto.imagenes.map((img, i) => {
-            const isVid = img.mainUrl.toLowerCase().endsWith(".mp4");
+          {imagenes.map((img: any, i: number) => {
+            const mediaUrl = obtenerUrlMedia(img);
+            const thumbUrl = obtenerThumbMedia(img);
+            const isVid = esVideoUrl(mediaUrl);
+
             return (
               <Box
-                key={i}
+                key={`${mediaUrl}-${i}`}
                 onClick={() => setSelectedImageIndex(i)}
                 sx={{
                   width: 60,
@@ -312,15 +373,34 @@ const ProductDetail: React.FC<Props> = ({
                 }}
               >
                 {isVid ? (
-                  <video
-                    src={img.mainUrl}
-                    playsInline
-                    className="w-full h-full object-cover"
-                    style={{ opacity: 0.85 }}
-                  />
+                  <>
+                    <video
+                      src={mediaUrl}
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover"
+                      style={{ opacity: 0.85 }}
+                    />
+
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        inset: 0,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#FFD700",
+                        fontSize: 22,
+                        fontWeight: "bold",
+                        backgroundColor: "rgba(0,0,0,0.25)",
+                      }}
+                    >
+                      ▶
+                    </Box>
+                  </>
                 ) : (
                   <img
-                    src={img.thumbUrl || img.mainUrl}
+                    src={thumbUrl || mediaUrl}
                     alt={`Miniatura ${i + 1}`}
                     className="w-full h-full object-cover"
                   />
@@ -331,7 +411,7 @@ const ProductDetail: React.FC<Props> = ({
         </Box>
       </Box>
 
-      {/* 🔸 Lado derecho: descripción, precio, cuotas, vendedor */}
+      {/* Lado derecho */}
       <Box
         flex={1}
         mt={isMobile ? 2 : 0}
@@ -342,6 +422,7 @@ const ProductDetail: React.FC<Props> = ({
           <Typography variant="h5" fontWeight="bold" color="#fff">
             {formatearPrecio(producto.precio, producto.moneda)}
           </Typography>
+
           <Button onClick={onToggleFavorite}>
             {isFavorite ? (
               <FavoriteIcon color="error" />
@@ -352,19 +433,23 @@ const ProductDetail: React.FC<Props> = ({
         </Box>
 
         <Typography variant="subtitle2" sx={{ color: "#ccc" }} mt={1}>
-          Ubicación: {producto.ubicacion}
+          Ubicación: {producto.ubicacion || "No especificada"}
         </Typography>
 
-        {/* 🔸 Precio y cuotas */}
+        {/* Precio y cuotas */}
         <Box mt={3} display="flex" flexDirection="column" gap={2}>
           <Box
             p={2}
             borderRadius={2}
-            sx={{ backgroundColor: "#ffd70022", backdropFilter: "blur(5px)" }}
+            sx={{
+              backgroundColor: "#ffd70022",
+              backdropFilter: "blur(5px)",
+            }}
           >
             <Typography variant="subtitle2" fontWeight="bold" color="#FFD700">
               Precio CONTADO
             </Typography>
+
             <Typography variant="h5" fontWeight="bold" color="#fff">
               {formatearPrecio(producto.precio, producto.moneda)}
             </Typography>
@@ -374,11 +459,15 @@ const ProductDetail: React.FC<Props> = ({
             <Box
               p={2}
               borderRadius={2}
-              sx={{ backgroundColor: "#ffd70022", backdropFilter: "blur(5px)" }}
+              sx={{
+                backgroundColor: "#ffd70022",
+                backdropFilter: "blur(5px)",
+              }}
             >
               <Typography variant="subtitle2" fontWeight="bold" color="#FFD700">
                 ¿Preferís comprar en CUOTAS?
               </Typography>
+
               <Box mt={1} display="flex" flexDirection="column" gap={1}>
                 {cuotas.map((opcion, index) => (
                   <Typography
@@ -400,41 +489,43 @@ const ProductDetail: React.FC<Props> = ({
           )}
         </Box>
 
-        {/* 🔸 Descripción */}
+        {/* Descripción */}
         {producto.descripcion && (
           <Box mt={4}>
             <Typography variant="body1" mb={1} fontWeight="bold" color="#fff">
               Descripción del producto
             </Typography>
+
             <Typography
               variant="body2"
-              sx={{ color: "#ccc", whiteSpace: "pre-line" }}
+              sx={{
+                color: "#ccc",
+                whiteSpace: "pre-line",
+              }}
             >
               {producto.descripcion}
             </Typography>
           </Box>
         )}
 
-        {/* 🔸 Vendedor */}
+        {/* Vendedor */}
         <Box mt={4} display="flex" alignItems="center" gap={2}>
-          <img
-            src={producto.vendedor.avatar}
-            alt={producto.vendedor.nombre}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          {producto.vendedor?.avatar && (
+            <img
+              src={producto.vendedor.avatar}
+              alt={producto.vendedor?.nombre || "Vendedor"}
+              className="w-10 h-10 rounded-full object-cover"
+            />
+          )}
+
           <Typography variant="body2" color="#ccc">
-            Vendedor: <strong>{producto.vendedor.nombre}</strong>
+            Vendedor:{" "}
+            <strong>{producto.vendedor?.nombre || "Tu Vendedor"}</strong>
           </Typography>
         </Box>
 
-        {/* 🔸 Botón de contacto */}
-        <Box
-          mt={4}
-          mb={isMobile ? 4 : 0} // 🔥 espacio adicional debajo del vendedor
-          display="flex"
-          alignItems="center"
-          gap={2}
-        >
+        {/* Botón desktop */}
+        <Box mt={4} mb={isMobile ? 4 : 0} display="flex" alignItems="center">
           <Button
             variant="contained"
             sx={{
@@ -461,11 +552,13 @@ const ProductDetail: React.FC<Props> = ({
             HABLAR CON EL VENDEDOR
           </Button>
         </Box>
+
+        {/* Botón mobile fijo */}
         {isMobile && (
           <Box
             sx={{
               position: "fixed",
-              bottom: 40, // 🔥 más arriba todavía
+              bottom: 40,
               left: 0,
               right: 0,
               zIndex: 200,
@@ -476,8 +569,8 @@ const ProductDetail: React.FC<Props> = ({
             <Button
               variant="contained"
               sx={{
-                width: "70%", // 🔥 mucho más corto
-                maxWidth: "300px", // 🔥 límite profesional
+                width: "70%",
+                maxWidth: "300px",
                 backgroundColor: "#25D366",
                 color: "#fff",
                 fontWeight: "600",

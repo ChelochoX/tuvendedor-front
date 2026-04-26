@@ -273,6 +273,9 @@ const ProductDetail: React.FC<Props> = ({
               key={currentUrl}
               src={currentUrl}
               controls
+              autoPlay
+              muted
+              loop
               playsInline
               className="relative z-10 w-full h-full object-contain bg-black"
               style={{

@@ -1,4 +1,4 @@
-import { buildVitrinaUrl } from "../config/appConfig";
+import { getPublicAppUrl, buildVitrinaUrl } from "../config/appConfig";
 
 type ProductoWhatsapp = {
   id: number;
@@ -65,9 +65,9 @@ export const obtenerUrlCompartirProducto = (
   idProducto: number,
   slug?: string | null,
 ): string => {
-  const base = buildVitrinaUrl(slug);
+  const baseUrl = getPublicAppUrl();
 
-  return `${base}?producto=${idProducto}`;
+  return `${baseUrl}/share/producto/${idProducto}`;
 };
 
 export const obtenerUrlCompartirVitrina = (slug?: string | null): string => {

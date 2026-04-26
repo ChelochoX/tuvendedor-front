@@ -29,17 +29,16 @@ export const buildProductoShareUrl = (
   id?: number | string | null,
   slug?: string | null,
 ) => {
+  const baseUrl = getPublicAppUrl();
   const slugLimpio = slug?.trim();
 
-  if (slugLimpio && id) {
-    return `${buildVitrinaUrl(slugLimpio)}?producto=${encodeURIComponent(
-      String(id),
-    )}`;
+  if (id) {
+    return `${baseUrl}/share/producto/${encodeURIComponent(String(id))}`;
   }
 
   if (slugLimpio) {
     return buildVitrinaUrl(slugLimpio);
   }
 
-  return buildProductoUrl(id);
+  return baseUrl;
 };

@@ -93,6 +93,12 @@ const ProductDetail: React.FC<Props> = ({
   const currentUrl = obtenerUrlMedia(mediaActual);
   const isVideo = esVideoUrl(currentUrl);
 
+  // Soporta publicaciones que vengan como nombre o como titulo.
+  const tituloProducto =
+    producto.nombre?.trim() ||
+    (producto as any).titulo?.trim() ||
+    "Publicación disponible";
+
   const cuotas =
     producto.planCredito?.opciones?.map(
       (opcion) =>
@@ -141,11 +147,11 @@ const ProductDetail: React.FC<Props> = ({
       numero = "595" + numero;
     }
 
-    const mensaje = `¡Hola! Vi tu publicación *${producto.nombre}* en TuVendedor y quiero más información.`;
+    const mensaje = `¡Hola! Vi tu publicación *${tituloProducto}* en TuVendedor y quiero más información.`;
 
     if (window.fbq) {
       window.fbq("track", "Contact", {
-        content_name: producto.nombre,
+        content_name: tituloProducto,
         content_id: producto.id,
         content_type: "product",
       });
@@ -286,7 +292,7 @@ const ProductDetail: React.FC<Props> = ({
             <Box
               component="img"
               src={currentUrl}
-              alt={producto.nombre}
+              alt={tituloProducto}
               sx={{
                 position: "relative",
                 zIndex: 1,
@@ -421,6 +427,36 @@ const ProductDetail: React.FC<Props> = ({
         p={isMobile ? 2 : 0}
         maxWidth={isMobile ? "100%" : 320}
       >
+        {/* Título principal de la publicación */}
+        <Box mb={2}>
+          <Typography
+            variant="overline"
+            sx={{
+              color: "#FFD700",
+              letterSpacing: "0.18em",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              display: "block",
+              mb: 0.5,
+            }}
+          >
+            Publicación
+          </Typography>
+
+          <Typography
+            variant={isMobile ? "h5" : "h4"}
+            fontWeight="900"
+            color="#fff"
+            sx={{
+              lineHeight: 1.08,
+              textTransform: "uppercase",
+              wordBreak: "break-word",
+            }}
+          >
+            {tituloProducto}
+          </Typography>
+        </Box>
+
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h5" fontWeight="bold" color="#fff">
             {formatearPrecio(producto.precio, producto.moneda)}

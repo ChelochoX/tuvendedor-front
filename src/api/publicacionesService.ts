@@ -2,6 +2,7 @@ import instance from "./axiosInstance";
 import { Producto, Imagen } from "../types/producto";
 import { ApiResponse } from "../types/api";
 import { Categoria } from "../types/categoria";
+import { getVisitorId } from "../utils/visitorId";
 
 const API_URL = "/Publicaciones";
 
@@ -95,6 +96,15 @@ const mapearProducto = (p: any): Producto => {
     mostrarBotonesCompra:
       p.mostrarBotonesCompra ?? p.MostrarBotonesCompra ?? false,
 
+    esFavorito: p.esFavorito ?? p.EsFavorito ?? false,
+    cantidadFavoritos: Number(
+      p.cantidadFavoritos ?? p.CantidadFavoritos ?? 0,
+    ),
+    cantidadVistas: Number(p.cantidadVistas ?? p.CantidadVistas ?? 0),
+    cantidadClicksWhatsapp: Number(
+      p.cantidadClicksWhatsapp ?? p.CantidadClicksWhatsapp ?? 0,
+    ),
+
     vendedor: {
       nombre:
         p.vendedor?.nombre ??
@@ -185,6 +195,7 @@ export const obtenerPublicaciones = async (
         params: {
           categoria,
           nombre,
+          visitorId: getVisitorId(),
         },
       },
     );

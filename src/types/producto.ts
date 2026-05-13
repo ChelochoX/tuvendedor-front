@@ -41,4 +41,10 @@ export interface Producto {
 
   // 🔥 NUEVO: estado de la publicación
   estado: "Activo" | "Vendido" | "Pausado" | string;
+
+  // ❤️ Interacciones / métricas
+  esFavorito?: boolean;
+  cantidadFavoritos?: number;
+  cantidadVistas?: number;
+  cantidadClicksWhatsapp?: number;
 }

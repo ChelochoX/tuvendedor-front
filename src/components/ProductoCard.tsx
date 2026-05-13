@@ -16,6 +16,8 @@ import {
   obtenerTemporadas,
   marcarComoVendido,
 } from "../api/publicacionesService";
+import FavoritoButton from "./publicaciones/FavoritoButton";
+import PublicacionMetricas from "./publicaciones/PublicacionMetricas";
 import { useUsuario } from "../context/UsuarioContext";
 import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light.css";
@@ -39,6 +41,7 @@ const ProductoCard: React.FC<Props> = ({
   variant = "default",
 }) => {
   const { usuario } = useUsuario();
+
   const [eliminando, setEliminando] = useState(false);
   const [operandoEspecial, setOperandoEspecial] = useState(false);
   const [operandoDestacado, setOperandoDestacado] = useState(false);
@@ -570,6 +573,13 @@ const ProductoCard: React.FC<Props> = ({
               className="absolute left-0 top-0 h-full w-full object-cover"
             />
           )}
+
+          {!mostrarAcciones && (
+            <FavoritoButton
+              producto={producto}
+              className="absolute bottom-3 right-3"
+            />
+          )}
         </div>
 
         <div
@@ -603,6 +613,14 @@ const ProductoCard: React.FC<Props> = ({
           >
             {producto.ubicacion}
           </p>
+
+          {mostrarAcciones && (
+            <PublicacionMetricas
+              cantidadFavoritos={producto.cantidadFavoritos}
+              cantidadVistas={producto.cantidadVistas}
+              cantidadClicksWhatsapp={producto.cantidadClicksWhatsapp}
+            />
+          )}
 
           <div className="mb-1 mt-2 flex items-center justify-between">
             {mostrarAcciones && producto.vendedor && (

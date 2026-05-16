@@ -15,6 +15,10 @@ import {
   PerfilPublicoVendedor,
 } from "../../types/perfilVendedor.types";
 import { buildVitrinaUrl } from "../../config/appConfig";
+import {
+  registrarClickWhatsapp,
+  registrarVistaPublicacion,
+} from "../../api/publicacionInteraccionesService";
 
 interface Props {
   publicacion: PublicacionPerfilVendedor;
@@ -150,6 +154,15 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
 
   useEffect(() => {
     setIndiceActual(0);
+
+    if (!publicacion?.id) return;
+
+    registrarVistaPublicacion(publicacion.id).catch((error) => {
+      console.error(
+        "No se pudo registrar la vista desde la vitrina pública",
+        error,
+      );
+    });
   }, [publicacion.id]);
 
   useEffect(() => {
@@ -243,6 +256,26 @@ ${urlPublicacion}`;
   const cerrarModal = () => {
     setMostrarModalVisita(false);
     onClose();
+  };
+
+  const handleAbrirWhatsapp = async () => {
+    const numero = limpiarTelefonoWhatsapp(perfil.whatsapp);
+
+    if (!numero) {
+      abrirWhatsapp(perfil.whatsapp, mensajeConsulta);
+      return;
+    }
+
+    try {
+      await registrarClickWhatsapp(publicacion.id);
+    } catch (error) {
+      console.error(
+        "No se pudo registrar click de WhatsApp desde vitrina pública",
+        error,
+      );
+    }
+
+    abrirWhatsapp(perfil.whatsapp, mensajeConsulta);
   };
 
   return (
@@ -440,9 +473,7 @@ ${urlPublicacion}`;
                 <div className="mt-4 space-y-2 border-t border-white/10 bg-[#101722]/95 pt-4 lg:sticky lg:bottom-0 lg:mt-5 lg:space-y-3 lg:pt-5 lg:backdrop-blur-md">
                   <button
                     type="button"
-                    onClick={() =>
-                      abrirWhatsapp(perfil.whatsapp, mensajeConsulta)
-                    }
+                    onClick={handleAbrirWhatsapp}
                     className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#22c55e] px-4 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a] lg:min-h-11 lg:text-[14px]"
                   >
                     <MessageCircle size={15} strokeWidth={2} />

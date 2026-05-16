@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { Eye, MapPin, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
+import { Producto } from "../../types/producto";
+import FavoritoButton from "../publicaciones/FavoritoButton";
 
 interface Props {
   publicaciones?: PublicacionPerfilVendedor[];
@@ -97,6 +99,60 @@ const formatearPrecio = (
   return `Gs. ${Number(precio).toLocaleString("es-PY", {
     maximumFractionDigits: 0,
   })}`;
+};
+
+const obtenerUrlImagen = (item: PublicacionPerfilVendedor): string => {
+  const anyItem = item as any;
+
+  return (
+    item.imagenPrincipal ||
+    item.thumbUrl ||
+    anyItem.imagenes?.[0]?.thumbUrl ||
+    anyItem.imagenes?.[0]?.mainUrl ||
+    "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900"
+  );
+};
+
+const adaptarProductoFavorito = (
+  item: PublicacionPerfilVendedor,
+): Producto => {
+  const anyItem = item as any;
+  const imagen = obtenerUrlImagen(item);
+
+  const imagenes =
+    Array.isArray(anyItem.imagenes) && anyItem.imagenes.length > 0
+      ? anyItem.imagenes
+      : [
+          {
+            mainUrl: item.imagenPrincipal || imagen,
+            thumbUrl: item.thumbUrl || imagen,
+          },
+        ];
+
+  return {
+    id: item.id,
+    nombre: item.titulo || "Publicación disponible",
+    precio: item.precio ?? 0,
+    moneda: item.moneda ?? "PYG",
+    categoria: item.categoria || "",
+    ubicacion: item.ubicacion || "",
+    descripcion: item.descripcion || "",
+    estado: anyItem.estado || "Activo",
+
+    vendedor: {
+      nombre: "Tu Vendedor",
+      avatar: "",
+      telefono: "",
+    },
+
+    imagenes,
+
+    esDestacada: item.esDestacada,
+    esFavorito: anyItem.esFavorito ?? false,
+    cantidadFavoritos: Number(anyItem.cantidadFavoritos ?? 0),
+    cantidadVistas: Number(anyItem.cantidadVistas ?? 0),
+    cantidadClicksWhatsapp: Number(anyItem.cantidadClicksWhatsapp ?? 0),
+  } as Producto;
 };
 
 const PerfilVendedorPublicaciones: React.FC<Props> = ({
@@ -253,10 +309,8 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {publicacionesFiltradas.map((item) => {
-            const imagen =
-              item.imagenPrincipal ||
-              item.thumbUrl ||
-              "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900";
+            const imagen = obtenerUrlImagen(item);
+            const productoFavorito = adaptarProductoFavorito(item);
 
             return (
               <article
@@ -289,6 +343,12 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                       {item.categoria}
                     </span>
                   )}
+
+                  <FavoritoButton
+                    producto={productoFavorito}
+                    mostrarCantidad
+                    className="absolute bottom-3 right-3"
+                  />
                 </div>
 
                 <div className="flex min-h-[210px] flex-col p-4">

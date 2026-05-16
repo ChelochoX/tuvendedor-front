@@ -577,6 +577,7 @@ const ProductoCard: React.FC<Props> = ({
           {!mostrarAcciones && (
             <FavoritoButton
               producto={producto}
+              mostrarCantidad
               className="absolute bottom-3 right-3"
             />
           )}
@@ -645,11 +646,10 @@ const ProductoCard: React.FC<Props> = ({
                 <button
                   type="button"
                   disabled={producto.estado === "Vendido"}
-                  className={`transition ${
-                    producto.estado === "Vendido"
+                  className={`transition ${producto.estado === "Vendido"
                       ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-blue-500"
-                  }`}
+                    }`}
                   onClick={handleEditar}
                 >
                   <PencilSquareIcon className="h-4 w-4" />
@@ -660,11 +660,10 @@ const ProductoCard: React.FC<Props> = ({
                 <button
                   type="button"
                   disabled={eliminando}
-                  className={`transition ${
-                    eliminando
+                  className={`transition ${eliminando
                       ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-red-500"
-                  }`}
+                    }`}
                   onClick={handleEliminar}
                 >
                   <TrashIcon className="h-4 w-4" />
@@ -674,11 +673,10 @@ const ProductoCard: React.FC<Props> = ({
               <Tippy content="Marcar como vendido" theme="light">
                 <button
                   type="button"
-                  className={`transition ${
-                    producto.estado === "Vendido"
+                  className={`transition ${producto.estado === "Vendido"
                       ? "cursor-not-allowed text-green-400"
                       : "text-gray-400 hover:text-green-500"
-                  }`}
+                    }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -707,11 +705,10 @@ const ProductoCard: React.FC<Props> = ({
                     await destacarFlow();
                   }
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
-                  destacadoActivo
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${destacadoActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-yellow-100 text-yellow-700"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {destacadoActivo ? "⭐ Quitar destacado" : "⭐ Destacar"}
               </button>
@@ -725,11 +722,10 @@ const ProductoCard: React.FC<Props> = ({
 
                   await activarEspecialFlow();
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
-                  especialActivo
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${especialActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-fuchsia-100 text-fuchsia-700"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {especialActivo ? "🎉 Quitar especial" : "🎉 Especial"}
               </button>

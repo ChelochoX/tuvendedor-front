@@ -1,5 +1,5 @@
 // ProductDetail con soporte híbrido imágenes + videos
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -16,6 +16,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate } from "react-router-dom";
 import { Producto } from "../types/producto";
 import Swal from "sweetalert2";
+import {
+  registrarClickWhatsapp,
+  registrarVistaPublicacion,
+} from "../api/publicacionInteraccionesService";
 
 interface Props {
   producto: Producto;
@@ -39,6 +43,14 @@ const ProductDetail: React.FC<Props> = ({
   const navigate = useNavigate();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (!producto?.id) return;
+
+    registrarVistaPublicacion(producto.id).catch((error) => {
+      console.error("No se pudo registrar la vista de la publicación", error);
+    });
+  }, [producto?.id]);
 
   const formatearPrecio = (
     precio?: number | null,
@@ -148,6 +160,11 @@ const ProductDetail: React.FC<Props> = ({
     }
 
     const mensaje = `¡Hola! Vi tu publicación *${tituloProducto}* en TuVendedor y quiero más información.`;
+
+    // Registramos el click en WhatsApp sin bloquear la apertura de WhatsApp.
+    registrarClickWhatsapp(producto.id).catch((error) => {
+      console.error("No se pudo registrar el click de WhatsApp", error);
+    });
 
     if (window.fbq) {
       window.fbq("track", "Contact", {

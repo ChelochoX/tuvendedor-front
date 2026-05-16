@@ -78,6 +78,13 @@ const PerfilVendedorPublico: React.FC = () => {
               longitud: full.longitud ?? pub.longitud ?? null,
               googleMapsUrl: full.googleMapsUrl ?? pub.googleMapsUrl ?? null,
               imagenes: Array.isArray(full.imagenes) ? full.imagenes : [],
+              // ❤️ Favoritos / interacciones
+              esFavorito: full.esFavorito ?? pub.esFavorito ?? false,
+              cantidadFavoritos:
+                full.cantidadFavoritos ?? pub.cantidadFavoritos ?? 0,
+              cantidadVistas: full.cantidadVistas ?? pub.cantidadVistas ?? 0,
+              cantidadClicksWhatsapp:
+                full.cantidadClicksWhatsapp ?? pub.cantidadClicksWhatsapp ?? 0,
             };
           },
         );

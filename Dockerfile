@@ -3,7 +3,7 @@
 # ===========================================
 
 # 1️⃣ Etapa de build
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -30,17 +30,12 @@ RUN pnpm vite build
 # ===========================================
 FROM nginx:alpine
 
-# Limpia cualquier archivo residual del contenedor base
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copia el resultado del build al directorio de Nginx
 COPY --from=build /app/dist/ /usr/share/nginx/html/
 
-# Copia la configuración personalizada de Nginx del frontend
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expone el puerto 80
 EXPOSE 80
 
-# Inicia Nginx
 CMD ["nginx", "-g", "daemon off;"]

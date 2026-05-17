@@ -68,19 +68,23 @@ export const generarMensajeProductoWhatsapp = (
 ): string => {
   const urlCompartir = obtenerUrlCompartirProducto(producto.id, slug);
 
-  return `Hola
+  const lineas = [
+    "Hola 👋",
+    "",
+    "Te comparto esta publicación disponible:",
+    "",
+    `🛒 ${producto.titulo}`,
+    producto.categoria ? `📌 Categoría: ${producto.categoria}` : "",
+    producto.ubicacion ? `📍 Ubicación: ${producto.ubicacion}` : "",
+    `💰 Precio: ${formatearPrecio(producto.precio, producto.moneda)}`,
+    "",
+    producto.descripcion?.trim() || "",
+    "",
+    "🔗 Ver publicación:",
+    urlCompartir,
+  ];
 
-Te comparto esta publicación disponible:
-
-${producto.titulo}
-${producto.categoria ? `Categoria: ${producto.categoria}` : ""}
-${producto.ubicacion ? `Ubicacion: ${producto.ubicacion}` : ""}
-Precio: ${formatearPrecio(producto.precio, producto.moneda)}
-
-${producto.descripcion?.trim() || ""}
-
-Ver publicación:
-${urlCompartir}`;
+  return lineas.filter((linea) => linea !== "").join("\n");
 };
 
 export const generarMensajeVitrinaWhatsapp = (

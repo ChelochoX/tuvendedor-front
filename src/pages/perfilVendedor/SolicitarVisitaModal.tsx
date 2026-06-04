@@ -13,6 +13,7 @@ import Swal from "sweetalert2";
 
 import { crearSolicitudVisita } from "../../api/solicitudesVisitaService";
 import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
+import { registrarMetaAngelaLeadSolicitudVisita } from "../../utils/metaPixel";
 
 interface Props {
   abierto: boolean;
@@ -266,6 +267,10 @@ const SolicitarVisitaModal: React.FC<Props> = ({
         horaVisita: `${form.horaVisita}:00`,
         mensaje: form.mensaje.trim(),
       });
+
+      // La API confirmó que la solicitud fue guardada correctamente.
+      // No enviamos a Meta el nombre, el teléfono ni el mensaje del interesado.
+      registrarMetaAngelaLeadSolicitudVisita(publicacion);
 
       Swal.fire({
         title: "Solicitud enviada",

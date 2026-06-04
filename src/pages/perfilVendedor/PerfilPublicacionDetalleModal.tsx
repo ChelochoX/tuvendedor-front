@@ -19,6 +19,11 @@ import {
   registrarClickWhatsapp,
   registrarVistaPublicacion,
 } from "../../api/publicacionInteraccionesService";
+import {
+  registrarMetaAngelaAperturaAgendaVisita,
+  registrarMetaAngelaContactoWhatsapp,
+  registrarMetaAngelaViewContent,
+} from "../../utils/metaPixel";
 
 interface Props {
   publicacion: PublicacionPerfilVendedor;
@@ -163,6 +168,8 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
         error,
       );
     });
+
+    registrarMetaAngelaViewContent(publicacion);
   }, [publicacion.id]);
 
   useEffect(() => {
@@ -258,7 +265,7 @@ ${urlPublicacion}`;
     onClose();
   };
 
-  const handleAbrirWhatsapp = async () => {
+  const handleAbrirWhatsapp = () => {
     const numero = limpiarTelefonoWhatsapp(perfil.whatsapp);
 
     if (!numero) {
@@ -266,16 +273,23 @@ ${urlPublicacion}`;
       return;
     }
 
-    try {
-      await registrarClickWhatsapp(publicacion.id);
-    } catch (error) {
+    // Métrica interna de TuVendedor sin demorar la apertura de WhatsApp.
+    registrarClickWhatsapp(publicacion.id).catch((error) => {
       console.error(
         "No se pudo registrar click de WhatsApp desde vitrina pública",
         error,
       );
-    }
+    });
+
+    // Conversión exclusiva del Pixel inmobiliario de Angela.
+    registrarMetaAngelaContactoWhatsapp(publicacion);
 
     abrirWhatsapp(perfil.whatsapp, mensajeConsulta);
+  };
+
+  const abrirModalVisita = () => {
+    registrarMetaAngelaAperturaAgendaVisita(publicacion);
+    setMostrarModalVisita(true);
   };
 
   return (
@@ -404,7 +418,7 @@ ${urlPublicacion}`;
                     {esInmueble && (
                       <button
                         type="button"
-                        onClick={() => setMostrarModalVisita(true)}
+                        onClick={abrirModalVisita}
                         className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2 text-[13px] font-semibold text-black shadow-sm transition hover:bg-yellow-300"
                       >
                         <CalendarDays size={15} strokeWidth={2} />
@@ -520,7 +534,7 @@ ${urlPublicacion}`;
                 {esInmueble && (
                   <button
                     type="button"
-                    onClick={() => setMostrarModalVisita(true)}
+                    onClick={abrirModalVisita}
                     className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-3 py-2 text-[11px] font-semibold text-black shadow-sm transition hover:bg-yellow-300"
                   >
                     <CalendarDays size={14} strokeWidth={2} />

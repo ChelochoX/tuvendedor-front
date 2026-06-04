@@ -1,26 +1,18 @@
 import React, { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import RoutesHandler from "./router";
-
-// Tipamos fbq para que TypeScript no se queje
-declare global {
-  interface Window {
-    fbq?: (...args: any[]) => void;
-  }
-}
+import { registrarMetaPageViewPorRuta } from "./utils/metaPixel";
 
 function App() {
   const location = useLocation();
 
-  // AVISAMOS A META CADA CAMBIO DE RUTA
+  // Registramos PageView en el Pixel correcto según la ruta pública visitada.
   useEffect(() => {
-    if (window.fbq) {
-      window.fbq("track", "PageView");
-    }
+    registrarMetaPageViewPorRuta(location.pathname);
   }, [location.pathname]);
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <RoutesHandler />
     </div>
   );

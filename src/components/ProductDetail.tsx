@@ -21,16 +21,15 @@ import {
   registrarVistaPublicacion,
 } from "../api/publicacionInteraccionesService";
 
+import {
+  registrarMetaMarketplaceContactoWhatsapp,
+  registrarMetaMarketplaceViewContent,
+} from "../utils/metaPixel";
+
 interface Props {
   producto: Producto;
   isFavorite: boolean;
   onToggleFavorite: () => void;
-}
-
-declare global {
-  interface Window {
-    fbq?: (...args: any[]) => void;
-  }
 }
 
 const WhatsAppIcon = () => (
@@ -56,6 +55,8 @@ const ProductDetail: React.FC<Props> = ({
     registrarVistaPublicacion(producto.id).catch((error) => {
       console.error("No se pudo registrar la vista de la publicación", error);
     });
+
+    registrarMetaMarketplaceViewContent(producto);
   }, [producto?.id]);
 
   const formatearPrecio = (
@@ -172,13 +173,7 @@ const ProductDetail: React.FC<Props> = ({
       console.error("No se pudo registrar el click de WhatsApp", error);
     });
 
-    if (window.fbq) {
-      window.fbq("track", "Contact", {
-        content_name: tituloProducto,
-        content_id: producto.id,
-        content_type: "product",
-      });
-    }
+    registrarMetaMarketplaceContactoWhatsapp(producto);
 
     const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
     window.open(url, "_blank");

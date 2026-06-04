@@ -33,6 +33,12 @@ declare global {
   }
 }
 
+const WhatsAppIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 32 32" fill="white">
+    <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.1 6.9L4 29l7.3-2.1c1.9 1 4.1 1.5 6.7 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22.5c-2.2 0-4.2-.6-5.9-1.7l-.4-.2-4.3 1.2 1.2-4.2-.3-.4C5.2 18.5 4.5 16.8 4.5 15c0-6.2 5-11.3 11.5-11.3S27.5 8.8 27.5 15 22.5 25.5 16 25.5zm6-7.8c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.1-.8 1-.9 1.1-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.4.1-.5.1-.1.3-.3.4-.4.1-.1.2-.2.3-.4.1-.2.1-.3.2-.5.1-.2.1-.4 0-.6s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.2c.2.3 2.2 3.4 5.5 4.7.8.3 1.4.5 1.9.6.8.3 1.5.2 2 .1.6-.1 1.8-.8 2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.3z" />
+  </svg>
+);
+
 const ProductDetail: React.FC<Props> = ({
   producto,
   isFavorite,
@@ -217,6 +223,7 @@ const ProductDetail: React.FC<Props> = ({
       bgcolor="#111"
       color="#fff"
       minHeight="100vh"
+      pb={isMobile ? 11 : 4}
     >
       {/* Galería principal */}
       <Box flex={isMobile ? undefined : 2} position="relative">
@@ -461,11 +468,12 @@ const ProductDetail: React.FC<Props> = ({
           </Typography>
 
           <Typography
-            variant={isMobile ? "h5" : "h4"}
             fontWeight="900"
             color="#fff"
             sx={{
-              lineHeight: 1.08,
+              fontSize: isMobile ? "1.35rem" : "1.75rem",
+              lineHeight: 1.05,
+              letterSpacing: "-0.02em",
               textTransform: "uppercase",
               wordBreak: "break-word",
             }}
@@ -488,9 +496,57 @@ const ProductDetail: React.FC<Props> = ({
           </Button>
         </Box>
 
-        <Typography variant="subtitle2" sx={{ color: "#ccc" }} mt={1}>
+        <Typography
+          variant="subtitle2"
+          sx={{
+            color: "#e6e6e6",
+            fontSize: "0.78rem",
+            lineHeight: 1.4,
+          }}
+          mt={1}
+        >
           Ubicación: {producto.ubicacion || "No especificada"}
         </Typography>
+
+        {/* CTA principal desktop: visible desde el primer pantallazo y fijo al hacer scroll */}
+        {!isMobile && (
+          <Box
+            mt={2}
+            py={0.5}
+            sx={{
+              position: "sticky",
+              top: 12,
+              zIndex: 100,
+              backgroundColor: "rgba(17,17,17,0.94)",
+              backdropFilter: "blur(8px)",
+              borderRadius: 2,
+            }}
+          >
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{
+                minHeight: 38,
+                backgroundColor: "#25D366",
+                color: "#fff",
+                fontWeight: 700,
+                padding: "8px 12px",
+                fontSize: "0.78rem",
+                borderRadius: "24px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "7px",
+                boxShadow: "0px 4px 12px rgba(0,0,0,0.28)",
+                "&:hover": { backgroundColor: "#1ebe5d" },
+              }}
+              onClick={handleContactarVendedor}
+            >
+              <WhatsAppIcon />
+              CONSULTAR POR WHATSAPP
+            </Button>
+          </Box>
+        )}
 
         {/* Precio y cuotas */}
         <Box mt={3} display="flex" flexDirection="column" gap={2}>
@@ -547,15 +603,23 @@ const ProductDetail: React.FC<Props> = ({
 
         {/* Descripción */}
         {producto.descripcion && (
-          <Box mt={4}>
-            <Typography variant="body1" mb={1} fontWeight="bold" color="#fff">
+          <Box mt={3.5}>
+            <Typography
+              mb={1}
+              fontWeight="bold"
+              sx={{
+                color: "#fff",
+                fontSize: "0.95rem",
+              }}
+            >
               Descripción del producto
             </Typography>
 
             <Typography
-              variant="body2"
               sx={{
-                color: "#ccc",
+                color: "#f2f2f2",
+                fontSize: isMobile ? "0.9rem" : "0.82rem",
+                lineHeight: 1.55,
                 whiteSpace: "pre-line",
               }}
             >
@@ -574,82 +638,63 @@ const ProductDetail: React.FC<Props> = ({
             />
           )}
 
-          <Typography variant="body2" color="#ccc">
+          <Typography
+            variant="body2"
+            sx={{
+              color: "#e6e6e6",
+              fontSize: "0.82rem",
+            }}
+          >
             Vendedor:{" "}
             <strong>{producto.vendedor?.nombre || "Tu Vendedor"}</strong>
           </Typography>
         </Box>
+      </Box>
 
-        {/* Botón desktop */}
-        <Box mt={4} mb={isMobile ? 4 : 0} display="flex" alignItems="center">
+      {/* CTA flotante mobile: siempre visible mientras el cliente navega */}
+      {isMobile && (
+        <Box
+          sx={{
+            position: "fixed",
+            left: 0,
+            right: 0,
+            bottom: "calc(12px + env(safe-area-inset-bottom))",
+            zIndex: 9999,
+            display: "flex",
+            justifyContent: "center",
+            px: 2,
+            pointerEvents: "none",
+          }}
+        >
           <Button
             variant="contained"
+            onClick={handleContactarVendedor}
             sx={{
-              width: "90%",
-              maxWidth: "350px",
-              margin: "10px auto 0 auto",
+              width: "84%",
+              maxWidth: 320,
+              minHeight: 34,
               backgroundColor: "#25D366",
               color: "#fff",
-              fontWeight: "600",
-              padding: "10px 14px",
-              fontSize: "0.9rem",
-              borderRadius: "40px",
-              display: isMobile ? "none" : "flex",
+              fontWeight: 700,
+              padding: "6px 10px",
+              fontSize: "0.68rem",
+              borderRadius: "18px",
+              display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: "8px",
-              "&:hover": { backgroundColor: "#1ebe5d" },
+              gap: "5px",
+              boxShadow: "0px 3px 10px rgba(0,0,0,0.28)",
+              pointerEvents: "auto",
+              "&:hover": {
+                backgroundColor: "#1ebe5d",
+              },
             }}
-            onClick={handleContactarVendedor}
           >
-            <svg width="18" height="18" viewBox="0 0 32 32" fill="white">
-              <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.1 6.9L4 29l7.3-2.1c1.9 1 4.1 1.5 6.7 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22.5c-2.2 0-4.2-.6-5.9-1.7l-.4-.2-4.3 1.2 1.2-4.2-.3-.4C5.2 18.5 4.5 16.8 4.5 15c0-6.2 5-11.3 11.5-11.3S27.5 8.8 27.5 15 22.5 25.5 16 25.5zm6-7.8c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.1-.8 1-.9 1.1-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.4.1-.5.1-.1.3-.3.4-.4.1-.1.2-.2.3-.4.1-.2.1-.3.2-.5.1-.2.1-.4 0-.6s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.2c.2.3 2.2 3.4 5.5 4.7.8.3 1.4.5 1.9.6.8.3 1.5.2 2 .1.6-.1 1.8-.8 2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.3z" />
-            </svg>
-            HABLAR CON EL VENDEDOR
+            <WhatsAppIcon />
+            CONSULTAR POR WHATSAPP
           </Button>
         </Box>
-
-        {/* Botón mobile fijo */}
-        {isMobile && (
-          <Box
-            sx={{
-              position: "fixed",
-              bottom: 40,
-              left: 0,
-              right: 0,
-              zIndex: 200,
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <Button
-              variant="contained"
-              sx={{
-                width: "70%",
-                maxWidth: "300px",
-                backgroundColor: "#25D366",
-                color: "#fff",
-                fontWeight: "600",
-                padding: "10px 14px",
-                fontSize: "0.9rem",
-                borderRadius: "40px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                boxShadow: "0px 4px 8px rgba(0,0,0,0.25)",
-                "&:hover": { backgroundColor: "#1ebe5d" },
-              }}
-              onClick={handleContactarVendedor}
-            >
-              <svg width="18" height="18" viewBox="0 0 32 32" fill="white">
-                <path d="M16 3C9.4 3 4 8.4 4 15c0 2.5.8 4.9 2.1 6.9L4 29l7.3-2.1c1.9 1 4.1 1.5 6.7 1.5 6.6 0 12-5.4 12-12S22.6 3 16 3zm0 22.5c-2.2 0-4.2-.6-5.9-1.7l-.4-.2-4.3 1.2 1.2-4.2-.3-.4C5.2 18.5 4.5 16.8 4.5 15c0-6.2 5-11.3 11.5-11.3S27.5 8.8 27.5 15 22.5 25.5 16 25.5zm6-7.8c-.3-.1-1.8-.9-2.1-1s-.5-.1-.7.1-.8 1-.9 1.1-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.4.1-.5.1-.1.3-.3.4-.4.1-.1.2-.2.3-.4.1-.2.1-.3.2-.5.1-.2.1-.4 0-.6s-.7-1.6-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.2c.2.3 2.2 3.4 5.5 4.7.8.3 1.4.5 1.9.6.8.3 1.5.2 2 .1.6-.1 1.8-.8 2-1.6.3-.8.3-1.5.2-1.6-.1-.1-.3-.2-.6-.3z" />
-              </svg>
-              HABLAR CON EL VENDEDOR
-            </Button>
-          </Box>
-        )}
-      </Box>
+      )}
     </Box>
   );
 };

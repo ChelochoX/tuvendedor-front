@@ -282,7 +282,7 @@ ${urlPublicacion}`;
     <>
       <div className="fixed inset-0 z-[9999] bg-black/85 backdrop-blur-sm">
         <div className="flex h-full w-full items-center justify-center p-2 md:p-6">
-          <div className="relative h-[96dvh] w-full max-w-7xl overflow-hidden rounded-[24px] border border-white/10 bg-[#080b12] shadow-2xl">
+          <div className="relative flex h-[96dvh] w-full max-w-7xl flex-col overflow-hidden rounded-[24px] border border-white/10 bg-[#080b12] shadow-2xl">
             <button
               type="button"
               onClick={cerrarModal}
@@ -302,7 +302,7 @@ ${urlPublicacion}`;
               <X size={23} />
             </button>
 
-            <section className="flex h-full flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+            <section className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
               <div className="relative flex h-[48dvh] min-h-[330px] shrink-0 items-center justify-center bg-black p-3 pt-16 lg:h-full lg:p-6 lg:pt-16">
                 <img
                   src={imagenActiva}
@@ -365,7 +365,7 @@ ${urlPublicacion}`;
                     Publicación
                   </p>
 
-                  <h2 className="mt-2 text-[22px] font-bold leading-tight text-white lg:text-3xl">
+                  <h2 className="mt-2 text-[20px] font-bold leading-[1.1] text-white lg:text-2xl">
                     {publicacion.titulo}
                   </h2>
 
@@ -387,6 +387,31 @@ ${urlPublicacion}`;
                   <p className="mt-1 text-2xl font-extrabold text-white lg:text-3xl">
                     {precio}
                   </p>
+                </div>
+
+                {/* CTA desktop: visible desde el inicio y fijo al hacer scroll */}
+                <div className="sticky top-0 z-20 hidden bg-[#101722]/95 py-3 backdrop-blur-md lg:block">
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleAbrirWhatsapp}
+                      className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#22c55e] px-4 py-2 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a]"
+                    >
+                      <MessageCircle size={15} strokeWidth={2} />
+                      Consultar por WhatsApp
+                    </button>
+
+                    {esInmueble && (
+                      <button
+                        type="button"
+                        onClick={() => setMostrarModalVisita(true)}
+                        className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2 text-[13px] font-semibold text-black shadow-sm transition hover:bg-yellow-300"
+                      >
+                        <CalendarDays size={15} strokeWidth={2} />
+                        Agendar visita
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-3 grid grid-cols-2 gap-3">
@@ -413,7 +438,7 @@ ${urlPublicacion}`;
                   <p className="text-base font-semibold text-white">
                     Descripción
                   </p>
-                  <p className="mt-3 whitespace-pre-line text-[13px] leading-6 text-gray-300 lg:text-sm lg:leading-7">
+                  <p className="mt-3 whitespace-pre-line text-[14px] leading-6 text-gray-200 lg:text-sm lg:leading-7">
                     {publicacion.descripcion || "Sin descripción."}
                   </p>
                 </div>
@@ -469,30 +494,41 @@ ${urlPublicacion}`;
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-4 space-y-2 border-t border-white/10 bg-[#101722]/95 pt-4 lg:sticky lg:bottom-0 lg:mt-5 lg:space-y-3 lg:pt-5 lg:backdrop-blur-md">
-                  <button
-                    type="button"
-                    onClick={handleAbrirWhatsapp}
-                    className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#22c55e] px-4 py-2.5 text-[13px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a] lg:min-h-11 lg:text-[14px]"
-                  >
-                    <MessageCircle size={15} strokeWidth={2} />
-                    Hablar con el vendedor
-                  </button>
-
-                  {esInmueble && (
-                    <button
-                      type="button"
-                      onClick={() => setMostrarModalVisita(true)}
-                      className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-[13px] font-semibold text-black shadow-sm transition hover:bg-yellow-300 lg:min-h-11 lg:text-[14px]"
-                    >
-                      <CalendarDays size={15} strokeWidth={2} />
-                      Agendar visita
-                    </button>
-                  )}
-                </div>
               </aside>
             </section>
+            {/* Footer mobile: siempre visible, pero sin tapar el contenido */}
+            <div
+              className="z-50 shrink-0 border-t border-white/10 bg-[#101722]/95 px-3 pt-2 backdrop-blur-md lg:hidden"
+              style={{
+                paddingBottom: "calc(8px + env(safe-area-inset-bottom))",
+              }}
+            >
+              <div
+                className={`mx-auto grid w-full max-w-md gap-2 ${
+                  esInmueble ? "grid-cols-2" : "grid-cols-1"
+                }`}
+              >
+                <button
+                  type="button"
+                  onClick={handleAbrirWhatsapp}
+                  className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl bg-[#22c55e] px-3 py-2 text-[11px] font-semibold text-white shadow-sm transition hover:bg-[#16a34a]"
+                >
+                  <MessageCircle size={14} strokeWidth={2} />
+                  WhatsApp
+                </button>
+
+                {esInmueble && (
+                  <button
+                    type="button"
+                    onClick={() => setMostrarModalVisita(true)}
+                    className="flex min-h-9 items-center justify-center gap-1.5 rounded-xl bg-yellow-400 px-3 py-2 text-[11px] font-semibold text-black shadow-sm transition hover:bg-yellow-300"
+                  >
+                    <CalendarDays size={14} strokeWidth={2} />
+                    Agendar visita
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

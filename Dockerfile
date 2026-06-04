@@ -13,8 +13,9 @@ ENV NODE_OPTIONS=--max-old-space-size=2048
 # Habilita pnpm usando Corepack
 RUN corepack enable
 
-# Copiamos solamente los archivos necesarios para instalar dependencias
-COPY package.json pnpm-lock.yaml ./
+# Copiamos antes de instalar todos los archivos necesarios para pnpm.
+# pnpm-workspace.yaml contiene allowBuilds.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Instala dependencias respetando el lockfile
 RUN pnpm install --frozen-lockfile

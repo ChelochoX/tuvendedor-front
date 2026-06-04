@@ -457,7 +457,7 @@ const MiPerfilVendedor: React.FC = () => {
                           actualizarCampo("descripcion", e.target.value)
                         }
                         rows={4}
-                        className="w-full resize-none rounded-2xl border border-white/10 bg-[#070b13] px-4 py-2.5 text-sm leading-6 text-white outline-none transition focus:border-yellow-400/70 sm:py-3"
+                        className="scroll-elegante w-full resize-none rounded-2xl border border-white/10 bg-[#070b13] px-4 py-2.5 text-sm leading-6 text-white outline-none transition focus:border-yellow-400/70 sm:py-3"
                       />
                     </div>
                   </div>

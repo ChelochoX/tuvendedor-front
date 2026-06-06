@@ -9,9 +9,6 @@ interface Props {
   onEliminarProducto?: (id: number) => void;
 }
 
-const CARD_WIDTH = 260;
-const GAP = 16;
-
 const CarruselEspeciales: React.FC<Props> = ({
   productos,
   mostrarAcciones = false,
@@ -20,17 +17,16 @@ const CarruselEspeciales: React.FC<Props> = ({
   const trackRef = useRef<HTMLDivElement>(null);
 
   const [paused, setPaused] = useState(false);
+  const [canScroll, setCanScroll] = useState(false);
 
-  // 🔧 Nueva referencia para la posición actual del carrusel
   const positionRef = useRef(0);
 
-  // 🔧 Refs para manejo de touch en móvil
   const isDraggingRef = useRef(false);
   const touchStartXRef = useRef(0);
   const dragStartXRef = useRef(0);
 
   /* ---------------------------------
-   * 🔥 Temporada más frecuente
+   * Temporada más frecuente
    * --------------------------------- */
   const temporadaActual = useMemo(() => {
     const nombres = productos
@@ -40,49 +36,90 @@ const CarruselEspeciales: React.FC<Props> = ({
     if (nombres.length === 0) return "Especiales";
 
     const freq = new Map<string, number>();
-    for (const n of nombres) freq.set(n, (freq.get(n) || 0) + 1);
 
-    let best = nombres[0],
-      bestCount = 0;
+    for (const nombre of nombres) {
+      freq.set(nombre, (freq.get(nombre) || 0) + 1);
+    }
 
-    for (const [k, v] of freq)
-      if (v > bestCount) {
-        best = k;
-        bestCount = v;
+    let mejorNombre = nombres[0];
+    let mayorCantidad = 0;
+
+    for (const [nombre, cantidad] of freq) {
+      if (cantidad > mayorCantidad) {
+        mejorNombre = nombre;
+        mayorCantidad = cantidad;
       }
+    }
 
-    return best;
+    return mejorNombre;
   }, [productos]);
 
   /* ---------------------------------
-   * 🔁 Movimiento continuo perfecto
+   * Detectar si realmente debe moverse
    * --------------------------------- */
   useEffect(() => {
     const track = trackRef.current;
     const viewport = track?.parentElement;
+
     if (!track || !viewport) return;
 
-    if (productos.length <= 1) return;
+    const actualizarLimites = () => {
+      const maxScroll = Math.max(
+        0,
+        track.scrollWidth - viewport.offsetWidth,
+      );
+
+      const hayDesplazamiento = maxScroll > 0;
+
+      setCanScroll(hayDesplazamiento);
+
+      if (!hayDesplazamiento) {
+        positionRef.current = 0;
+        track.style.transform = "translateX(0px)";
+      }
+    };
+
+    actualizarLimites();
+
+    const observer = new ResizeObserver(actualizarLimites);
+
+    observer.observe(viewport);
+    observer.observe(track);
+
+    return () => observer.disconnect();
+  }, [productos]);
+
+  /* ---------------------------------
+   * Movimiento automático
+   * --------------------------------- */
+  useEffect(() => {
+    const track = trackRef.current;
+    const viewport = track?.parentElement;
+
+    if (!track || !viewport) return;
+    if (productos.length <= 1 || !canScroll) return;
 
     const speed = 0.4;
-    const totalWidth = productos.length * (CARD_WIDTH + GAP);
-    const viewportWidth = viewport.offsetWidth;
-    const maxScroll = totalWidth - viewportWidth;
 
     let frame: number;
 
     const animate = () => {
       if (!paused && !isDraggingRef.current) {
-        let x = positionRef.current;
-        x -= speed;
+        let posicion = positionRef.current;
 
-        // 🔁 CUANDO LLEGA AL FINAL → VUELVE AL INICIO
-        if (Math.abs(x) >= maxScroll) {
-          x = 0;
+        posicion -= speed;
+
+        const maxScroll = Math.max(
+          0,
+          track.scrollWidth - viewport.offsetWidth,
+        );
+
+        if (maxScroll <= 0 || Math.abs(posicion) >= maxScroll) {
+          posicion = 0;
         }
 
-        positionRef.current = x;
-        track.style.transform = `translateX(${x}px)`;
+        positionRef.current = posicion;
+        track.style.transform = `translateX(${posicion}px)`;
       }
 
       frame = requestAnimationFrame(animate);
@@ -91,124 +128,164 @@ const CarruselEspeciales: React.FC<Props> = ({
     animate();
 
     return () => cancelAnimationFrame(frame);
-  }, [productos, paused]);
+  }, [productos, paused, canScroll]);
 
   /* ---------------------------------
-   * ⬅️➡️ Flechas MANUALES (solo escritorio)
+   * Flechas manuales para escritorio
    * --------------------------------- */
-  const moveManual = (dir: "left" | "right") => {
+  const moveManual = (direccion: "left" | "right") => {
     const track = trackRef.current;
-    if (!track) return;
+    const viewport = track?.parentElement;
 
-    const distance = 300; // avanza un poco a cada clic
+    if (!track || !viewport) return;
 
-    // Congelar movimiento automático por 1 segundo
+    const maxScroll = Math.max(
+      0,
+      track.scrollWidth - viewport.offsetWidth,
+    );
+
+    if (maxScroll <= 0) return;
+
+    const distancia = 300;
+
     setPaused(true);
-    setTimeout(() => setPaused(false), 1000);
 
-    let currentX = positionRef.current;
+    setTimeout(() => {
+      setPaused(false);
+    }, 1000);
 
-    if (dir === "left") currentX += distance;
-    else currentX -= distance;
+    let posicionActual = positionRef.current;
 
-    positionRef.current = currentX;
-    track.style.transform = `translateX(${currentX}px)`;
+    if (direccion === "left") {
+      posicionActual += distancia;
+    } else {
+      posicionActual -= distancia;
+    }
+
+    posicionActual = Math.min(
+      0,
+      Math.max(-maxScroll, posicionActual),
+    );
+
+    positionRef.current = posicionActual;
+    track.style.transform = `translateX(${posicionActual}px)`;
   };
 
   /* ---------------------------------
-   * 📱 Manejo de touch para móvil
+   * Movimiento táctil para celular
    * --------------------------------- */
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (productos.length <= 1) return;
+  const handleTouchStart = (
+    event: React.TouchEvent<HTMLDivElement>,
+  ) => {
+    if (productos.length <= 1 || !canScroll) return;
 
-    const touch = e.touches[0];
+    const touch = event.touches[0];
+
     isDraggingRef.current = true;
     touchStartXRef.current = touch.clientX;
     dragStartXRef.current = positionRef.current;
 
-    setPaused(true); // Pausar mientras el usuario toca/arrastra
+    setPaused(true);
   };
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+  const handleTouchMove = (
+    event: React.TouchEvent<HTMLDivElement>,
+  ) => {
     if (!isDraggingRef.current) return;
 
-    const touch = e.touches[0];
+    const touch = event.touches[0];
     const deltaX = touch.clientX - touchStartXRef.current;
 
-    const newX = dragStartXRef.current + deltaX;
-    positionRef.current = newX;
-
     const track = trackRef.current;
-    if (track) {
-      track.style.transform = `translateX(${newX}px)`;
-    }
+    const viewport = track?.parentElement;
+
+    if (!track || !viewport) return;
+
+    const maxScroll = Math.max(
+      0,
+      track.scrollWidth - viewport.offsetWidth,
+    );
+
+    const nuevaPosicion = Math.min(
+      0,
+      Math.max(
+        -maxScroll,
+        dragStartXRef.current + deltaX,
+      ),
+    );
+
+    positionRef.current = nuevaPosicion;
+    track.style.transform = `translateX(${nuevaPosicion}px)`;
   };
 
   const handleTouchEnd = () => {
     isDraggingRef.current = false;
-    setPaused(false); // Reanudar cuando termina el gesto
+    setPaused(false);
   };
 
   if (!productos || productos.length === 0) return null;
 
   return (
     <section className="carrusel-section mb-8 w-full">
-      <div className="rounded-2xl p-3 md:p-4 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] border border-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-        {/* Encabezado */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-3">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] md:p-4">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-3">
           <div className="flex items-start gap-2">
             <span className="text-2xl md:text-3xl">🎊</span>
+
             <div>
-              <div className="text-sm md:text-base text-white/80">
+              <div className="text-sm text-white/80 md:text-base">
                 Temporada:
               </div>
-              <div className="text-lg md:text-2xl font-extrabold tracking-wide text-white">
+
+              <div className="text-lg font-extrabold tracking-wide text-white md:text-2xl">
                 {temporadaActual.toUpperCase()}
               </div>
-              <div className="text-[11px] md:text-sm text-white/60 -mt-0.5 md:mt-0">
+
+              <div className="-mt-0.5 text-[11px] text-white/60 md:mt-0 md:text-sm">
                 Ofertas por tiempo limitado
               </div>
             </div>
           </div>
         </div>
 
-        {/* FLECHAS */}
-        {productos.length > 1 && (
+        {canScroll && (
           <>
             <button
               onClick={() => moveManual("left")}
-              className="hidden md:flex carrusel-arrow carrusel-left"
+              className="carrusel-arrow carrusel-left hidden md:flex"
             >
               ‹
             </button>
 
             <button
               onClick={() => moveManual("right")}
-              className="hidden md:flex carrusel-arrow carrusel-right"
+              className="carrusel-arrow carrusel-right hidden md:flex"
             >
               ›
             </button>
           </>
         )}
 
-        {/* Carrusel */}
         <div
-          className="carrusel-viewport mt-3 md:mt-4 overflow-hidden relative w-full"
-          onMouseEnter={() => setPaused(true)} // Pausar en escritorio
-          onMouseLeave={() => setPaused(false)} // Reanudar en escritorio
-          onTouchStart={handleTouchStart} // 📱 Pausar y empezar drag
-          onTouchMove={handleTouchMove} // 📱 Mover con el dedo
-          onTouchEnd={handleTouchEnd} // 📱 Soltar y reanudar
+          className="carrusel-viewport relative mt-3 w-full overflow-hidden md:mt-4"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
         >
           <div
             ref={trackRef}
             className="flex gap-4 will-change-transform"
             style={{ width: "max-content" }}
           >
-            {productos.map((p) => (
-              <div key={p.id} className="shrink-0 w-[260px]">
+            {productos.map((producto) => (
+              <div
+                key={producto.id}
+                className="w-[260px] shrink-0"
+              >
                 <ProductoCard
-                  producto={p}
+                  producto={producto}
                   mostrarAcciones={mostrarAcciones}
                   onEliminado={onEliminarProducto}
                 />
@@ -216,7 +293,7 @@ const CarruselEspeciales: React.FC<Props> = ({
             ))}
           </div>
 
-          {productos.length > 1 && (
+          {canScroll && (
             <>
               <div className="carrusel-fade carrusel-fade-left" />
               <div className="carrusel-fade carrusel-fade-right" />

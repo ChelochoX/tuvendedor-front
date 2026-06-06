@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
+import CarruselEspeciales from "../components/CarruselEspeciales";
 import CrearPublicacionModal from "../components/publicaciones/CrearPublicacionModal";
 import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
@@ -90,8 +91,13 @@ const Marketplace: React.FC = () => {
 
   const { usuario, puedePublicar } = useUsuario();
 
+  const productosEspeciales = productos.filter((p) => p.esTemporada);
   const productosNormales = productos.filter((p) => !p.esTemporada);
+
   const itemsEnGrid = mostrarSoloMias ? productos : productosNormales;
+
+  const mostrarCarruselEspeciales =
+    !mostrarSoloMias && productosEspeciales.length > 0;
 
   const showFab = !modalOpen && puedePublicar && !sidebarAbierto;
 
@@ -334,29 +340,41 @@ const Marketplace: React.FC = () => {
                 <div className="mr-3 h-8 w-8 animate-spin rounded-full border-t-2 border-yellow-400 border-opacity-70" />
                 Cargando publicaciones...
               </div>
-            ) : itemsEnGrid.length === 0 ? (
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10 text-center text-gray-300">
-                No hay publicaciones disponibles.
-              </div>
             ) : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-                {itemsEnGrid.map((p) => (
-                  <ProductoCard
-                    key={p.id}
-                    producto={p}
-                    onEliminado={(id) =>
-                      setProductos((prev) => prev.filter((x) => x.id !== id))
-                    }
-                    onEditar={handleEditarPublicacion}
-                    mostrarAcciones={mostrarSoloMias}
-                    variant={mostrarSoloMias ? "compact" : "default"}
-                  />
-                ))}
-
-                {showFab && (
-                  <div className="h-28 md:hidden" aria-hidden="true" />
+              <>
+                {mostrarCarruselEspeciales && (
+                  <CarruselEspeciales productos={productosEspeciales} />
                 )}
-              </div>
+
+                {itemsEnGrid.length === 0 ? (
+                  !mostrarCarruselEspeciales && (
+                    <div className="rounded-2xl border border-white/10 bg-white/5 px-6 py-10 text-center text-gray-300">
+                      No hay publicaciones disponibles.
+                    </div>
+                  )
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+                    {itemsEnGrid.map((p) => (
+                      <ProductoCard
+                        key={p.id}
+                        producto={p}
+                        onEliminado={(id) =>
+                          setProductos((prev) =>
+                            prev.filter((x) => x.id !== id),
+                          )
+                        }
+                        onEditar={handleEditarPublicacion}
+                        mostrarAcciones={mostrarSoloMias}
+                        variant={mostrarSoloMias ? "compact" : "default"}
+                      />
+                    ))}
+
+                    {showFab && (
+                      <div className="h-28 md:hidden" aria-hidden="true" />
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </main>

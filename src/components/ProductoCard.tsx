@@ -23,6 +23,9 @@ import "tippy.js/dist/tippy.css";
 import "tippy.js/themes/light.css";
 import Tippy from "@tippyjs/react";
 
+import { ADMIN_WHATSAPP } from "../config/comercialConfig";
+import { abrirWhatsapp } from "../utils/whatsapp";
+
 interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
@@ -208,6 +211,41 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
+  const solicitarEspecialPorWhatsapp = async () => {
+    const respuesta = await Swal.fire({
+      icon: "info",
+      title: "🎉 Participá en una campaña especial",
+      html: `
+      <div style="text-align:left;color:#ddd;line-height:1.6">
+        <p>Mostrá tu producto dentro del carrusel temático del marketplace.</p>
+        <br/>
+        <p>✅ Presencia dentro del carrusel principal</p>
+        <p>✅ Badge especial de temporada</p>
+        <p>✅ Mayor exposición visual</p>
+        <p>✅ Ideal para promociones y fechas comerciales</p>
+      </div>
+    `,
+      showCancelButton: true,
+      confirmButtonText: "Solicitar por WhatsApp",
+      cancelButtonText: "Ahora no",
+      confirmButtonColor: "#facc15",
+      cancelButtonColor: "#6b7280",
+      background: "#1e1f23",
+      color: "#fff",
+    });
+
+    if (!respuesta.isConfirmed) return;
+
+    const mensaje = `Hola 👋 Quiero incluir una publicación en una campaña especial de Tu Vendedor.
+
+      Publicación: ${producto.nombre}
+      Código: ${producto.id}
+
+      Quisiera conocer las campañas disponibles y el costo de activación.`;
+
+    abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
+  };
+
   const activarEspecialFlow = async () => {
     if (especialActivo) {
       const confirm = await Swal.fire({
@@ -257,19 +295,7 @@ const ProductoCard: React.FC<Props> = ({
     }
 
     if (!puedeCrearEspecial) {
-      await Swal.fire({
-        icon: "info",
-        title: "Función para cuentas Premium",
-        html:
-          `<p style="color:#ddd;margin-top:6px">` +
-          `“Publicación especial” está disponible para usuarios con permiso Premium.<br/>` +
-          `Contactá con soporte para habilitarlo.` +
-          `</p>`,
-        background: "#1e1f23",
-        color: "#fff",
-        confirmButtonColor: "#facc15",
-        confirmButtonText: "Entendido",
-      });
+      await solicitarEspecialPorWhatsapp();
       return;
     }
 
@@ -340,21 +366,44 @@ const ProductoCard: React.FC<Props> = ({
     }
   };
 
+  const solicitarDestacadoPorWhatsapp = async () => {
+    const respuesta = await Swal.fire({
+      icon: "info",
+      title: "⭐ Dale más visibilidad a tu publicación",
+      html: `
+      <div style="text-align:left;color:#ddd;line-height:1.6">
+        <p>Tu producto puede aparecer antes que las publicaciones normales.</p>
+        <br/>
+        <p>✅ Mayor exposición dentro del marketplace</p>
+        <p>✅ Ubicación prioritaria en el listado</p>
+        <p>✅ Badge visual de publicación destacada</p>
+        <p>✅ Activación disponible por 7, 15 o 30 días</p>
+      </div>
+    `,
+      showCancelButton: true,
+      confirmButtonText: "Solicitar por WhatsApp",
+      cancelButtonText: "Ahora no",
+      confirmButtonColor: "#facc15",
+      cancelButtonColor: "#6b7280",
+      background: "#1e1f23",
+      color: "#fff",
+    });
+
+    if (!respuesta.isConfirmed) return;
+
+    const mensaje = `Hola 👋 Quiero destacar una publicación en Tu Vendedor.
+
+      Publicación: ${producto.nombre}
+      Código: ${producto.id}
+
+      Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 días.`;
+
+    abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
+  };
+
   const destacarFlow = async () => {
     if (!puedeCrearDestacado) {
-      await Swal.fire({
-        icon: "info",
-        title: "Función para cuentas Premium",
-        html:
-          `<p style="color:#ddd;margin-top:6px">` +
-          `“Publicación destacada” requiere el permiso correspondiente.<br/>` +
-          `Contactá con soporte para habilitarlo.` +
-          `</p>`,
-        background: "#1e1f23",
-        color: "#fff",
-        confirmButtonColor: "#facc15",
-        confirmButtonText: "Entendido",
-      });
+      await solicitarDestacadoPorWhatsapp();
       return;
     }
 
@@ -646,10 +695,11 @@ const ProductoCard: React.FC<Props> = ({
                 <button
                   type="button"
                   disabled={producto.estado === "Vendido"}
-                  className={`transition ${producto.estado === "Vendido"
+                  className={`transition ${
+                    producto.estado === "Vendido"
                       ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-blue-500"
-                    }`}
+                  }`}
                   onClick={handleEditar}
                 >
                   <PencilSquareIcon className="h-4 w-4" />
@@ -660,10 +710,11 @@ const ProductoCard: React.FC<Props> = ({
                 <button
                   type="button"
                   disabled={eliminando}
-                  className={`transition ${eliminando
+                  className={`transition ${
+                    eliminando
                       ? "cursor-not-allowed text-gray-300"
                       : "text-gray-400 hover:text-red-500"
-                    }`}
+                  }`}
                   onClick={handleEliminar}
                 >
                   <TrashIcon className="h-4 w-4" />
@@ -673,10 +724,11 @@ const ProductoCard: React.FC<Props> = ({
               <Tippy content="Marcar como vendido" theme="light">
                 <button
                   type="button"
-                  className={`transition ${producto.estado === "Vendido"
+                  className={`transition ${
+                    producto.estado === "Vendido"
                       ? "cursor-not-allowed text-green-400"
                       : "text-gray-400 hover:text-green-500"
-                    }`}
+                  }`}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -705,10 +757,11 @@ const ProductoCard: React.FC<Props> = ({
                     await destacarFlow();
                   }
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${destacadoActivo
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
+                  destacadoActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-yellow-100 text-yellow-700"
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {destacadoActivo ? "⭐ Quitar destacado" : "⭐ Destacar"}
               </button>
@@ -722,10 +775,11 @@ const ProductoCard: React.FC<Props> = ({
 
                   await activarEspecialFlow();
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${especialActivo
+                className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
+                  especialActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-fuchsia-100 text-fuchsia-700"
-                  } disabled:cursor-not-allowed disabled:opacity-60`}
+                } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {especialActivo ? "🎉 Quitar especial" : "🎉 Especial"}
               </button>

@@ -16,6 +16,7 @@ import {
 
 import HerramientasPremiumVitrina from "../../components/perfilVendedor/HerramientasPremiumVitrina";
 import GestionPublicacionesVitrina from "./GestionPublicacionesVitrina";
+import VitrinaPremiumLanding from "./VitrinaPremiumLanding";
 
 interface MiPerfilVendedorForm {
   idVendedor?: number;
@@ -271,6 +272,15 @@ const MiPerfilVendedor: React.FC = () => {
           </p>
         </div>
       </div>
+    );
+  }
+
+  if (!form.esPremium) {
+    return (
+      <VitrinaPremiumLanding
+        idVendedor={form.idVendedor}
+        nombreNegocio={form.nombreNegocio}
+      />
     );
   }
 

@@ -19,43 +19,57 @@
   position: relative;
 }
 
+.carrusel-body {
+  position: relative;
+}
+
 /* =========================================================
-   VIEWPORT
+   VIEWPORT CON DESPLAZAMIENTO NATIVO
    ========================================================= */
 
 .carrusel-viewport {
-  position: relative;
+  display: flex;
   width: 100%;
-  overflow: hidden;
-}
+  gap: 16px;
 
-/* =========================================================
-   PISTA DEL CARRUSEL
-   ========================================================= */
+  overflow-x: auto;
+  overflow-y: hidden;
 
-.carrusel-track {
-  max-width: 100%;
   padding-bottom: 6px;
 
-  scroll-snap-type: none;
-  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+
   overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* =========================================================
-   DEGRADADOS LATERALES
-   Solo se muestran en escritorio.
-   En móvil se ocultan para no tapar las imágenes.
+   CARDS
+   ========================================================= */
+
+.carrusel-item {
+  flex: 0 0 260px;
+
+  min-width: 0;
+
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* =========================================================
+   DEGRADADOS LATERALES DE ESCRITORIO
    ========================================================= */
 
 .carrusel-fade {
   position: absolute;
   top: 0;
-  bottom: 0;
+  bottom: 6px;
 
   width: 72px;
 
   pointer-events: none;
+
   z-index: 4;
 }
 
@@ -87,8 +101,6 @@
   position: absolute;
   top: 50%;
 
-  transform: translateY(-50%);
-
   z-index: 6;
 
   display: flex;
@@ -105,7 +117,22 @@
 
   font-size: 24px;
 
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%);
+
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.25);
+
+  transition:
+    transform 160ms ease,
+    background-color 160ms ease;
+}
+
+.carrusel-arrow:hover {
+  background: #fde047;
+
+  transform:
+    translateY(-50%)
+    scale(1.06);
 }
 
 .carrusel-left {
@@ -117,21 +144,45 @@
 }
 
 /* =========================================================
-   AJUSTES PARA MÓVIL
+   MÓVIL
    ========================================================= */
 
 @media (max-width: 767.98px) {
   /*
-   * En móvil ocultamos las flechas.
-   * El usuario mueve el carrusel deslizando con el dedo.
+   * En móvil mostramos una publicación casi completa
+   * y una pequeña parte de la siguiente.
+   *
+   * Esa pequeña vista invita naturalmente a deslizar.
+   */
+  .carrusel-viewport {
+    gap: 12px;
+
+    padding-right: 28px;
+    padding-bottom: 4px;
+  }
+
+  /*
+   * Al reservar 28 px, la card actual se ve casi entera
+   * y la siguiente asoma discretamente.
+   *
+   * La segunda card puede alinearse completamente al
+   * deslizar gracias al padding derecho del viewport.
+   */
+  .carrusel-item {
+    flex-basis:
+      calc(100% - 28px);
+  }
+
+  /*
+   * En celular el gesto de deslizar reemplaza las flechas.
    */
   .carrusel-arrow {
     display: none !important;
   }
 
   /*
-   * Eliminamos los bordes oscuros laterales.
-   * Las cards quedan libres, claras y sin sombras invasivas.
+   * Quitamos las sombras laterales para que las imágenes
+   * se vean limpias y nítidas.
    */
   .carrusel-fade {
     display: none !important;

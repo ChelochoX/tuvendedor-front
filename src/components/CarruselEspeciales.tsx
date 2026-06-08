@@ -1,6 +1,14 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
 import ProductoCard from "./ProductoCard";
 import { Producto } from "../types/producto";
+
 import "../styles/carrusel.css";
 
 interface Props {
@@ -9,44 +17,56 @@ interface Props {
   onEliminarProducto?: (id: number) => void;
 }
 
+/*
+ * En celular no utilizamos autoplay.
+ *
+ * En escritorio solamente se activa cuando existen
+ * tres o más publicaciones para evitar reinicios bruscos.
+ */
+const MINIMO_PRODUCTOS_AUTOPLAY = 2;
+const INTERVALO_AUTOPLAY_MS = 4500;
+
 const CarruselEspeciales: React.FC<Props> = ({
   productos,
   mostrarAcciones = false,
   onEliminarProducto,
 }) => {
-  const trackRef = useRef<HTMLDivElement>(null);
+  const viewportRef = useRef<HTMLDivElement>(null);
 
-  const [paused, setPaused] = useState(false);
-  const [canScroll, setCanScroll] = useState(false);
+  const timeoutPausaRef = useRef<number | null>(null);
 
-  const positionRef = useRef(0);
+  const [indiceActivo, setIndiceActivo] = useState(0);
 
-  const isDraggingRef = useRef(false);
-  const touchStartXRef = useRef(0);
-  const dragStartXRef = useRef(0);
+  const [puedeDesplazarse, setPuedeDesplazarse] = useState(false);
+
+  const [pausado, setPausado] = useState(false);
 
   /* ---------------------------------
    * Temporada más frecuente
    * --------------------------------- */
   const temporadaActual = useMemo(() => {
     const nombres = productos
-      .filter((p) => p.esTemporada && p.badgeTexto)
-      .map((p) => p.badgeTexto!.trim());
+      .filter((producto) => producto.esTemporada && producto.badgeTexto)
+      .map((producto) => producto.badgeTexto!.trim());
 
-    if (nombres.length === 0) return "Especiales";
+    if (nombres.length === 0) {
+      return "Especiales";
+    }
 
-    const freq = new Map<string, number>();
+    const frecuencias = new Map<string, number>();
 
     for (const nombre of nombres) {
-      freq.set(nombre, (freq.get(nombre) || 0) + 1);
+      frecuencias.set(nombre, (frecuencias.get(nombre) || 0) + 1);
     }
 
     let mejorNombre = nombres[0];
+
     let mayorCantidad = 0;
 
-    for (const [nombre, cantidad] of freq) {
+    for (const [nombre, cantidad] of frecuencias) {
       if (cantidad > mayorCantidad) {
         mejorNombre = nombre;
+
         mayorCantidad = cantidad;
       }
     }
@@ -55,24 +75,70 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos]);
 
   /* ---------------------------------
-   * Detectar si realmente debe moverse
+   * Obtener elementos renderizados
+   * --------------------------------- */
+  const obtenerItems = useCallback(() => {
+    const viewport = viewportRef.current;
+
+    if (!viewport) {
+      return [];
+    }
+
+    return Array.from(
+      viewport.querySelectorAll<HTMLElement>("[data-carrusel-item]"),
+    );
+  }, []);
+
+  /* ---------------------------------
+   * Ir a una card concreta
+   * --------------------------------- */
+  const irAIndice = useCallback(
+    (nuevoIndice: number, comportamiento: ScrollBehavior = "smooth") => {
+      const viewport = viewportRef.current;
+
+      const items = obtenerItems();
+
+      if (!viewport || items.length === 0) {
+        return;
+      }
+
+      const indiceNormalizado = (nuevoIndice + items.length) % items.length;
+
+      const item = items[indiceNormalizado];
+
+      viewport.scrollTo({
+        left: item.offsetLeft,
+
+        behavior: comportamiento,
+      });
+
+      setIndiceActivo(indiceNormalizado);
+    },
+    [obtenerItems],
+  );
+
+  /* ---------------------------------
+   * Detectar si existe desplazamiento
    * --------------------------------- */
   useEffect(() => {
-    const track = trackRef.current;
-    const viewport = track?.parentElement;
+    const viewport = viewportRef.current;
 
-    if (!track || !viewport) return;
+    if (!viewport) {
+      return;
+    }
 
     const actualizarLimites = () => {
-      const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
+      const tieneScroll = viewport.scrollWidth > viewport.clientWidth + 1;
 
-      const hayDesplazamiento = maxScroll > 0;
+      setPuedeDesplazarse(tieneScroll);
 
-      setCanScroll(hayDesplazamiento);
+      if (!tieneScroll) {
+        viewport.scrollTo({
+          left: 0,
+          behavior: "auto",
+        });
 
-      if (!hayDesplazamiento) {
-        positionRef.current = 0;
-        track.style.transform = "translateX(0px)";
+        setIndiceActivo(0);
       }
     };
 
@@ -81,127 +147,112 @@ const CarruselEspeciales: React.FC<Props> = ({
     const observer = new ResizeObserver(actualizarLimites);
 
     observer.observe(viewport);
-    observer.observe(track);
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, [productos]);
 
   /* ---------------------------------
-   * Movimiento automático
+   * Actualizar indicador al deslizar
    * --------------------------------- */
-  useEffect(() => {
-    const track = trackRef.current;
-    const viewport = track?.parentElement;
+  const actualizarIndiceVisible = useCallback(() => {
+    const viewport = viewportRef.current;
 
-    if (!track || !viewport) return;
-    if (productos.length <= 1 || !canScroll) return;
+    const items = obtenerItems();
 
-    const speed = 0.4;
-
-    let frame: number;
-
-    const animate = () => {
-      if (!paused && !isDraggingRef.current) {
-        let posicion = positionRef.current;
-
-        posicion -= speed;
-
-        const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
-
-        if (maxScroll <= 0 || Math.abs(posicion) >= maxScroll) {
-          posicion = 0;
-        }
-
-        positionRef.current = posicion;
-        track.style.transform = `translateX(${posicion}px)`;
-      }
-
-      frame = requestAnimationFrame(animate);
-    };
-
-    animate();
-
-    return () => cancelAnimationFrame(frame);
-  }, [productos, paused, canScroll]);
-
-  /* ---------------------------------
-   * Flechas manuales para escritorio
-   * --------------------------------- */
-  const moveManual = (direccion: "left" | "right") => {
-    const track = trackRef.current;
-    const viewport = track?.parentElement;
-
-    if (!track || !viewport) return;
-
-    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
-
-    if (maxScroll <= 0) return;
-
-    const distancia = 300;
-
-    setPaused(true);
-
-    setTimeout(() => {
-      setPaused(false);
-    }, 1000);
-
-    let posicionActual = positionRef.current;
-
-    if (direccion === "left") {
-      posicionActual += distancia;
-    } else {
-      posicionActual -= distancia;
+    if (!viewport || items.length === 0) {
+      return;
     }
 
-    posicionActual = Math.min(0, Math.max(-maxScroll, posicionActual));
+    let indiceMasCercano = 0;
 
-    positionRef.current = posicionActual;
-    track.style.transform = `translateX(${posicionActual}px)`;
+    let menorDistancia = Number.POSITIVE_INFINITY;
+
+    items.forEach((item, indice) => {
+      const distancia = Math.abs(item.offsetLeft - viewport.scrollLeft);
+
+      if (distancia < menorDistancia) {
+        menorDistancia = distancia;
+
+        indiceMasCercano = indice;
+      }
+    });
+
+    setIndiceActivo(indiceMasCercano);
+  }, [obtenerItems]);
+
+  /* ---------------------------------
+   * Reiniciar posición si cambian cards
+   * --------------------------------- */
+  useEffect(() => {
+    const viewport = viewportRef.current;
+
+    if (!viewport) {
+      return;
+    }
+
+    viewport.scrollTo({
+      left: 0,
+      behavior: "auto",
+    });
+
+    setIndiceActivo(0);
+  }, [productos]);
+
+  /* ---------------------------------
+   * Autoplay solo para escritorio
+   * y con tres o más publicaciones
+   * --------------------------------- */
+  useEffect(() => {
+    if (
+      pausado ||
+      !puedeDesplazarse ||
+      productos.length < MINIMO_PRODUCTOS_AUTOPLAY
+    ) {
+      return;
+    }
+
+    const intervalo = window.setInterval(() => {
+      const siguienteIndice = (indiceActivo + 1) % productos.length;
+
+      irAIndice(siguienteIndice, "smooth");
+    }, INTERVALO_AUTOPLAY_MS);
+
+    return () => {
+      window.clearInterval(intervalo);
+    };
+  }, [indiceActivo, irAIndice, pausado, puedeDesplazarse, productos.length]);
+
+  /* ---------------------------------
+   * Pausar temporalmente
+   * --------------------------------- */
+  const pausarTemporalmente = () => {
+    setPausado(true);
+
+    if (timeoutPausaRef.current) {
+      window.clearTimeout(timeoutPausaRef.current);
+    }
+
+    timeoutPausaRef.current = window.setTimeout(() => {
+      setPausado(false);
+    }, 1200);
   };
 
   /* ---------------------------------
-   * Movimiento táctil para celular
+   * Flechas manuales de escritorio
    * --------------------------------- */
-  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (productos.length <= 1 || !canScroll) return;
+  const moverManual = (direccion: "left" | "right") => {
+    pausarTemporalmente();
 
-    const touch = event.touches[0];
+    const diferencia = direccion === "left" ? -1 : 1;
 
-    isDraggingRef.current = true;
-    touchStartXRef.current = touch.clientX;
-    dragStartXRef.current = positionRef.current;
-
-    setPaused(true);
+    irAIndice(indiceActivo + diferencia);
   };
 
-  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
-    if (!isDraggingRef.current) return;
-
-    const touch = event.touches[0];
-    const deltaX = touch.clientX - touchStartXRef.current;
-
-    const track = trackRef.current;
-    const viewport = track?.parentElement;
-
-    if (!track || !viewport) return;
-
-    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
-
-    const nuevaPosicion = Math.min(
-      0,
-      Math.max(-maxScroll, dragStartXRef.current + deltaX),
-    );
-
-    positionRef.current = nuevaPosicion;
-    track.style.transform = `translateX(${nuevaPosicion}px)`;
-  };
-
-  const handleTouchEnd = () => {
-    isDraggingRef.current = false;
-    setPaused(false);
-  };
-
-  if (!productos || productos.length === 0) return null;
+  if (!productos || productos.length === 0) {
+    return null;
+  }
 
   return (
     <section className="carrusel-section mb-6 w-full md:mb-8">
@@ -219,48 +270,50 @@ const CarruselEspeciales: React.FC<Props> = ({
                 {temporadaActual.toUpperCase()}
               </div>
 
-              <div className="text-[10px] text-white/60 md:mt-0 md:text-sm">
+              <div className="text-[10px] text-white/60 md:text-sm">
                 Ofertas por tiempo limitado
               </div>
             </div>
           </div>
         </div>
 
-        {canScroll && (
-          <>
-            <button
-              onClick={() => moveManual("left")}
-              className="carrusel-arrow carrusel-left hidden md:flex"
-            >
-              ‹
-            </button>
+        <div className="carrusel-body relative mt-3 md:mt-4">
+          {puedeDesplazarse && (
+            <>
+              <button
+                type="button"
+                aria-label="Ver publicación anterior"
+                onClick={() => moverManual("left")}
+                className="carrusel-arrow carrusel-left hidden md:flex"
+              >
+                ‹
+              </button>
 
-            <button
-              onClick={() => moveManual("right")}
-              className="carrusel-arrow carrusel-right hidden md:flex"
-            >
-              ›
-            </button>
-          </>
-        )}
+              <button
+                type="button"
+                aria-label="Ver publicación siguiente"
+                onClick={() => moverManual("right")}
+                className="carrusel-arrow carrusel-right hidden md:flex"
+              >
+                ›
+              </button>
+            </>
+          )}
 
-        <div
-          className="carrusel-viewport relative mt-3 w-full overflow-hidden md:mt-4"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
           <div
-            ref={trackRef}
-            className="carrusel-track flex gap-3 will-change-transform md:gap-4"
-            style={{ width: "max-content" }}
+            ref={viewportRef}
+            className="carrusel-viewport no-scrollbar"
+            onScroll={actualizarIndiceVisible}
+            onMouseEnter={() => setPausado(true)}
+            onMouseLeave={() => setPausado(false)}
+            onTouchStart={() => setPausado(true)}
+            onTouchEnd={pausarTemporalmente}
           >
             {productos.map((producto) => (
               <div
                 key={producto.id}
-                className="w-[210px] shrink-0 sm:w-[230px] md:w-[260px]"
+                data-carrusel-item
+                className="carrusel-item"
               >
                 <ProductoCard
                   producto={producto}
@@ -271,13 +324,31 @@ const CarruselEspeciales: React.FC<Props> = ({
             ))}
           </div>
 
-          {canScroll && (
+          {puedeDesplazarse && (
             <>
               <div className="carrusel-fade carrusel-fade-left" />
               <div className="carrusel-fade carrusel-fade-right" />
             </>
           )}
         </div>
+
+        {productos.length > 1 && (
+          <div className="mt-3 flex items-center justify-center gap-1.5 md:hidden">
+            {productos.map((producto, indice) => (
+              <button
+                key={producto.id}
+                type="button"
+                aria-label={`Ver publicación ${indice + 1}`}
+                onClick={() => irAIndice(indice)}
+                className={
+                  indice === indiceActivo
+                    ? "h-1.5 w-5 rounded-full bg-yellow-400 transition-all"
+                    : "h-1.5 w-1.5 rounded-full bg-white/30 transition-all"
+                }
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

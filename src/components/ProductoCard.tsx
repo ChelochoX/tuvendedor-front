@@ -25,6 +25,9 @@ import Tippy from "@tippyjs/react";
 
 import { ADMIN_WHATSAPP } from "../config/comercialConfig";
 import { abrirWhatsapp } from "../utils/whatsapp";
+import { intentarRegistrarSolicitudPremium } from "../api/serviciosPremiumService";
+
+import { TIPOS_SERVICIO_PREMIUM } from "../types/servicioPremium.types";
 
 interface Props {
   producto: Producto;
@@ -43,7 +46,7 @@ const ProductoCard: React.FC<Props> = ({
   mostrarAcciones = false,
   variant = "default",
 }) => {
-  const { usuario } = useUsuario();
+  const { usuario, esAdmin } = useUsuario();
 
   const [eliminando, setEliminando] = useState(false);
   const [operandoEspecial, setOperandoEspecial] = useState(false);
@@ -59,10 +62,20 @@ const ProductoCard: React.FC<Props> = ({
     : [];
 
   const puedeCrearDestacado =
-    usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false;
+    esAdmin ||
+    (usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false);
+
+  const puedeQuitarDestacado =
+    esAdmin ||
+    (usuario?.permisos?.includes("QuitarPublicacionDestacada") ?? false);
 
   const puedeCrearEspecial =
-    usuario?.permisos?.includes("CrearPublicacionTemporada") ?? false;
+    esAdmin ||
+    (usuario?.permisos?.includes("CrearPublicacionTemporada") ?? false);
+
+  const puedeQuitarEspecial =
+    esAdmin ||
+    (usuario?.permisos?.includes("QuitarPublicacionTemporada") ?? false);
 
   const handleVerDetalle = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!onVerDetalle) return;
@@ -166,6 +179,10 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const quitarDestacadoFlow = async () => {
+    if (!puedeQuitarDestacado) {
+      return;
+    }
+
     const confirm = await Swal.fire({
       title: "¿Quitar publicación destacada?",
       icon: "warning",
@@ -216,17 +233,51 @@ const ProductoCard: React.FC<Props> = ({
       icon: "info",
       title: "🎉 Participá en una campaña especial",
       html: `
-      <div style="text-align:left;color:#ddd;line-height:1.6">
-        <p>Mostrá tu producto dentro del carrusel temático del marketplace.</p>
-        <br/>
+    <div style="text-align:left;color:#ddd;line-height:1.65;margin-top:8px">
+      <p>
+        Mostrá tu producto dentro del carrusel temático principal
+        y aprovechá las fechas comerciales más importantes.
+      </p>
+
+      <div style="
+        margin-top:16px;
+        padding:14px;
+        border-radius:14px;
+        background:rgba(217,70,239,0.08);
+        border:1px solid rgba(217,70,239,0.22);
+      ">
         <p>✅ Presencia dentro del carrusel principal</p>
         <p>✅ Badge especial de temporada</p>
         <p>✅ Mayor exposición visual</p>
         <p>✅ Ideal para promociones y fechas comerciales</p>
       </div>
-    `,
+
+      <div style="
+        margin-top:16px;
+        padding:14px;
+        border-radius:14px;
+        background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,255,255,0.12);
+      ">
+        <p style="
+          margin:0 0 6px 0;
+          color:#facc15;
+          font-weight:700;
+        ">
+          💳 Servicio Premium con activación posterior al pago
+        </p>
+
+        <p style="margin:0;color:#d1d5db">
+          Solicitá tu participación por WhatsApp para conocer las
+          campañas disponibles, el precio y las formas de pago.
+          Una vez confirmado el pago, agregaremos tu publicación
+          al carrusel especial.
+        </p>
+      </div>
+    </div>
+  `,
       showCancelButton: true,
-      confirmButtonText: "Solicitar por WhatsApp",
+      confirmButtonText: "Consultar precio por WhatsApp",
       cancelButtonText: "Ahora no",
       confirmButtonColor: "#facc15",
       cancelButtonColor: "#6b7280",
@@ -236,18 +287,30 @@ const ProductoCard: React.FC<Props> = ({
 
     if (!respuesta.isConfirmed) return;
 
+    await intentarRegistrarSolicitudPremium({
+      tipoServicio: TIPOS_SERVICIO_PREMIUM.PUBLICACION_ESPECIAL,
+
+      idPublicacion: producto.id,
+
+      observacion: "Solicitud enviada desde el CTA de publicación especial.",
+    });
+
     const mensaje = `Hola 👋 Quiero incluir una publicación en una campaña especial de Tu Vendedor.
 
-      Publicación: ${producto.nombre}
-      Código: ${producto.id}
+    Publicación: ${producto.nombre}
+    Código: ${producto.id}
 
-      Quisiera conocer las campañas disponibles y el costo de activación.`;
+    Quisiera conocer las campañas disponibles y el costo de activación.`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
 
   const activarEspecialFlow = async () => {
     if (especialActivo) {
+      if (!puedeQuitarEspecial) {
+        return;
+      }
+
       const confirm = await Swal.fire({
         title: "¿Quitar de publicación especial?",
         icon: "warning",
@@ -371,17 +434,50 @@ const ProductoCard: React.FC<Props> = ({
       icon: "info",
       title: "⭐ Dale más visibilidad a tu publicación",
       html: `
-      <div style="text-align:left;color:#ddd;line-height:1.6">
-        <p>Tu producto puede aparecer antes que las publicaciones normales.</p>
-        <br/>
+    <div style="text-align:left;color:#ddd;line-height:1.65;margin-top:8px">
+      <p>
+        Tu producto puede aparecer antes que las publicaciones normales
+        y llamar mucho más la atención dentro de Tu Vendedor.
+      </p>
+
+      <div style="
+        margin-top:16px;
+        padding:14px;
+        border-radius:14px;
+        background:rgba(250,204,21,0.08);
+        border:1px solid rgba(250,204,21,0.22);
+      ">
         <p>✅ Mayor exposición dentro del marketplace</p>
         <p>✅ Ubicación prioritaria en el listado</p>
         <p>✅ Badge visual de publicación destacada</p>
         <p>✅ Activación disponible por 7, 15 o 30 días</p>
       </div>
-    `,
+
+      <div style="
+        margin-top:16px;
+        padding:14px;
+        border-radius:14px;
+        background:rgba(255,255,255,0.05);
+        border:1px solid rgba(255,255,255,0.12);
+      ">
+        <p style="
+          margin:0 0 6px 0;
+          color:#facc15;
+          font-weight:700;
+        ">
+          💳 Servicio Premium con activación posterior al pago
+        </p>
+
+        <p style="margin:0;color:#d1d5db">
+          Solicitá la promoción por WhatsApp para recibir los planes
+          disponibles y las formas de pago. Una vez confirmado el pago,
+          activaremos el destacado en tu publicación.
+        </p>
+      </div>
+    </div>
+  `,
       showCancelButton: true,
-      confirmButtonText: "Solicitar por WhatsApp",
+      confirmButtonText: "Consultar precio por WhatsApp",
       cancelButtonText: "Ahora no",
       confirmButtonColor: "#facc15",
       cancelButtonColor: "#6b7280",
@@ -390,6 +486,14 @@ const ProductoCard: React.FC<Props> = ({
     });
 
     if (!respuesta.isConfirmed) return;
+
+    await intentarRegistrarSolicitudPremium({
+      tipoServicio: TIPOS_SERVICIO_PREMIUM.PUBLICACION_DESTACADA,
+
+      idPublicacion: producto.id,
+
+      observacion: "Solicitud enviada desde el CTA de publicación destacada.",
+    });
 
     const mensaje = `Hola 👋 Quiero destacar una publicación en Tu Vendedor.
 
@@ -746,29 +850,39 @@ const ProductoCard: React.FC<Props> = ({
             <div className="mt-3 space-y-2 pb-6">
               <button
                 type="button"
-                disabled={operandoDestacado}
+                disabled={
+                  operandoDestacado ||
+                  (destacadoActivo && !puedeQuitarDestacado)
+                }
                 onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
 
                   if (destacadoActivo) {
                     await quitarDestacadoFlow();
-                  } else {
-                    await destacarFlow();
+                    return;
                   }
+
+                  await destacarFlow();
                 }}
                 className={`w-full rounded-lg px-3 py-2 text-sm font-semibold ${
                   destacadoActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-yellow-100 text-yellow-700"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                } disabled:cursor-not-allowed disabled:opacity-70`}
               >
-                {destacadoActivo ? "⭐ Quitar destacado" : "⭐ Destacar"}
+                {destacadoActivo
+                  ? puedeQuitarDestacado
+                    ? "⭐ Quitar destacado"
+                    : "⭐ Destacado activo"
+                  : "⭐ Destacar"}
               </button>
 
               <button
                 type="button"
-                disabled={operandoEspecial}
+                disabled={
+                  operandoEspecial || (especialActivo && !puedeQuitarEspecial)
+                }
                 onClick={async (e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -779,9 +893,13 @@ const ProductoCard: React.FC<Props> = ({
                   especialActivo
                     ? "bg-red-100 text-red-700"
                     : "bg-fuchsia-100 text-fuchsia-700"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                } disabled:cursor-not-allowed disabled:opacity-70`}
               >
-                {especialActivo ? "🎉 Quitar especial" : "🎉 Especial"}
+                {especialActivo
+                  ? puedeQuitarEspecial
+                    ? "🎉 Quitar especial"
+                    : "🎉 Especial activo"
+                  : "🎉 Especial"}
               </button>
             </div>
           )}

@@ -1,0 +1,391 @@
+/* =========================================================
+   TEXTO DE LA VIGENCIA
+   ========================================================= */
+
+.premium-date-label {
+  display: block;
+  margin: 13px 0 7px;
+
+  color: #fde047;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.premium-date-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+
+  margin-top: 7px;
+
+  color: #d1d5db;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.premium-date-help-icon {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* =========================================================
+   INPUT VISIBLE DE VIGENCIA
+   ========================================================= */
+
+/*
+ * flatpickr crea un input alternativo cuando usamos altInput.
+ * Aplicamos estilos tanto al input original como al generado.
+ */
+.swal2-popup input.premium-date-input,
+.swal2-popup input.premium-date-alt-input,
+.swal2-popup input.flatpickr-input.premium-date-input,
+.swal2-popup input.flatpickr-input.premium-date-alt-input,
+.swal2-popup input.premium-date-input[readonly],
+.swal2-popup input.premium-date-alt-input[readonly],
+.swal2-popup input.premium-date-input.active,
+.swal2-popup input.premium-date-alt-input.active,
+.swal2-popup input.premium-date-input:focus,
+.swal2-popup input.premium-date-alt-input:focus {
+  box-sizing: border-box;
+
+  display: block;
+
+  width: 100% !important;
+  height: 42px !important;
+
+  margin: 0 !important;
+  padding: 0 12px !important;
+
+  cursor: pointer;
+
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 12px !important;
+
+  background-color: #0f1117 !important;
+  background-image: none !important;
+
+  color: #f9fafb !important;
+  -webkit-text-fill-color: #f9fafb !important;
+
+  caret-color: transparent !important;
+
+  font-family: inherit !important;
+  font-size: 13px !important;
+  font-weight: 650 !important;
+
+  outline: none !important;
+
+  box-shadow: none !important;
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.swal2-popup input.premium-date-input:hover,
+.swal2-popup input.premium-date-alt-input:hover,
+.swal2-popup input.premium-date-input:focus,
+.swal2-popup input.premium-date-alt-input:focus,
+.swal2-popup input.premium-date-input.active,
+.swal2-popup input.premium-date-alt-input.active {
+  border-color: rgba(250, 204, 21, 0.8) !important;
+
+  background-color: #0f1117 !important;
+  background-image: none !important;
+
+  color: #f9fafb !important;
+  -webkit-text-fill-color: #f9fafb !important;
+
+  box-shadow:
+    0 0 0 3px rgba(250, 204, 21, 0.08) !important;
+}
+
+.swal2-popup input.premium-date-input::selection,
+.swal2-popup input.premium-date-alt-input::selection {
+  background: rgba(250, 204, 21, 0.28);
+  color: #ffffff;
+}
+
+/* Evita colores automáticos aplicados por algunos navegadores */
+.swal2-popup input.premium-date-input:-webkit-autofill,
+.swal2-popup input.premium-date-alt-input:-webkit-autofill,
+.swal2-popup input.premium-date-input:-webkit-autofill:hover,
+.swal2-popup input.premium-date-alt-input:-webkit-autofill:hover,
+.swal2-popup input.premium-date-input:-webkit-autofill:focus,
+.swal2-popup input.premium-date-alt-input:-webkit-autofill:focus {
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+
+  -webkit-box-shadow:
+    0 0 0 1000px #0f1117 inset !important;
+
+  box-shadow:
+    0 0 0 1000px #0f1117 inset !important;
+
+  -webkit-text-fill-color: #f9fafb !important;
+}
+
+/* =========================================================
+   CONTENEDOR DEL CALENDARIO
+   ========================================================= */
+
+.premium-flatpickr.flatpickr-calendar {
+  z-index: 999999 !important;
+
+  width: 266px !important;
+  min-width: 266px !important;
+  max-width: 266px !important;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(250, 204, 21, 0.36) !important;
+  border-radius: 16px !important;
+
+  background: #151821 !important;
+
+  box-shadow:
+    0 20px 55px rgba(0, 0, 0, 0.58),
+    0 0 0 1px rgba(255, 255, 255, 0.025) !important;
+
+  font-family: inherit !important;
+}
+
+/* =========================================================
+   FLECHITA DEL CALENDARIO
+   ========================================================= */
+
+.premium-flatpickr.flatpickr-calendar.arrowTop::before {
+  border-bottom-color: rgba(250, 204, 21, 0.36) !important;
+}
+
+.premium-flatpickr.flatpickr-calendar.arrowTop::after {
+  border-bottom-color: #151821 !important;
+}
+
+.premium-flatpickr.flatpickr-calendar.arrowBottom::before {
+  border-top-color: rgba(250, 204, 21, 0.36) !important;
+}
+
+.premium-flatpickr.flatpickr-calendar.arrowBottom::after {
+  border-top-color: #151821 !important;
+}
+
+/* =========================================================
+   CABECERA DEL CALENDARIO
+   ========================================================= */
+
+.premium-flatpickr .flatpickr-months {
+  height: 42px !important;
+  padding: 3px 4px 0 !important;
+
+  background: #151821 !important;
+}
+
+.premium-flatpickr .flatpickr-month {
+  height: 38px !important;
+
+  background: transparent !important;
+
+  color: #f9fafb !important;
+  fill: #f9fafb !important;
+}
+
+.premium-flatpickr .flatpickr-current-month {
+  padding-top: 8px !important;
+
+  color: #f9fafb !important;
+
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.premium-flatpickr
+  .flatpickr-current-month
+  .cur-month {
+  color: #f9fafb !important;
+  font-weight: 800 !important;
+}
+
+.premium-flatpickr
+  .flatpickr-current-month
+  input.cur-year {
+  color: #f9fafb !important;
+
+  font-size: 14px !important;
+  font-weight: 800 !important;
+}
+
+.premium-flatpickr .flatpickr-prev-month,
+.premium-flatpickr .flatpickr-next-month {
+  top: 5px !important;
+
+  height: 34px !important;
+  padding: 10px !important;
+
+  color: #facc15 !important;
+  fill: #facc15 !important;
+}
+
+.premium-flatpickr .flatpickr-prev-month svg,
+.premium-flatpickr .flatpickr-next-month svg {
+  width: 12px !important;
+  height: 12px !important;
+
+  fill: #facc15 !important;
+}
+
+.premium-flatpickr .flatpickr-prev-month:hover svg,
+.premium-flatpickr .flatpickr-next-month:hover svg {
+  fill: #fde047 !important;
+}
+
+/* =========================================================
+   DÍAS DE LA SEMANA
+   ========================================================= */
+
+.premium-flatpickr .flatpickr-weekdays {
+  height: 28px !important;
+
+  background: #11141b !important;
+}
+
+.premium-flatpickr .flatpickr-weekdaycontainer {
+  width: 266px !important;
+}
+
+.premium-flatpickr span.flatpickr-weekday {
+  background: transparent !important;
+
+  color: #facc15 !important;
+
+  font-size: 10px !important;
+  font-weight: 800 !important;
+}
+
+/* =========================================================
+   GRILLA DE DÍAS
+   ========================================================= */
+
+.premium-flatpickr .flatpickr-days,
+.premium-flatpickr .dayContainer {
+  width: 266px !important;
+  min-width: 266px !important;
+  max-width: 266px !important;
+}
+
+.premium-flatpickr .flatpickr-days {
+  border-top:
+    1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.premium-flatpickr .dayContainer {
+  padding: 4px 5px 7px !important;
+}
+
+.premium-flatpickr .flatpickr-day {
+  width: 36px !important;
+  max-width: 36px !important;
+  height: 30px !important;
+
+  margin: 1px !important;
+
+  border-radius: 9px !important;
+
+  color: #d5dae3 !important;
+
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  line-height: 30px !important;
+}
+
+.premium-flatpickr .flatpickr-day:hover,
+.premium-flatpickr .flatpickr-day:focus {
+  border-color:
+    rgba(250, 204, 21, 0.15) !important;
+
+  background:
+    rgba(250, 204, 21, 0.12) !important;
+
+  color: #fde047 !important;
+}
+
+.premium-flatpickr .flatpickr-day.today {
+  border-color:
+    rgba(250, 204, 21, 0.85) !important;
+
+  color: #fde047 !important;
+}
+
+/* =========================================================
+   SELECCIÓN DEL RANGO
+   ========================================================= */
+
+.premium-flatpickr .flatpickr-day.selected,
+.premium-flatpickr .flatpickr-day.startRange,
+.premium-flatpickr .flatpickr-day.endRange {
+  border-color: #facc15 !important;
+
+  background: #facc15 !important;
+
+  color: #111827 !important;
+
+  font-weight: 900 !important;
+}
+
+.premium-flatpickr .flatpickr-day.inRange {
+  border-color:
+    rgba(250, 204, 21, 0.12) !important;
+
+  background:
+    rgba(250, 204, 21, 0.15) !important;
+
+  color: #fde68a !important;
+
+  box-shadow:
+    -5px 0 0 rgba(250, 204, 21, 0.15),
+    5px 0 0 rgba(250, 204, 21, 0.15) !important;
+}
+
+/* =========================================================
+   DÍAS FUERA DEL MES
+   ========================================================= */
+
+.premium-flatpickr .flatpickr-day.prevMonthDay,
+.premium-flatpickr .flatpickr-day.nextMonthDay,
+.premium-flatpickr .flatpickr-day.flatpickr-disabled {
+  color: #596172 !important;
+}
+
+/* =========================================================
+   AJUSTES PARA CELULAR
+   ========================================================= */
+
+@media (max-width: 640px) {
+  .premium-flatpickr.flatpickr-calendar {
+    width: 252px !important;
+    min-width: 252px !important;
+    max-width: 252px !important;
+  }
+
+  .premium-flatpickr .flatpickr-weekdaycontainer,
+  .premium-flatpickr .flatpickr-days,
+  .premium-flatpickr .dayContainer {
+    width: 252px !important;
+    min-width: 252px !important;
+    max-width: 252px !important;
+  }
+
+  .premium-flatpickr .flatpickr-day {
+    width: 34px !important;
+    max-width: 34px !important;
+    height: 29px !important;
+
+    line-height: 29px !important;
+  }
+}

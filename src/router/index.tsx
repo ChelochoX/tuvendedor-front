@@ -15,6 +15,11 @@ const MiPerfilVendedor = lazy(
   () => import("pages/perfilVendedor/MiPerfilVendedor"),
 );
 
+// Administración de servicios Premium
+const ServiciosPremiumAdmin = lazy(
+  () => import("pages/admin/ServiciosPremiumAdmin"),
+);
+
 // Clientes
 const Dashboard = lazy(() => import("pages/clientes/Dashboard"));
 const CargaClientes = lazy(() => import("pages/clientes/CargaClientes"));
@@ -49,6 +54,11 @@ const RoutesHandler = () => (
 
       {/* Edición de vitrina pública del vendedor */}
       <Route path="/clientes/perfil-vendedor" element={<MiPerfilVendedor />} />
+      {/* Dashboard administrativo Premium */}
+      <Route
+        path="/admin/servicios-premium"
+        element={<ServiciosPremiumAdmin />}
+      />
     </Routes>
   </Suspense>
 );

@@ -10,6 +10,7 @@ import { useUsuario } from "../context/UsuarioContext";
 import Swal from "sweetalert2";
 import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacionesService";
 import SugerenciaModal from "./SugerenciaModal";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 
 interface Props {
   categorias: Categoria[];
@@ -28,7 +29,8 @@ const CategoriasPanel: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
 
-  const { esVisitante, puedePublicar, puedeVerClientes } = useUsuario();
+  const { esVisitante, puedePublicar, puedeVerClientes, esAdmin } =
+    useUsuario();
 
   const [abrirSugerencia, setAbrirSugerencia] = useState(false);
 
@@ -58,6 +60,11 @@ const CategoriasPanel: React.FC<Props> = ({
 
   const irAGestionClientes = () => {
     navigate("/clientes");
+    onCerrarSidebar?.();
+  };
+
+  const irAServiciosPremium = () => {
+    navigate("/admin/servicios-premium");
     onCerrarSidebar?.();
   };
 
@@ -100,6 +107,17 @@ const CategoriasPanel: React.FC<Props> = ({
           >
             <PersonIcon fontSize="small" />
             Gestionar Clientes
+          </button>
+        )}
+
+        {esAdmin && (
+          <button
+            onClick={irAServiciosPremium}
+            className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
+           text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+          >
+            <WorkspacePremiumIcon fontSize="small" />
+            Servicios Premium
           </button>
         )}
 
@@ -197,6 +215,17 @@ const CategoriasPanel: React.FC<Props> = ({
                 Gestionar Clientes
               </button>
             </>
+          )}
+
+          {esAdmin && (
+            <button
+              onClick={irAServiciosPremium}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+            >
+              <WorkspacePremiumIcon fontSize="small" />
+              Servicios Premium
+            </button>
           )}
         </div>
       </div>

@@ -6,9 +6,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StoreIcon from "@mui/icons-material/Store";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import CategoryIcon from "@mui/icons-material/Category";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import { useUsuario } from "../../context/UsuarioContext";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
+  const { esAdmin } = useUsuario();
 
   return (
     <div className="flex flex-col justify-between h-full relative">
@@ -62,6 +65,22 @@ const Panel: React.FC = () => {
           <LocalOfferIcon fontSize="small" />
           Precios
         </button>
+
+        {esAdmin && (
+          <>
+            <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
+              Administración
+            </h2>
+
+            <button
+              onClick={() => navigate("/admin/servicios-premium")}
+              className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
+            >
+              <WorkspacePremiumIcon fontSize="small" />
+              Servicios Premium
+            </button>
+          </>
+        )}
       </div>
 
       {/* ================= BOTÓN MARKETPLACE DESKTOP ================= */}

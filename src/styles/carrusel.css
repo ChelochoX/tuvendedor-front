@@ -1,45 +1,67 @@
-/* Ocultar scrollbar */
+/* =========================================================
+   OCULTAR SCROLLBAR
+   ========================================================= */
+
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
-/* Sección base */
+/* =========================================================
+   SECCIÓN BASE
+   ========================================================= */
+
 .carrusel-section {
   position: relative;
 }
 
-/* Viewport */
+/* =========================================================
+   VIEWPORT
+   ========================================================= */
+
 .carrusel-viewport {
   position: relative;
   width: 100%;
   overflow: hidden;
 }
 
-/* Pista */
+/* =========================================================
+   PISTA DEL CARRUSEL
+   ========================================================= */
+
 .carrusel-track {
   max-width: 100%;
   padding-bottom: 6px;
+
   scroll-snap-type: none;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
 }
 
-/* Fades laterales */
+/* =========================================================
+   DEGRADADOS LATERALES
+   Solo se muestran en escritorio.
+   En móvil se ocultan para no tapar las imágenes.
+   ========================================================= */
+
 .carrusel-fade {
   position: absolute;
   top: 0;
   bottom: 0;
+
   width: 72px;
+
   pointer-events: none;
   z-index: 4;
 }
 
 .carrusel-fade-left {
   left: 0;
+
   background: linear-gradient(
     to right,
     rgba(30, 31, 35, 1),
@@ -49,6 +71,7 @@
 
 .carrusel-fade-right {
   right: 0;
+
   background: linear-gradient(
     to left,
     rgba(30, 31, 35, 1),
@@ -56,21 +79,32 @@
   );
 }
 
-/* Flechas desktop */
+/* =========================================================
+   FLECHAS DE ESCRITORIO
+   ========================================================= */
+
 .carrusel-arrow {
   position: absolute;
   top: 50%;
+
   transform: translateY(-50%);
+
   z-index: 6;
-  width: 42px;
-  height: 42px;
-  border-radius: 9999px;
-  background: #facc15;
-  color: #111827;
-  font-size: 24px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 9999px;
+
+  background: #facc15;
+  color: #111827;
+
+  font-size: 24px;
+
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
@@ -82,8 +116,24 @@
   right: 8px;
 }
 
+/* =========================================================
+   AJUSTES PARA MÓVIL
+   ========================================================= */
+
 @media (max-width: 767.98px) {
+  /*
+   * En móvil ocultamos las flechas.
+   * El usuario mueve el carrusel deslizando con el dedo.
+   */
   .carrusel-arrow {
+    display: none !important;
+  }
+
+  /*
+   * Eliminamos los bordes oscuros laterales.
+   * Las cards quedan libres, claras y sin sombras invasivas.
+   */
+  .carrusel-fade {
     display: none !important;
   }
 }

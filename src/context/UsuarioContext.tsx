@@ -102,6 +102,8 @@ export const UsuarioProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.removeItem("usuario");
     localStorage.removeItem("fotoUrl");
     localStorage.removeItem("roles");
+    localStorage.removeItem("permisos");
+
     setUsuario(null);
   };
 

@@ -1,14 +1,12 @@
 import React from "react";
-import {
-  ArrowLeft,
-  CheckCircle2,
-  MessageCircle,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft, CheckCircle2, MessageCircle, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { ADMIN_WHATSAPP } from "../../config/comercialConfig";
 import { abrirWhatsapp } from "../../utils/whatsapp";
+import { intentarRegistrarSolicitudPremium } from "../../api/serviciosPremiumService";
+
+import { TIPOS_SERVICIO_PREMIUM } from "../../types/servicioPremium.types";
 
 interface VitrinaPremiumLandingProps {
   idVendedor?: number;
@@ -21,13 +19,20 @@ const VitrinaPremiumLanding: React.FC<VitrinaPremiumLandingProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const solicitarActivacion = () => {
+  const solicitarActivacion = async () => {
+    await intentarRegistrarSolicitudPremium({
+      tipoServicio: TIPOS_SERVICIO_PREMIUM.VITRINA_PROFESIONAL,
+
+      observacion:
+        "Solicitud enviada desde la pantalla comercial de vitrina profesional.",
+    });
+
     const mensaje = `Hola 👋 Quiero activar la vitrina pública profesional de mi negocio en Tu Vendedor.
 
-Negocio: ${nombreNegocio || "Sin especificar"}
-Código de vendedor: ${idVendedor || "Sin especificar"}
+    Negocio: ${nombreNegocio || "Sin especificar"}
+    Código de vendedor: ${idVendedor || "Sin especificar"}
 
-Quisiera conocer el precio y las formas de pago.`;
+    Quisiera conocer el precio y las formas de pago.`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
@@ -69,9 +74,7 @@ Quisiera conocer el precio y las formas de pago.`;
 
                 <h1 className="mt-5 max-w-3xl text-3xl font-black leading-tight sm:text-5xl">
                   Convertí tu perfil en una{" "}
-                  <span className="text-yellow-300">
-                    vitrina profesional
-                  </span>
+                  <span className="text-yellow-300">vitrina profesional</span>
                 </h1>
 
                 <p className="mt-4 max-w-2xl text-sm leading-7 text-gray-300 sm:text-base">

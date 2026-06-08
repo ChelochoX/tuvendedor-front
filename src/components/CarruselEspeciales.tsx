@@ -64,10 +64,7 @@ const CarruselEspeciales: React.FC<Props> = ({
     if (!track || !viewport) return;
 
     const actualizarLimites = () => {
-      const maxScroll = Math.max(
-        0,
-        track.scrollWidth - viewport.offsetWidth,
-      );
+      const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
 
       const hayDesplazamiento = maxScroll > 0;
 
@@ -109,10 +106,7 @@ const CarruselEspeciales: React.FC<Props> = ({
 
         posicion -= speed;
 
-        const maxScroll = Math.max(
-          0,
-          track.scrollWidth - viewport.offsetWidth,
-        );
+        const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
 
         if (maxScroll <= 0 || Math.abs(posicion) >= maxScroll) {
           posicion = 0;
@@ -139,10 +133,7 @@ const CarruselEspeciales: React.FC<Props> = ({
 
     if (!track || !viewport) return;
 
-    const maxScroll = Math.max(
-      0,
-      track.scrollWidth - viewport.offsetWidth,
-    );
+    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
 
     if (maxScroll <= 0) return;
 
@@ -162,10 +153,7 @@ const CarruselEspeciales: React.FC<Props> = ({
       posicionActual -= distancia;
     }
 
-    posicionActual = Math.min(
-      0,
-      Math.max(-maxScroll, posicionActual),
-    );
+    posicionActual = Math.min(0, Math.max(-maxScroll, posicionActual));
 
     positionRef.current = posicionActual;
     track.style.transform = `translateX(${posicionActual}px)`;
@@ -174,9 +162,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   /* ---------------------------------
    * Movimiento táctil para celular
    * --------------------------------- */
-  const handleTouchStart = (
-    event: React.TouchEvent<HTMLDivElement>,
-  ) => {
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
     if (productos.length <= 1 || !canScroll) return;
 
     const touch = event.touches[0];
@@ -188,9 +174,7 @@ const CarruselEspeciales: React.FC<Props> = ({
     setPaused(true);
   };
 
-  const handleTouchMove = (
-    event: React.TouchEvent<HTMLDivElement>,
-  ) => {
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
     if (!isDraggingRef.current) return;
 
     const touch = event.touches[0];
@@ -201,17 +185,11 @@ const CarruselEspeciales: React.FC<Props> = ({
 
     if (!track || !viewport) return;
 
-    const maxScroll = Math.max(
-      0,
-      track.scrollWidth - viewport.offsetWidth,
-    );
+    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
 
     const nuevaPosicion = Math.min(
       0,
-      Math.max(
-        -maxScroll,
-        dragStartXRef.current + deltaX,
-      ),
+      Math.max(-maxScroll, dragStartXRef.current + deltaX),
     );
 
     positionRef.current = nuevaPosicion;
@@ -226,22 +204,22 @@ const CarruselEspeciales: React.FC<Props> = ({
   if (!productos || productos.length === 0) return null;
 
   return (
-    <section className="carrusel-section mb-8 w-full">
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] md:p-4">
+    <section className="carrusel-section mb-6 w-full md:mb-8">
+      <div className="rounded-2xl border border-white/10 bg-gradient-to-r from-[#2b172a] via-[#2a1a2e] to-[#1f1b30] p-2 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] md:p-4">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between md:gap-3">
-          <div className="flex items-start gap-2">
-            <span className="text-2xl md:text-3xl">🎊</span>
+          <div className="flex items-start gap-2 px-1 pt-1 md:px-0 md:pt-0">
+            <span className="text-xl md:text-3xl">🎊</span>
 
             <div>
-              <div className="text-sm text-white/80 md:text-base">
+              <div className="text-xs text-white/80 md:text-base">
                 Temporada:
               </div>
 
-              <div className="text-lg font-extrabold tracking-wide text-white md:text-2xl">
+              <div className="text-base font-extrabold tracking-wide text-white md:text-2xl">
                 {temporadaActual.toUpperCase()}
               </div>
 
-              <div className="-mt-0.5 text-[11px] text-white/60 md:mt-0 md:text-sm">
+              <div className="text-[10px] text-white/60 md:mt-0 md:text-sm">
                 Ofertas por tiempo limitado
               </div>
             </div>
@@ -276,13 +254,13 @@ const CarruselEspeciales: React.FC<Props> = ({
         >
           <div
             ref={trackRef}
-            className="flex gap-4 will-change-transform"
+            className="carrusel-track flex gap-3 will-change-transform md:gap-4"
             style={{ width: "max-content" }}
           >
             {productos.map((producto) => (
               <div
                 key={producto.id}
-                className="w-[260px] shrink-0"
+                className="w-[210px] shrink-0 sm:w-[230px] md:w-[260px]"
               >
                 <ProductoCard
                   producto={producto}

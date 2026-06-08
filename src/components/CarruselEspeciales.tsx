@@ -18,13 +18,14 @@ interface Props {
 }
 
 /*
- * En celular no utilizamos autoplay.
+ * El carrusel comienza a desplazarse automáticamente
+ * cuando existen al menos dos publicaciones.
  *
- * En escritorio solamente se activa cuando existen
- * tres o más publicaciones para evitar reinicios bruscos.
+ * El avance se realiza card por card, tanto en escritorio
+ * como en celular. Ya no se utiliza desplazamiento continuo.
  */
 const MINIMO_PRODUCTOS_AUTOPLAY = 2;
-const INTERVALO_AUTOPLAY_MS = 4500;
+const INTERVALO_AUTOPLAY_MS = 3000;
 
 const CarruselEspeciales: React.FC<Props> = ({
   productos,
@@ -40,6 +41,16 @@ const CarruselEspeciales: React.FC<Props> = ({
   const [puedeDesplazarse, setPuedeDesplazarse] = useState(false);
 
   const [pausado, setPausado] = useState(false);
+
+  /*
+   * Evitamos reiniciar innecesariamente el carrusel
+   * si el componente padre genera una nueva referencia
+   * del array, pero conserva los mismos productos.
+   */
+  const productosKey = useMemo(
+    () => productos.map((producto) => producto.id).join("|"),
+    [productos],
+  );
 
   /* ---------------------------------
    * Temporada más frecuente
@@ -60,13 +71,11 @@ const CarruselEspeciales: React.FC<Props> = ({
     }
 
     let mejorNombre = nombres[0];
-
     let mayorCantidad = 0;
 
     for (const [nombre, cantidad] of frecuencias) {
       if (cantidad > mayorCantidad) {
         mejorNombre = nombre;
-
         mayorCantidad = cantidad;
       }
     }
@@ -75,7 +84,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [productos]);
 
   /* ---------------------------------
-   * Obtener elementos renderizados
+   * Obtener las cards renderizadas
    * --------------------------------- */
   const obtenerItems = useCallback(() => {
     const viewport = viewportRef.current;
@@ -90,12 +99,11 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, []);
 
   /* ---------------------------------
-   * Ir a una card concreta
+   * Desplazarse hasta una card
    * --------------------------------- */
   const irAIndice = useCallback(
     (nuevoIndice: number, comportamiento: ScrollBehavior = "smooth") => {
       const viewport = viewportRef.current;
-
       const items = obtenerItems();
 
       if (!viewport || items.length === 0) {
@@ -108,7 +116,6 @@ const CarruselEspeciales: React.FC<Props> = ({
 
       viewport.scrollTo({
         left: item.offsetLeft,
-
         behavior: comportamiento,
       });
 
@@ -118,7 +125,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   );
 
   /* ---------------------------------
-   * Detectar si existe desplazamiento
+   * Detectar si realmente existe scroll
    * --------------------------------- */
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -148,17 +155,20 @@ const CarruselEspeciales: React.FC<Props> = ({
 
     observer.observe(viewport);
 
+    obtenerItems().forEach((item) => {
+      observer.observe(item);
+    });
+
     return () => {
       observer.disconnect();
     };
-  }, [productos]);
+  }, [obtenerItems, productosKey]);
 
   /* ---------------------------------
    * Actualizar indicador al deslizar
    * --------------------------------- */
   const actualizarIndiceVisible = useCallback(() => {
     const viewport = viewportRef.current;
-
     const items = obtenerItems();
 
     if (!viewport || items.length === 0) {
@@ -174,7 +184,6 @@ const CarruselEspeciales: React.FC<Props> = ({
 
       if (distancia < menorDistancia) {
         menorDistancia = distancia;
-
         indiceMasCercano = indice;
       }
     });
@@ -183,7 +192,7 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [obtenerItems]);
 
   /* ---------------------------------
-   * Reiniciar posición si cambian cards
+   * Volver al inicio si cambian productos
    * --------------------------------- */
   useEffect(() => {
     const viewport = viewportRef.current;
@@ -198,11 +207,10 @@ const CarruselEspeciales: React.FC<Props> = ({
     });
 
     setIndiceActivo(0);
-  }, [productos]);
+  }, [productosKey]);
 
   /* ---------------------------------
-   * Autoplay solo para escritorio
-   * y con tres o más publicaciones
+   * Autoplay card por card
    * --------------------------------- */
   useEffect(() => {
     if (
@@ -225,7 +233,19 @@ const CarruselEspeciales: React.FC<Props> = ({
   }, [indiceActivo, irAIndice, pausado, puedeDesplazarse, productos.length]);
 
   /* ---------------------------------
-   * Pausar temporalmente
+   * Limpiar timeout al desmontar
+   * --------------------------------- */
+  useEffect(() => {
+    return () => {
+      if (timeoutPausaRef.current) {
+        window.clearTimeout(timeoutPausaRef.current);
+      }
+    };
+  }, []);
+
+  /* ---------------------------------
+   * Pausar temporalmente después
+   * de una interacción manual
    * --------------------------------- */
   const pausarTemporalmente = () => {
     setPausado(true);
@@ -236,11 +256,11 @@ const CarruselEspeciales: React.FC<Props> = ({
 
     timeoutPausaRef.current = window.setTimeout(() => {
       setPausado(false);
-    }, 1200);
+    }, 1500);
   };
 
   /* ---------------------------------
-   * Flechas manuales de escritorio
+   * Flechas manuales para escritorio
    * --------------------------------- */
   const moverManual = (direccion: "left" | "right") => {
     pausarTemporalmente();
@@ -323,13 +343,6 @@ const CarruselEspeciales: React.FC<Props> = ({
               </div>
             ))}
           </div>
-
-          {puedeDesplazarse && (
-            <>
-              <div className="carrusel-fade carrusel-fade-left" />
-              <div className="carrusel-fade carrusel-fade-right" />
-            </>
-          )}
         </div>
 
         {productos.length > 1 && (
@@ -339,7 +352,11 @@ const CarruselEspeciales: React.FC<Props> = ({
                 key={producto.id}
                 type="button"
                 aria-label={`Ver publicación ${indice + 1}`}
-                onClick={() => irAIndice(indice)}
+                onClick={() => {
+                  pausarTemporalmente();
+
+                  irAIndice(indice);
+                }}
                 className={
                   indice === indiceActivo
                     ? "h-1.5 w-5 rounded-full bg-yellow-400 transition-all"

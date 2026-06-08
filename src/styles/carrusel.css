@@ -29,6 +29,7 @@
 
 .carrusel-viewport {
   display: flex;
+
   width: 100%;
   gap: 16px;
 
@@ -58,43 +59,7 @@
 }
 
 /* =========================================================
-   DEGRADADOS LATERALES DE ESCRITORIO
-   ========================================================= */
-
-.carrusel-fade {
-  position: absolute;
-  top: 0;
-  bottom: 6px;
-
-  width: 72px;
-
-  pointer-events: none;
-
-  z-index: 4;
-}
-
-.carrusel-fade-left {
-  left: 0;
-
-  background: linear-gradient(
-    to right,
-    rgba(30, 31, 35, 1),
-    rgba(30, 31, 35, 0)
-  );
-}
-
-.carrusel-fade-right {
-  right: 0;
-
-  background: linear-gradient(
-    to left,
-    rgba(30, 31, 35, 1),
-    rgba(30, 31, 35, 0)
-  );
-}
-
-/* =========================================================
-   FLECHAS DE ESCRITORIO
+   FLECHAS PARA ESCRITORIO
    ========================================================= */
 
 .carrusel-arrow {
@@ -107,40 +72,49 @@
   align-items: center;
   justify-content: center;
 
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 
+  border: 0;
   border-radius: 9999px;
+
+  cursor: pointer;
 
   background: #facc15;
   color: #111827;
 
-  font-size: 24px;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
 
   transform: translateY(-50%);
 
-  box-shadow:
-    0 6px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28);
 
   transition:
     transform 160ms ease,
-    background-color 160ms ease;
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .carrusel-arrow:hover {
   background: #fde047;
 
-  transform:
-    translateY(-50%)
-    scale(1.06);
+  transform: translateY(-50%) scale(1.06);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.34);
+}
+
+.carrusel-arrow:active {
+  transform: translateY(-50%) scale(0.96);
 }
 
 .carrusel-left {
-  left: 8px;
+  left: 6px;
 }
 
 .carrusel-right {
-  right: 8px;
+  right: 6px;
 }
 
 /* =========================================================
@@ -152,7 +126,7 @@
    * En móvil mostramos una publicación casi completa
    * y una pequeña parte de la siguiente.
    *
-   * Esa pequeña vista invita naturalmente a deslizar.
+   * Esa fracción visible invita naturalmente a deslizar.
    */
   .carrusel-viewport {
     gap: 12px;
@@ -162,29 +136,17 @@
   }
 
   /*
-   * Al reservar 28 px, la card actual se ve casi entera
-   * y la siguiente asoma discretamente.
-   *
-   * La segunda card puede alinearse completamente al
-   * deslizar gracias al padding derecho del viewport.
+   * El usuario puede deslizar y dejar cada card
+   * correctamente alineada mediante scroll-snap.
    */
   .carrusel-item {
-    flex-basis:
-      calc(100% - 28px);
+    flex-basis: calc(100% - 28px);
   }
 
   /*
-   * En celular el gesto de deslizar reemplaza las flechas.
+   * En celular utilizamos gesto táctil e indicadores.
    */
   .carrusel-arrow {
-    display: none !important;
-  }
-
-  /*
-   * Quitamos las sombras laterales para que las imágenes
-   * se vean limpias y nítidas.
-   */
-  .carrusel-fade {
     display: none !important;
   }
 }

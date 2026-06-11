@@ -17,6 +17,7 @@ import {
 import HerramientasPremiumVitrina from "../../components/perfilVendedor/HerramientasPremiumVitrina";
 import GestionPublicacionesVitrina from "./GestionPublicacionesVitrina";
 import VitrinaPremiumLanding from "./VitrinaPremiumLanding";
+import PortadaPredeterminada from "../../components/perfilVendedor/PortadaPredeterminada";
 
 interface MiPerfilVendedorForm {
   idVendedor?: number;
@@ -77,11 +78,14 @@ const MiPerfilVendedor: React.FC = () => {
   const bannerPreview = useMemo(() => {
     if (bannerArchivo) return URL.createObjectURL(bannerArchivo);
 
-    return (
-      form.bannerUrl ||
-      "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab"
-    );
+    return form.bannerUrl?.trim() || "";
   }, [bannerArchivo, form.bannerUrl]);
+
+  const esVideoBannerPreview =
+    bannerArchivo?.type.startsWith("video/") ||
+    /\.(mp4|webm|mov)(\?.*)?$/i.test(bannerPreview);
+
+  const tieneBannerPreview = Boolean(bannerPreview);
 
   useEffect(() => {
     cargarPerfil();
@@ -297,14 +301,45 @@ const MiPerfilVendedor: React.FC = () => {
         </button>
 
         <section className="overflow-hidden rounded-[26px] border border-white/10 bg-[#101722] shadow-2xl sm:rounded-3xl">
-          <div
-            className="relative min-h-[220px] bg-cover bg-center sm:min-h-[255px]"
-            style={{
-              backgroundImage: `url(${bannerPreview})`,
-            }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/55 to-[#101722]" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/30 to-black/50" />
+          <div className="relative min-h-[220px] overflow-hidden sm:min-h-[255px]">
+            {bannerPreview ? (
+              esVideoBannerPreview ? (
+                <video
+                  src={bannerPreview}
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              ) : (
+                <div
+                  className="absolute inset-0 bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url(${bannerPreview})`,
+                  }}
+                />
+              )
+            ) : (
+              <PortadaPredeterminada />
+            )}
+            <div
+              className={[
+                "absolute inset-0 bg-gradient-to-b",
+                tieneBannerPreview
+                  ? "from-black/20 via-black/38 to-[#101722]/70"
+                  : "from-black/08 via-black/16 to-black/50",
+              ].join(" ")}
+            />
+
+            <div
+              className={[
+                "absolute inset-0 bg-gradient-to-r",
+                tieneBannerPreview
+                  ? "from-black/42 via-black/16 to-black/30"
+                  : "from-black/22 via-transparent to-black/18",
+              ].join(" ")}
+            />
 
             <div className="relative z-10 flex min-h-[220px] flex-col justify-between p-4 sm:min-h-[255px] sm:p-7">
               <div>

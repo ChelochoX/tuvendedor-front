@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Eye, MapPin, Search, SlidersHorizontal, Star } from "lucide-react";
 
 import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
@@ -10,39 +10,6 @@ interface Props {
   onVerDetalle?: (publicacion: PublicacionPerfilVendedor) => void;
 }
 
-type CategoriaCatalogo = {
-  nombre: string;
-  aliases?: string[];
-};
-
-const CATEGORIAS_CATALOGO: CategoriaCatalogo[] = [
-  { nombre: "Todos" },
-  { nombre: "Terrenos", aliases: ["Terreno"] },
-  { nombre: "Inmuebles", aliases: ["Inmueble"] },
-  {
-    nombre: "Despensa / Bodega",
-    aliases: ["Despensa", "Bodega", "Despensas / Bodegas"],
-  },
-  { nombre: "Casas", aliases: ["Casa"] },
-  { nombre: "Departamentos", aliases: ["Departamento"] },
-  { nombre: "Dúplex", aliases: ["Duplex"] },
-  { nombre: "Salones", aliases: ["Salón", "Salon"] },
-  { nombre: "Locales", aliases: ["Local"] },
-  { nombre: "Oficinas", aliases: ["Oficina"] },
-  { nombre: "Quintas", aliases: ["Quinta"] },
-  { nombre: "Lotes", aliases: ["Lote"] },
-  { nombre: "Depósitos", aliases: ["Deposito", "Depósito"] },
-  { nombre: "Tinglados", aliases: ["Tinglado"] },
-  { nombre: "Campos", aliases: ["Campo"] },
-  { nombre: "Alquileres", aliases: ["Alquiler"] },
-  { nombre: "Locales comerciales", aliases: ["Local comercial"] },
-  { nombre: "Propiedades en pozo", aliases: ["Pozo", "En pozo"] },
-  { nombre: "Inversiones", aliases: ["Inversión", "Inversion"] },
-  { nombre: "Monoambientes", aliases: ["Monoambiente"] },
-  { nombre: "Habitaciones", aliases: ["Habitación", "Habitacion"] },
-  { nombre: "Garajes", aliases: ["Garaje", "Cochera", "Cocheras"] },
-];
-
 const normalizarTexto = (valor?: string | null): string => {
   return (valor || "")
     .trim()
@@ -51,34 +18,22 @@ const normalizarTexto = (valor?: string | null): string => {
     .replace(/[\u0300-\u036f]/g, "");
 };
 
-const obtenerCategoriaCanonica = (categoria?: string | null): string => {
-  const categoriaNormalizada = normalizarTexto(categoria);
+const CATEGORIA_TODOS = "Todos";
+const CATEGORIA_SIN_DEFINIR = "Sin categoría";
 
-  if (!categoriaNormalizada) return "Sin categoría";
-
-  const encontrada = CATEGORIAS_CATALOGO.find((item) => {
-    const nombreNormalizado = normalizarTexto(item.nombre);
-
-    if (nombreNormalizado === categoriaNormalizada) return true;
-
-    return item.aliases?.some(
-      (alias) => normalizarTexto(alias) === categoriaNormalizada,
-    );
-  });
-
-  return encontrada?.nombre || categoria?.trim() || "Sin categoría";
+const obtenerCategoriaVisible = (categoria?: string | null): string => {
+  return categoria?.trim() || CATEGORIA_SIN_DEFINIR;
 };
 
 const perteneceACategoria = (
   publicacion: PublicacionPerfilVendedor,
   categoriaActiva: string,
 ): boolean => {
-  if (categoriaActiva === "Todos") return true;
-
-  const categoriaPublicacion = obtenerCategoriaCanonica(publicacion.categoria);
+  if (categoriaActiva === CATEGORIA_TODOS) return true;
 
   return (
-    normalizarTexto(categoriaPublicacion) === normalizarTexto(categoriaActiva)
+    normalizarTexto(obtenerCategoriaVisible(publicacion.categoria)) ===
+    normalizarTexto(categoriaActiva)
   );
 };
 
@@ -113,9 +68,7 @@ const obtenerUrlImagen = (item: PublicacionPerfilVendedor): string => {
   );
 };
 
-const adaptarProductoFavorito = (
-  item: PublicacionPerfilVendedor,
-): Producto => {
+const adaptarProductoFavorito = (item: PublicacionPerfilVendedor): Producto => {
   const anyItem = item as any;
   const imagen = obtenerUrlImagen(item);
 
@@ -159,46 +112,60 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
   publicaciones = [],
   onVerDetalle,
 }) => {
-  const [categoriaActiva, setCategoriaActiva] = useState("Todos");
+  const [categoriaActiva, setCategoriaActiva] = useState(CATEGORIA_TODOS);
   const [busqueda, setBusqueda] = useState("");
 
   const categorias = useMemo(() => {
-    const conteos = new Map<string, number>();
-
-    CATEGORIAS_CATALOGO.forEach((categoria) => {
-      conteos.set(categoria.nombre, 0);
-    });
+    const conteos = new Map<
+      string,
+      {
+        nombre: string;
+        cantidad: number;
+      }
+    >();
 
     publicaciones.forEach((publicacion) => {
-      const categoriaCanonica = obtenerCategoriaCanonica(publicacion.categoria);
+      const nombre = obtenerCategoriaVisible(publicacion.categoria);
+      const clave = normalizarTexto(nombre);
 
-      if (!conteos.has(categoriaCanonica)) {
-        conteos.set(categoriaCanonica, 0);
+      const categoriaExistente = conteos.get(clave);
+
+      if (categoriaExistente) {
+        categoriaExistente.cantidad += 1;
+        return;
       }
 
-      conteos.set(categoriaCanonica, (conteos.get(categoriaCanonica) || 0) + 1);
+      conteos.set(clave, {
+        nombre,
+        cantidad: 1,
+      });
     });
 
-    conteos.set("Todos", publicaciones.length);
+    const categoriasDelNegocio = Array.from(conteos.values()).sort((a, b) =>
+      a.nombre.localeCompare(b.nombre, "es"),
+    );
 
-    const categoriasBase = CATEGORIAS_CATALOGO.map((categoria) => ({
-      nombre: categoria.nombre,
-      cantidad: conteos.get(categoria.nombre) || 0,
-    }));
-
-    const categoriasExtras = Array.from(conteos.entries())
-      .filter(
-        ([nombre]) =>
-          !CATEGORIAS_CATALOGO.some(
-            (categoria) =>
-              normalizarTexto(categoria.nombre) === normalizarTexto(nombre),
-          ),
-      )
-      .map(([nombre, cantidad]) => ({ nombre, cantidad }))
-      .sort((a, b) => a.nombre.localeCompare(b.nombre));
-
-    return [...categoriasBase, ...categoriasExtras];
+    return [
+      {
+        nombre: CATEGORIA_TODOS,
+        cantidad: publicaciones.length,
+      },
+      ...categoriasDelNegocio,
+    ];
   }, [publicaciones]);
+
+  const mostrarFiltroCategorias = categorias.length > 2;
+
+  useEffect(() => {
+    const categoriaSigueDisponible = categorias.some(
+      (categoria) =>
+        normalizarTexto(categoria.nombre) === normalizarTexto(categoriaActiva),
+    );
+
+    if (!categoriaSigueDisponible) {
+      setCategoriaActiva(CATEGORIA_TODOS);
+    }
+  }, [categorias, categoriaActiva]);
 
   const publicacionesFiltradas = useMemo(() => {
     const texto = normalizarTexto(busqueda);
@@ -225,7 +192,7 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
             Esta vitrina todavía no tiene publicaciones activas.
           </p>
           <p className="mt-2 text-sm text-gray-400">
-            Cuando el vendedor cargue productos, aparecerán en esta sección.
+            Cuando el negocio cargue publicaciones, aparecerán en esta sección.
           </p>
         </div>
       </section>
@@ -242,12 +209,11 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
           </p>
 
           <h2 className="mt-3 text-3xl font-black text-white">
-            Productos disponibles
+            Publicaciones disponibles
           </h2>
 
           <p className="mt-1 text-sm text-gray-400">
-            Filtrá las publicaciones por tipo de producto o buscá por nombre,
-            categoría o ubicación.
+            Explorá esta vitrina o buscá por nombre, categoría o ubicación.
           </p>
         </div>
 
@@ -266,38 +232,38 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="mb-7 flex flex-wrap gap-2">
-        {categorias.map((categoria) => {
-          const activo = categoriaActiva === categoria.nombre;
-          const sinResultados =
-            categoria.cantidad === 0 && categoria.nombre !== "Todos";
+      {mostrarFiltroCategorias && (
+        <div className="mb-7 flex flex-wrap gap-2">
+          {categorias.map((categoria) => {
+            const activo = categoriaActiva === categoria.nombre;
 
-          return (
-            <button
-              key={categoria.nombre}
-              type="button"
-              onClick={() => setCategoriaActiva(categoria.nombre)}
-              className={[
-                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition",
-                activo
-                  ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20"
-                  : "border border-white/10 bg-white/[0.05] text-gray-300 hover:bg-white/[0.09] hover:text-white",
-                sinResultados ? "opacity-55" : "",
-              ].join(" ")}
-            >
-              {categoria.nombre}
-              <span
+            return (
+              <button
+                key={categoria.nombre}
+                type="button"
+                onClick={() => setCategoriaActiva(categoria.nombre)}
                 className={[
-                  "rounded-full px-2 py-0.5 text-[10px]",
-                  activo ? "bg-black/15" : "bg-black/30 text-gray-400",
+                  "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition",
+                  activo
+                    ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20"
+                    : "border border-white/10 bg-white/[0.05] text-gray-300 hover:bg-white/[0.09] hover:text-white",
                 ].join(" ")}
               >
-                {categoria.cantidad}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+                {categoria.nombre}
+
+                <span
+                  className={[
+                    "rounded-full px-2 py-0.5 text-[10px]",
+                    activo ? "bg-black/15" : "bg-black/30 text-gray-400",
+                  ].join(" ")}
+                >
+                  {categoria.cantidad}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {!publicacionesFiltradas.length ? (
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-8 text-center">

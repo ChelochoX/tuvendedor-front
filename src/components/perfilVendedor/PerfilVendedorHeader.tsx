@@ -14,15 +14,15 @@ import {
   abrirWhatsapp,
   limpiarTelefonoWhatsapp,
 } from "../../utils/whatsappShare";
+import PortadaPredeterminada from "./PortadaPredeterminada";
 
 interface Props {
   perfil: PerfilPublicoVendedor;
 }
 
 const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
-  const banner =
-    perfil.bannerUrl ||
-    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab";
+  const banner = perfil.bannerUrl?.trim() || "";
+  const tieneBanner = Boolean(banner);
 
   const foto =
     perfil.fotoPerfil ||
@@ -32,10 +32,9 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
   const telefonoComercialLimpio = limpiarTelefonoWhatsapp(telefonoComercial);
 
   const esVideoBanner =
-    perfil.bannerTipo?.toUpperCase() === "VIDEO" ||
-    banner.toLowerCase().includes(".mp4") ||
-    banner.toLowerCase().includes(".webm") ||
-    banner.toLowerCase().includes(".mov");
+    tieneBanner &&
+    (perfil.bannerTipo?.toUpperCase() === "VIDEO" ||
+      /\.(mp4|webm|mov)(\?.*)?$/i.test(banner));
 
   const handleWhatsapp = () => {
     abrirWhatsapp(
@@ -47,25 +46,44 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
   return (
     <section className="relative overflow-hidden bg-gray-950 text-white shadow-2xl">
       <div className="absolute inset-0">
-        {esVideoBanner ? (
-          <video
-            src={banner}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="h-full w-full object-cover opacity-70"
-          />
+        {tieneBanner ? (
+          esVideoBanner ? (
+            <video
+              src={banner}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full w-full object-cover opacity-70"
+            />
+          ) : (
+            <div
+              className="h-full w-full bg-cover bg-center opacity-75"
+              style={{ backgroundImage: `url(${banner})` }}
+            />
+          )
         ) : (
-          <div
-            className="h-full w-full bg-cover bg-center opacity-75"
-            style={{ backgroundImage: `url(${banner})` }}
-          />
+          <PortadaPredeterminada />
         )}
       </div>
 
-      <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/60 to-gray-950" />
-      <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-black/60" />
+      <div
+        className={[
+          "absolute inset-0 bg-gradient-to-b",
+          tieneBanner
+            ? "from-black/20 via-black/40 to-gray-950/75"
+            : "from-black/08 via-black/18 to-gray-950/70",
+        ].join(" ")}
+      />
+
+      <div
+        className={[
+          "absolute inset-0 bg-gradient-to-r",
+          tieneBanner
+            ? "from-black/45 via-black/18 to-black/35"
+            : "from-black/22 via-transparent to-black/20",
+        ].join(" ")}
+      />
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 pb-8 pt-20 sm:px-8 sm:pb-8 lg:px-10 lg:pb-3 lg:pt-16">
         <div className="mb-7 flex items-center justify-between gap-4 sm:mb-9 lg:mb-5">
@@ -99,7 +117,7 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
 
             <p className="mx-auto mt-4 max-w-3xl text-sm leading-relaxed text-gray-100 sm:text-base lg:mx-0">
               {perfil.descripcion ||
-                "Perfil comercial del vendedor. Encontrá sus productos y formas de contacto en un solo lugar."}
+                "Conocé este negocio, explorá sus publicaciones y encontrá sus formas de contacto en un solo lugar."}
             </p>
 
             <div className="mt-5 flex flex-wrap justify-center gap-2 text-xs font-semibold lg:justify-start">

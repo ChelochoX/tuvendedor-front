@@ -1,9 +1,4 @@
-import React, {
-  Fragment,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import React, { Fragment, useState, useEffect, useCallback } from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
@@ -37,9 +32,7 @@ type DatosPreviosRegistro = {
   proveedorId?: string;
 } | null;
 
-const mapearProductoAEditable = (
-  producto: Producto,
-): PublicacionEditable => {
+const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
   const planCreditoNormalizado = Array.isArray(producto.planCredito)
     ? producto.planCredito.map((plan: any) => ({
         cuotas: plan?.cuotas,
@@ -136,15 +129,11 @@ const Marketplace: React.FC = () => {
         data = await obtenerMisPublicaciones();
       } else {
         const categoria =
-          categoriaSeleccionada &&
-          categoriaSeleccionada.nombre !== "Todos"
+          categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
             ? categoriaSeleccionada.nombre
             : undefined;
 
-        data = await obtenerPublicaciones(
-          categoria,
-          busqueda || undefined,
-        );
+        data = await obtenerPublicaciones(categoria, busqueda || undefined);
       }
 
       setProductos(data || []);
@@ -199,10 +188,7 @@ const Marketplace: React.FC = () => {
     window.addEventListener("abrir-recuperar", handleAbrirRecuperar);
 
     return () => {
-      window.removeEventListener(
-        "abrir-recuperar",
-        handleAbrirRecuperar,
-      );
+      window.removeEventListener("abrir-recuperar", handleAbrirRecuperar);
     };
   }, []);
 
@@ -217,10 +203,7 @@ const Marketplace: React.FC = () => {
     window.addEventListener("login-exitoso", handleLoginExitoso);
 
     return () => {
-      window.removeEventListener(
-        "login-exitoso",
-        handleLoginExitoso,
-      );
+      window.removeEventListener("login-exitoso", handleLoginExitoso);
     };
   }, [quierePublicar]);
 
@@ -231,10 +214,7 @@ const Marketplace: React.FC = () => {
       setBusqueda("");
     };
 
-    window.addEventListener(
-      "ver-mis-publicaciones",
-      handleVerMisPublicaciones,
-    );
+    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
 
     return () => {
       window.removeEventListener(
@@ -254,16 +234,10 @@ const Marketplace: React.FC = () => {
       setMostrarSoloMias(false);
     };
 
-    window.addEventListener(
-      "buscar-productos",
-      handler as EventListener,
-    );
+    window.addEventListener("buscar-productos", handler as EventListener);
 
     return () => {
-      window.removeEventListener(
-        "buscar-productos",
-        handler as EventListener,
-      );
+      window.removeEventListener("buscar-productos", handler as EventListener);
     };
   }, []);
 
@@ -275,10 +249,7 @@ const Marketplace: React.FC = () => {
     window.addEventListener("actualizar-publicaciones", actualizar);
 
     return () => {
-      window.removeEventListener(
-        "actualizar-publicaciones",
-        actualizar,
-      );
+      window.removeEventListener("actualizar-publicaciones", actualizar);
     };
   }, [cargarPublicaciones]);
 
@@ -377,8 +348,7 @@ const Marketplace: React.FC = () => {
             <h2 className="mb-4 text-2xl font-semibold text-white">
               {mostrarSoloMias
                 ? "Mis publicaciones"
-                : categoriaSeleccionada?.nombre ||
-                  "Todos los productos"}
+                : categoriaSeleccionada?.nombre || "Todos los productos"}
             </h2>
 
             {mostrarSoloMias && (
@@ -402,9 +372,7 @@ const Marketplace: React.FC = () => {
             ) : (
               <>
                 {mostrarCarruselEspeciales && (
-                  <CarruselEspeciales
-                    productos={productosEspeciales}
-                  />
+                  <CarruselEspeciales productos={productosEspeciales} />
                 )}
 
                 {itemsEnGrid.length === 0 ? (
@@ -426,11 +394,7 @@ const Marketplace: React.FC = () => {
                           }
                           onEditar={handleEditarPublicacion}
                           mostrarAcciones={mostrarSoloMias}
-                          variant={
-                            mostrarSoloMias
-                              ? "compact"
-                              : "default"
-                          }
+                          variant={mostrarSoloMias ? "compact" : "default"}
                         />
 
                         {/*
@@ -439,7 +403,7 @@ const Marketplace: React.FC = () => {
                           publicación normal.
                         */}
                         {mostrarBannersPublicitarios &&
-                          index === 7 &&
+                          index === 5 &&
                           homeInline.length > 0 && (
                             <div className="home__banner-inline">
                               <BannerPublicidadCarousel
@@ -457,7 +421,7 @@ const Marketplace: React.FC = () => {
                       al final del grid.
                     */}
                     {mostrarBannersPublicitarios &&
-                      itemsEnGrid.length <= 7 &&
+                      itemsEnGrid.length <= 5 &&
                       homeInline.length > 0 && (
                         <div className="home__banner-inline">
                           <BannerPublicidadCarousel
@@ -468,10 +432,7 @@ const Marketplace: React.FC = () => {
                       )}
 
                     {showFab && (
-                      <div
-                        className="h-28 md:hidden"
-                        aria-hidden="true"
-                      />
+                      <div className="h-28 md:hidden" aria-hidden="true" />
                     )}
                   </div>
                 )}

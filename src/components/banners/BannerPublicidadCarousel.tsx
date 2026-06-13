@@ -1,14 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
+
 import { registrarEventoBanner } from "../../api/bannersPublicitariosService";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useRegistrarImpresionBanner } from "../../hooks/useRegistrarImpresionBanner";
+
 import {
   BANNER_EVENTOS,
+  BANNER_TIPOS_DESTINO,
   BANNER_UBICACIONES,
   type BannerEventoTipo,
   type BannerPublicitario,
   type BannerUbicacion,
 } from "../../types/bannerPublicitario";
+
 import "../../styles/banners-publicitarios.css";
 
 interface BannerPublicidadCarouselProps {
@@ -18,16 +22,14 @@ interface BannerPublicidadCarouselProps {
   className?: string;
 }
 
-function obtenerUrlSegura(valor?: string | null): string | null {
-  if (!valor) {
+function obtenerUrlSegura(
+  valor?: string | null,
+): string | null {
+  if (!valor?.trim()) {
     return null;
   }
 
   const url = valor.trim();
-
-  if (url.length === 0) {
-    return null;
-  }
 
   if (
     url.startsWith("https://") ||
@@ -40,28 +42,25 @@ function obtenerUrlSegura(valor?: string | null): string | null {
   return `https://${url}`;
 }
 
-function obtenerWhatsappUrl(valor?: string | null): string | null {
-  if (!valor) {
+function obtenerWhatsappUrl(
+  valor?: string | null,
+): string | null {
+  if (!valor?.trim()) {
     return null;
   }
 
   const texto = valor.trim();
 
-  if (texto.length === 0) {
-    return null;
-  }
-
-  if (texto.startsWith("https://") || texto.startsWith("http://")) {
+  if (
+    texto.startsWith("https://") ||
+    texto.startsWith("http://")
+  ) {
     return texto;
   }
 
   const numero = texto.replace(/\D/g, "");
 
-  if (numero.length === 0) {
-    return null;
-  }
-
-  return `https://wa.me/${numero}`;
+  return numero ? `https://wa.me/${numero}` : null;
 }
 
 export function BannerPublicidadCarousel({
@@ -85,9 +84,10 @@ export function BannerPublicidadCarousel({
     }
 
     const intervalId = window.setInterval(() => {
-      setIndiceActivo((indiceActual) => {
-        return (indiceActual + 1) % banners.length;
-      });
+      setIndiceActivo(
+        (indiceActual) =>
+          (indiceActual + 1) % banners.length,
+      );
     }, intervaloMs);
 
     return () => {
@@ -97,29 +97,55 @@ export function BannerPublicidadCarousel({
 
   const bannerActivo = banners[indiceActivo];
 
-  const referenciaImpresion = useRegistrarImpresionBanner({
-    bannerPublicitarioId: bannerActivo?.id,
-    ubicacion,
-  });
+  const referenciaImpresion =
+    useRegistrarImpresionBanner({
+      bannerPublicitarioId: bannerActivo?.id,
+      ubicacion,
+    });
 
-  const urlDestino = useMemo(() => {
-    return obtenerUrlSegura(bannerActivo?.urlDestino);
-  }, [bannerActivo?.urlDestino]);
+  const urlDestino = useMemo(
+    () => obtenerUrlSegura(bannerActivo?.urlDestino),
+    [bannerActivo?.urlDestino],
+  );
 
-  const whatsappUrl = useMemo(() => {
-    return obtenerWhatsappUrl(bannerActivo?.whatsappUrl);
-  }, [bannerActivo?.whatsappUrl]);
+  const whatsappUrl = useMemo(
+    () => obtenerWhatsappUrl(bannerActivo?.whatsappUrl),
+    [bannerActivo?.whatsappUrl],
+  );
 
   if (!bannerActivo) {
     return null;
   }
+
+  const tipoDestino =
+    bannerActivo.tipoDestino ??
+    (urlDestino
+      ? BANNER_TIPOS_DESTINO.URL
+      : BANNER_TIPOS_DESTINO.WHATSAPP);
+
+  const destinoPrincipal =
+    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+      ? whatsappUrl
+      : urlDestino;
+
+  const eventoPrincipal: BannerEventoTipo =
+    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+      ? BANNER_EVENTOS.WHATSAPP
+      : BANNER_EVENTOS.CLICK;
+
+  const mostrarWhatsappSecundario =
+    Boolean(whatsappUrl) &&
+    tipoDestino !== BANNER_TIPOS_DESTINO.WHATSAPP &&
+    bannerActivo.mostrarBotonWhatsapp;
 
   const imagenActual =
     esMobile && bannerActivo.imagenMobileUrl
       ? bannerActivo.imagenMobileUrl
       : bannerActivo.imagenDesktopUrl;
 
-  const imagenTieneAccion = Boolean(urlDestino || whatsappUrl);
+  const imagenTieneAccion = Boolean(
+    destinoPrincipal || whatsappUrl,
+  );
 
   const registrarYAbrirDestino = (
     destino: string,
@@ -131,7 +157,12 @@ export function BannerPublicidadCarousel({
     });
 
     if (bannerActivo.abrirNuevaPestana) {
-      window.open(destino, "_blank", "noopener,noreferrer");
+      window.open(
+        destino,
+        "_blank",
+        "noopener,noreferrer",
+      );
+
       return;
     }
 
@@ -139,29 +170,40 @@ export function BannerPublicidadCarousel({
   };
 
   const manejarClickImagen = () => {
-    if (urlDestino) {
-      registrarYAbrirDestino(urlDestino, BANNER_EVENTOS.CLICK);
+    if (destinoPrincipal) {
+      registrarYAbrirDestino(
+        destinoPrincipal,
+        eventoPrincipal,
+      );
+
       return;
     }
 
     if (whatsappUrl) {
-      registrarYAbrirDestino(whatsappUrl, BANNER_EVENTOS.WHATSAPP);
+      registrarYAbrirDestino(
+        whatsappUrl,
+        BANNER_EVENTOS.WHATSAPP,
+      );
     }
   };
 
   const irAnterior = () => {
-    setIndiceActivo((indiceActual) => {
-      return indiceActual === 0 ? banners.length - 1 : indiceActual - 1;
-    });
+    setIndiceActivo((indiceActual) =>
+      indiceActual === 0
+        ? banners.length - 1
+        : indiceActual - 1,
+    );
   };
 
   const irSiguiente = () => {
-    setIndiceActivo((indiceActual) => {
-      return (indiceActual + 1) % banners.length;
-    });
+    setIndiceActivo(
+      (indiceActual) =>
+        (indiceActual + 1) % banners.length,
+    );
   };
 
-  const esHomeTop = ubicacion === BANNER_UBICACIONES.HOME_TOP;
+  const esHomeTop =
+    ubicacion === BANNER_UBICACIONES.HOME_TOP;
 
   return (
     <section
@@ -180,7 +222,9 @@ export function BannerPublicidadCarousel({
       onMouseLeave={() => setPausado(false)}
     >
       <div className="banner-publicidad__contenedor">
-        <span className="banner-publicidad__etiqueta">Publicidad</span>
+        <span className="banner-publicidad__etiqueta">
+          {bannerActivo.etiqueta || "Publicidad"}
+        </span>
 
         <button
           type="button"
@@ -202,7 +246,10 @@ export function BannerPublicidadCarousel({
         >
           <img
             src={imagenActual}
-            alt={bannerActivo.titulo ?? "Banner publicitario"}
+            alt={
+              bannerActivo.titulo ??
+              "Banner publicitario"
+            }
             className="banner-publicidad__imagen"
             loading={esHomeTop ? "eager" : "lazy"}
             onError={(event) => {
@@ -210,10 +257,12 @@ export function BannerPublicidadCarousel({
 
               if (
                 bannerActivo.imagenDesktopUrl &&
-                imagen.src !== bannerActivo.imagenDesktopUrl
+                imagen.src !==
+                  bannerActivo.imagenDesktopUrl
               ) {
                 imagen.onerror = null;
-                imagen.src = bannerActivo.imagenDesktopUrl;
+                imagen.src =
+                  bannerActivo.imagenDesktopUrl;
               }
             }}
           />
@@ -276,7 +325,11 @@ export function BannerPublicidadCarousel({
         )}
       </div>
 
-      {(urlDestino || whatsappUrl) && (
+      {(bannerActivo.titulo ||
+        bannerActivo.subtitulo ||
+        bannerActivo.descripcion ||
+        destinoPrincipal ||
+        mostrarWhatsappSecundario) && (
         <div className="banner-publicidad__acciones">
           <div className="banner-publicidad__informacion">
             {bannerActivo.titulo && (
@@ -285,37 +338,51 @@ export function BannerPublicidadCarousel({
               </strong>
             )}
 
-            {bannerActivo.descripcion && (
+            {(bannerActivo.subtitulo ||
+              bannerActivo.descripcion) && (
               <span className="banner-publicidad__descripcion">
-                {bannerActivo.descripcion}
+                {bannerActivo.subtitulo ||
+                  bannerActivo.descripcion}
               </span>
             )}
           </div>
 
           <div className="banner-publicidad__botones">
-            {urlDestino && (
+            {destinoPrincipal && (
               <button
                 type="button"
                 className="banner-publicidad__boton banner-publicidad__boton--principal"
                 onClick={() =>
-                  registrarYAbrirDestino(urlDestino, BANNER_EVENTOS.CLICK)
+                  registrarYAbrirDestino(
+                    destinoPrincipal,
+                    eventoPrincipal,
+                  )
                 }
               >
-                {bannerActivo.textoBoton || "Conocer más"}
+                {bannerActivo.textoBoton ||
+                  (tipoDestino ===
+                  BANNER_TIPOS_DESTINO.WHATSAPP
+                    ? "Escribir por WhatsApp"
+                    : "Conocer más")}
               </button>
             )}
 
-            {whatsappUrl && (
-              <button
-                type="button"
-                className="banner-publicidad__boton banner-publicidad__boton--whatsapp"
-                onClick={() =>
-                  registrarYAbrirDestino(whatsappUrl, BANNER_EVENTOS.WHATSAPP)
-                }
-              >
-                Escribir por WhatsApp
-              </button>
-            )}
+            {mostrarWhatsappSecundario &&
+              whatsappUrl && (
+                <button
+                  type="button"
+                  className="banner-publicidad__boton banner-publicidad__boton--whatsapp"
+                  onClick={() =>
+                    registrarYAbrirDestino(
+                      whatsappUrl,
+                      BANNER_EVENTOS.WHATSAPP,
+                    )
+                  }
+                >
+                  {bannerActivo.textoBotonWhatsapp ||
+                    "Escribir por WhatsApp"}
+                </button>
+              )}
           </div>
         </div>
       )}

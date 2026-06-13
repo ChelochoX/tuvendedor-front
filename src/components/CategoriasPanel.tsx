@@ -11,6 +11,7 @@ import Swal from "sweetalert2";
 import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacionesService";
 import SugerenciaModal from "./SugerenciaModal";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import ImageIcon from "@mui/icons-material/Image";
 
 interface Props {
   categorias: Categoria[];
@@ -68,6 +69,11 @@ const CategoriasPanel: React.FC<Props> = ({
     onCerrarSidebar?.();
   };
 
+  const irABannersPublicitarios = () => {
+    navigate("/admin/banners-publicitarios");
+    onCerrarSidebar?.();
+  };
+
   const verMisPublicaciones = () => {
     window.dispatchEvent(new Event("ver-mis-publicaciones"));
     onCerrarSidebar?.();
@@ -111,14 +117,25 @@ const CategoriasPanel: React.FC<Props> = ({
         )}
 
         {esAdmin && (
-          <button
-            onClick={irAServiciosPremium}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-           text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-          >
-            <WorkspacePremiumIcon fontSize="small" />
-            Servicios Premium
-          </button>
+          <>
+            <button
+              onClick={irAServiciosPremium}
+              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
+                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+            >
+              <WorkspacePremiumIcon fontSize="small" />
+              Servicios Premium
+            </button>
+
+            <button
+              onClick={irABannersPublicitarios}
+              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
+                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+            >
+              <ImageIcon fontSize="small" />
+              Banners publicitarios
+            </button>
+          </>
         )}
 
         <hr className="border-yellow-400 opacity-40" />
@@ -218,14 +235,25 @@ const CategoriasPanel: React.FC<Props> = ({
           )}
 
           {esAdmin && (
-            <button
-              onClick={irAServiciosPremium}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-            >
-              <WorkspacePremiumIcon fontSize="small" />
-              Servicios Premium
-            </button>
+            <>
+              <button
+                onClick={irAServiciosPremium}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              >
+                <WorkspacePremiumIcon fontSize="small" />
+                Servicios Premium
+              </button>
+
+              <button
+                onClick={irABannersPublicitarios}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
+                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              >
+                <ImageIcon fontSize="small" />
+                Banners publicitarios
+              </button>
+            </>
           )}
         </div>
       </div>

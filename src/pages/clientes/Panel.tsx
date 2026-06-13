@@ -1,5 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+
+import {
+  useNavigate,
+} from "react-router-dom";
+
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
@@ -7,22 +11,28 @@ import StoreIcon from "@mui/icons-material/Store";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import CategoryIcon from "@mui/icons-material/Category";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import { useUsuario } from "../../context/UsuarioContext";
+import ImageIcon from "@mui/icons-material/Image";
+
+import {
+  useUsuario,
+} from "../../context/UsuarioContext";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
+
   const { esAdmin } = useUsuario();
 
   return (
     <div className="flex flex-col justify-between h-full relative">
       <div className="flex flex-col gap-2 overflow-y-auto pb-20 md:pb-0">
-        {/* ================= CLIENTES ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mb-3">
           Clientes
         </h2>
 
         <button
-          onClick={() => navigate("/clientes/dashboard")}
+          onClick={() =>
+            navigate("/clientes/dashboard")
+          }
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <DashboardIcon fontSize="small" />
@@ -30,20 +40,23 @@ const Panel: React.FC = () => {
         </button>
 
         <button
-          onClick={() => navigate("/clientes/cargar")}
+          onClick={() =>
+            navigate("/clientes/cargar")
+          }
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <PersonAddIcon fontSize="small" />
           Registrar cliente
         </button>
 
-        {/* ================= GESTIÓN PRODUCTO ================= */}
         <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
           Gestión Producto
         </h2>
 
         <button
-          onClick={() => navigate("/clientes/marcas")}
+          onClick={() =>
+            navigate("/clientes/marcas")
+          }
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <StoreIcon fontSize="small" />
@@ -51,7 +64,9 @@ const Panel: React.FC = () => {
         </button>
 
         <button
-          onClick={() => navigate("/clientes/modelos")}
+          onClick={() =>
+            navigate("/clientes/modelos")
+          }
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <CategoryIcon fontSize="small" />
@@ -59,7 +74,9 @@ const Panel: React.FC = () => {
         </button>
 
         <button
-          onClick={() => navigate("/clientes/precios")}
+          onClick={() =>
+            navigate("/clientes/precios")
+          }
           className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
         >
           <LocalOfferIcon fontSize="small" />
@@ -73,17 +90,32 @@ const Panel: React.FC = () => {
             </h2>
 
             <button
-              onClick={() => navigate("/admin/servicios-premium")}
+              onClick={() =>
+                navigate(
+                  "/admin/servicios-premium",
+                )
+              }
               className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
             >
               <WorkspacePremiumIcon fontSize="small" />
               Servicios Premium
             </button>
+
+            <button
+              onClick={() =>
+                navigate(
+                  "/admin/banners-publicitarios",
+                )
+              }
+              className="flex items-center gap-2 px-4 py-2 rounded text-white hover:bg-yellow-500 hover:text-black transition-all"
+            >
+              <ImageIcon fontSize="small" />
+              Banners publicitarios
+            </button>
           </>
         )}
       </div>
 
-      {/* ================= BOTÓN MARKETPLACE DESKTOP ================= */}
       <div className="hidden md:block mt-4">
         <button
           onClick={() => navigate("/")}
@@ -96,7 +128,6 @@ const Panel: React.FC = () => {
         </button>
       </div>
 
-      {/* ================= BOTÓN MARKETPLACE MOBILE ================= */}
       <div
         className="
           md:hidden

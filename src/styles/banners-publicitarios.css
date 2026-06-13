@@ -1,0 +1,308 @@
+.banner-publicidad {
+  width: 100%;
+  margin: 20px 0;
+}
+
+.banner-publicidad__contenedor {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #f3f4f6;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.1);
+}
+
+.banner-publicidad__etiqueta {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 3;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.62);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(5px);
+}
+
+/*
+  El contenedor de la imagen controla la proporción real del banner.
+  De esta forma evitamos deformaciones.
+*/
+.banner-publicidad__imagen-boton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.banner-publicidad__imagen-boton:disabled {
+  opacity: 1;
+}
+
+.banner-publicidad__imagen-boton--clickeable {
+  cursor: pointer;
+}
+
+/*
+  La imagen llena completamente su contenedor.
+  Si la proporción cargada es incorrecta, object-fit recorta los bordes
+  sin estirar ni deformar el diseño.
+*/
+.banner-publicidad__imagen {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 220ms ease;
+  will-change: transform;
+}
+
+.banner-publicidad__imagen-boton--clickeable:hover
+  .banner-publicidad__imagen {
+  transform: scale(1.015);
+}
+
+/*
+  HOME_TOP escritorio
+  Imagen recomendada: 1600 × 420 px
+*/
+.banner-publicidad--home-top .banner-publicidad__imagen-boton {
+  aspect-ratio: 1600 / 420;
+}
+
+/*
+  HOME_INLINE escritorio
+  Imagen recomendada: 1600 × 360 px
+*/
+.banner-publicidad--home-inline .banner-publicidad__imagen-boton {
+  aspect-ratio: 1600 / 360;
+}
+
+.banner-publicidad__flecha {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.86);
+  color: #111827;
+  font-size: 31px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+  transform: translateY(-50%);
+  transition:
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.banner-publicidad__flecha:hover {
+  background: #ffffff;
+  transform: translateY(-50%) scale(1.06);
+}
+
+.banner-publicidad__flecha--izquierda {
+  left: 12px;
+}
+
+.banner-publicidad__flecha--derecha {
+  right: 12px;
+}
+
+.banner-publicidad__indicadores {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  left: 14px;
+  z-index: 4;
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+}
+
+.banner-publicidad__indicador {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: 50%;
+  background: rgba(15, 23, 42, 0.42);
+  cursor: pointer;
+  transition:
+    width 160ms ease,
+    border-radius 160ms ease,
+    background 160ms ease;
+}
+
+.banner-publicidad__indicador--activo {
+  width: 24px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+.banner-publicidad__acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 15px 17px;
+  border: 1px solid #e5e7eb;
+  border-top: 0;
+  border-radius: 0 0 18px 18px;
+  background: #ffffff;
+}
+
+.banner-publicidad__informacion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.banner-publicidad__titulo {
+  overflow: hidden;
+  color: #111827;
+  font-size: 15px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.banner-publicidad__descripcion {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 13px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.banner-publicidad__botones {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.banner-publicidad__boton {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    opacity 160ms ease;
+}
+
+.banner-publicidad__boton:hover {
+  transform: translateY(-1px);
+}
+
+.banner-publicidad__boton--principal {
+  background: #facc15;
+  color: #1f2937;
+  box-shadow: 0 5px 12px rgba(250, 204, 21, 0.22);
+}
+
+.banner-publicidad__boton--whatsapp {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 5px 12px rgba(22, 163, 74, 0.2);
+}
+
+/*
+  Esta clase permite que HOME_INLINE ocupe todo el ancho del grid
+  cuando aparece entre las publicaciones.
+*/
+.home__banner-inline {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+@media (max-width: 767px) {
+  .banner-publicidad {
+    margin: 14px 0;
+  }
+
+  .banner-publicidad__contenedor {
+    border-radius: 14px;
+  }
+
+  .banner-publicidad__etiqueta {
+    top: 9px;
+    left: 9px;
+    padding: 3px 7px;
+    font-size: 9px;
+  }
+
+  /*
+    HOME_TOP y HOME_INLINE móvil
+    Imagen recomendada: 1080 × 720 px
+  */
+  .banner-publicidad--home-top .banner-publicidad__imagen-boton,
+  .banner-publicidad--home-inline .banner-publicidad__imagen-boton {
+    aspect-ratio: 1080 / 720;
+  }
+
+  .banner-publicidad__flecha {
+    width: 32px;
+    height: 32px;
+    font-size: 27px;
+  }
+
+  .banner-publicidad__flecha--izquierda {
+    left: 8px;
+  }
+
+  .banner-publicidad__flecha--derecha {
+    right: 8px;
+  }
+
+  .banner-publicidad__indicadores {
+    bottom: 10px;
+  }
+
+  .banner-publicidad__acciones {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 11px;
+    padding: 13px;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .banner-publicidad__titulo {
+    font-size: 14px;
+  }
+
+  .banner-publicidad__descripcion {
+    font-size: 12px;
+  }
+
+  .banner-publicidad__botones {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .banner-publicidad__boton {
+    flex: 1 1 145px;
+    min-height: 42px;
+  }
+}

@@ -51,10 +51,7 @@ function obtenerWhatsappUrl(valor?: string | null): string | null {
     return null;
   }
 
-  if (
-    texto.startsWith("https://") ||
-    texto.startsWith("http://")
-  ) {
+  if (texto.startsWith("https://") || texto.startsWith("http://")) {
     return texto;
   }
 
@@ -126,7 +123,7 @@ export function BannerPublicidadCarousel({
 
   const registrarYAbrirDestino = (
     destino: string,
-    tipoEvento: BannerEventoTipo
+    tipoEvento: BannerEventoTipo,
   ) => {
     void registrarEventoBanner({
       bannerPublicitarioId: bannerActivo.id,
@@ -230,7 +227,13 @@ export function BannerPublicidadCarousel({
               aria-label="Ver banner anterior"
               onClick={irAnterior}
             >
-              ‹
+              <svg
+                className="banner-publicidad__flecha-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M15 18 9 12l6-6" />
+              </svg>
             </button>
 
             <button
@@ -239,7 +242,13 @@ export function BannerPublicidadCarousel({
               aria-label="Ver banner siguiente"
               onClick={irSiguiente}
             >
-              ›
+              <svg
+                className="banner-publicidad__flecha-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
             </button>
 
             <div
@@ -301,10 +310,7 @@ export function BannerPublicidadCarousel({
                 type="button"
                 className="banner-publicidad__boton banner-publicidad__boton--whatsapp"
                 onClick={() =>
-                  registrarYAbrirDestino(
-                    whatsappUrl,
-                    BANNER_EVENTOS.WHATSAPP
-                  )
+                  registrarYAbrirDestino(whatsappUrl, BANNER_EVENTOS.WHATSAPP)
                 }
               >
                 Escribir por WhatsApp

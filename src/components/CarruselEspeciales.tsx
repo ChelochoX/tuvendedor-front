@@ -27,6 +27,41 @@ interface Props {
 const MINIMO_PRODUCTOS_AUTOPLAY = 2;
 const INTERVALO_AUTOPLAY_MS = 3000;
 
+/*
+ * Utilizamos SVG en lugar de caracteres como ‹ y ›.
+ * De esta forma los íconos quedan perfectamente centrados
+ * dentro de los botones circulares en todos los navegadores.
+ */
+const FlechaIzquierdaIcon = () => (
+  <svg
+    className="h-5 w-5"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M15 18 9 12l6-6" />
+  </svg>
+);
+
+const FlechaDerechaIcon = () => (
+  <svg
+    className="h-5 w-5"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="m9 18 6-6-6-6" />
+  </svg>
+);
+
 const CarruselEspeciales: React.FC<Props> = ({
   productos,
   mostrarAcciones = false,
@@ -297,25 +332,58 @@ const CarruselEspeciales: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="carrusel-body relative mt-3 md:mt-4">
+        {/*
+          En escritorio reservamos espacio lateral para las flechas.
+          Así nunca quedan encima de los corazones ni de los cards.
+          En celular no aplicamos padding porque las flechas permanecen ocultas.
+        */}
+        <div className="carrusel-body relative mt-3 md:mt-4 md:px-12">
           {puedeDesplazarse && (
             <>
               <button
                 type="button"
                 aria-label="Ver publicación anterior"
                 onClick={() => moverManual("left")}
-                className="carrusel-arrow carrusel-left hidden md:flex"
+                className="
+                  absolute left-1 top-1/2 z-20
+                  hidden h-10 w-10 -translate-y-1/2
+                  items-center justify-center
+                  rounded-full border border-yellow-300/80
+                  bg-yellow-400 text-[#111827]
+                  shadow-[0_6px_14px_rgba(15,23,42,0.28)]
+                  transition duration-150
+                  hover:scale-110 hover:bg-yellow-300
+                  active:scale-95
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-yellow-200
+                  md:flex
+                "
               >
-                ‹
+                <FlechaIzquierdaIcon />
               </button>
 
               <button
                 type="button"
                 aria-label="Ver publicación siguiente"
                 onClick={() => moverManual("right")}
-                className="carrusel-arrow carrusel-right hidden md:flex"
+                className="
+                  absolute right-1 top-1/2 z-20
+                  hidden h-10 w-10 -translate-y-1/2
+                  items-center justify-center
+                  rounded-full border border-yellow-300/80
+                  bg-yellow-400 text-[#111827]
+                  shadow-[0_6px_14px_rgba(15,23,42,0.28)]
+                  transition duration-150
+                  hover:scale-110 hover:bg-yellow-300
+                  active:scale-95
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-yellow-200
+                  md:flex
+                "
               >
-                ›
+                <FlechaDerechaIcon />
               </button>
             </>
           )}
@@ -345,6 +413,10 @@ const CarruselEspeciales: React.FC<Props> = ({
           </div>
         </div>
 
+        {/*
+          En móvil mantenemos únicamente indicadores y desplazamiento táctil.
+          Las flechas permanecen ocultas para no tapar contenido.
+        */}
         {productos.length > 1 && (
           <div className="mt-3 flex items-center justify-center gap-1.5 md:hidden">
             {productos.map((producto, indice) => (

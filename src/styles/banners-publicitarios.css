@@ -29,8 +29,8 @@
 }
 
 /*
-  El contenedor de la imagen controla la proporción real del banner.
-  De esta forma evitamos deformaciones.
+  El contenedor controla la proporción del banner.
+  Así evitamos deformaciones aunque una imagen tenga otra medida.
 */
 .banner-publicidad__imagen-boton {
   display: block;
@@ -51,27 +51,31 @@
 }
 
 /*
-  La imagen llena completamente su contenedor.
-  Si la proporción cargada es incorrecta, object-fit recorta los bordes
-  sin estirar ni deformar el diseño.
+  La imagen llena completamente el espacio disponible.
+  object-fit: cover evita deformaciones y recorta solamente
+  los bordes necesarios cuando la proporción no coincide.
 */
 .banner-publicidad__imagen {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 220ms ease;
   will-change: transform;
 }
 
-.banner-publicidad__imagen-boton--clickeable:hover
-  .banner-publicidad__imagen {
+.banner-publicidad__imagen-boton--clickeable:hover .banner-publicidad__imagen {
   transform: scale(1.015);
 }
 
+/* =========================================================
+   PROPORCIONES DE LAS IMÁGENES
+   ========================================================= */
+
 /*
   HOME_TOP escritorio
-  Imagen recomendada: 1600 × 420 px
+  Medida recomendada: 1600 × 420 px
 */
 .banner-publicidad--home-top .banner-publicidad__imagen-boton {
   aspect-ratio: 1600 / 420;
@@ -79,48 +83,101 @@
 
 /*
   HOME_INLINE escritorio
-  Imagen recomendada: 1600 × 360 px
+  Medida recomendada: 1600 × 240 px
+  Es una franja más fina para no interrumpir el catálogo.
 */
-.banner-publicidad--home-inline .banner-publicidad__imagen-boton {
-  aspect-ratio: 1600 / 360;
+.banner-publicidad--home-inline {
+  margin: 14px 0;
 }
+
+.banner-publicidad--home-inline .banner-publicidad__imagen-boton {
+  aspect-ratio: 1600 / 240;
+}
+
+/* =========================================================
+   FLECHAS DEL CARRUSEL
+   ========================================================= */
 
 .banner-publicidad__flecha {
   position: absolute;
   top: 50%;
-  z-index: 4;
+  z-index: 5;
+
   display: flex;
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   align-items: center;
   justify-content: center;
+
   padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.86);
+  border: 2px solid rgba(15, 23, 42, 0.18);
+  border-radius: 999px;
+
+  background: #facc15;
   color: #111827;
-  font-size: 31px;
-  line-height: 1;
+
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.16);
+
+  box-shadow:
+    0 7px 16px rgba(15, 23, 42, 0.22),
+    0 2px 5px rgba(15, 23, 42, 0.12);
+
   transform: translateY(-50%);
   transition:
+    transform 160ms ease,
     background 160ms ease,
-    transform 160ms ease;
+    box-shadow 160ms ease;
 }
 
 .banner-publicidad__flecha:hover {
-  background: #ffffff;
-  transform: translateY(-50%) scale(1.06);
+  background: #fde047;
+  box-shadow:
+    0 9px 20px rgba(15, 23, 42, 0.28),
+    0 3px 7px rgba(15, 23, 42, 0.16);
+
+  transform: translateY(-50%) scale(1.08);
+}
+
+.banner-publicidad__flecha:active {
+  transform: translateY(-50%) scale(0.96);
 }
 
 .banner-publicidad__flecha--izquierda {
-  left: 12px;
+  left: 14px;
 }
 
 .banner-publicidad__flecha--derecha {
-  right: 12px;
+  right: 14px;
 }
+
+.banner-publicidad__flecha-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/*
+  HOME_INLINE utiliza flechas ligeramente más pequeñas
+  porque su altura es menor.
+*/
+.banner-publicidad--home-inline .banner-publicidad__flecha {
+  width: 36px;
+  height: 36px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__flecha-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* =========================================================
+   INDICADORES DEL CARRUSEL
+   ========================================================= */
 
 .banner-publicidad__indicadores {
   position: absolute;
@@ -128,6 +185,7 @@
   bottom: 14px;
   left: 14px;
   z-index: 4;
+
   display: flex;
   justify-content: center;
   gap: 7px;
@@ -141,6 +199,7 @@
   border-radius: 50%;
   background: rgba(15, 23, 42, 0.42);
   cursor: pointer;
+
   transition:
     width 160ms ease,
     border-radius 160ms ease,
@@ -153,15 +212,39 @@
   background: #ffffff;
 }
 
+/*
+  Indicadores más discretos en HOME_INLINE.
+*/
+.banner-publicidad--home-inline .banner-publicidad__indicadores {
+  bottom: 8px;
+  gap: 6px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__indicador {
+  width: 7px;
+  height: 7px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__indicador--activo {
+  width: 20px;
+}
+
+/* =========================================================
+   INFORMACIÓN Y BOTONES DEBAJO DEL BANNER
+   ========================================================= */
+
 .banner-publicidad__acciones {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+
   padding: 15px 17px;
+
   border: 1px solid #e5e7eb;
   border-top: 0;
   border-radius: 0 0 18px 18px;
+
   background: #ffffff;
 }
 
@@ -201,11 +284,15 @@
 .banner-publicidad__boton {
   min-height: 40px;
   padding: 10px 14px;
+
   border: 0;
   border-radius: 11px;
+
   font-size: 13px;
   font-weight: 700;
+
   cursor: pointer;
+
   transition:
     transform 160ms ease,
     box-shadow 160ms ease,
@@ -228,14 +315,58 @@
   box-shadow: 0 5px 12px rgba(22, 163, 74, 0.2);
 }
 
+/* =========================================================
+   HOME_INLINE - BARRA INFERIOR MÁS COMPACTA
+   ========================================================= */
+
+.banner-publicidad--home-inline .banner-publicidad__contenedor {
+  border-radius: 16px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__acciones {
+  gap: 12px;
+  padding: 9px 13px;
+  border-radius: 0 0 16px 16px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__informacion {
+  gap: 2px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__titulo {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__descripcion {
+  font-size: 11px;
+  line-height: 1.25;
+  -webkit-line-clamp: 1;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__botones {
+  gap: 7px;
+}
+
+.banner-publicidad--home-inline .banner-publicidad__boton {
+  min-height: 34px;
+  padding: 7px 11px;
+  border-radius: 9px;
+  font-size: 11px;
+}
+
 /*
-  Esta clase permite que HOME_INLINE ocupe todo el ancho del grid
-  cuando aparece entre las publicaciones.
+  Permite que HOME_INLINE ocupe todo el ancho del grid
+  cuando aparece entre publicaciones.
 */
 .home__banner-inline {
   grid-column: 1 / -1;
   width: 100%;
 }
+
+/* =========================================================
+   MÓVIL
+   ========================================================= */
 
 @media (max-width: 767px) {
   .banner-publicidad {
@@ -254,36 +385,68 @@
   }
 
   /*
-    HOME_TOP y HOME_INLINE móvil
-    Imagen recomendada: 1080 × 720 px
+    HOME_TOP móvil
+    Medida recomendada: 1080 × 720 px
   */
-  .banner-publicidad--home-top .banner-publicidad__imagen-boton,
-  .banner-publicidad--home-inline .banner-publicidad__imagen-boton {
+  .banner-publicidad--home-top .banner-publicidad__imagen-boton {
     aspect-ratio: 1080 / 720;
   }
 
+  /*
+    HOME_INLINE móvil
+    Medida recomendada: 1080 × 480 px
+    También queda más fino que HOME_TOP.
+  */
+  .banner-publicidad--home-inline {
+    margin: 12px 0;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__imagen-boton {
+    aspect-ratio: 1080 / 480;
+  }
+
   .banner-publicidad__flecha {
-    width: 32px;
-    height: 32px;
-    font-size: 27px;
+    width: 34px;
+    height: 34px;
+    border-width: 1px;
   }
 
   .banner-publicidad__flecha--izquierda {
-    left: 8px;
+    left: 9px;
   }
 
   .banner-publicidad__flecha--derecha {
-    right: 8px;
+    right: 9px;
+  }
+
+  .banner-publicidad__flecha-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__flecha {
+    width: 30px;
+    height: 30px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__flecha-icon {
+    width: 16px;
+    height: 16px;
   }
 
   .banner-publicidad__indicadores {
     bottom: 10px;
   }
 
+  .banner-publicidad--home-inline .banner-publicidad__indicadores {
+    bottom: 7px;
+  }
+
   .banner-publicidad__acciones {
     flex-direction: column;
     align-items: stretch;
     gap: 11px;
+
     padding: 13px;
     border-radius: 0 0 14px 14px;
   }
@@ -304,5 +467,41 @@
   .banner-publicidad__boton {
     flex: 1 1 145px;
     min-height: 42px;
+  }
+
+  /*
+    HOME_INLINE móvil mantiene una barra inferior compacta.
+    Los botones permanecen cómodos para tocar con el dedo.
+  */
+  .banner-publicidad--home-inline .banner-publicidad__acciones {
+    gap: 9px;
+    padding: 10px 11px;
+    border-radius: 0 0 14px 14px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__informacion {
+    gap: 2px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__titulo {
+    font-size: 13px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__descripcion {
+    font-size: 11px;
+    line-height: 1.2;
+    -webkit-line-clamp: 2;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__botones {
+    gap: 8px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__boton {
+    flex: 1 1 130px;
+    min-height: 38px;
+    padding: 8px 10px;
+    border-radius: 9px;
+    font-size: 12px;
   }
 }

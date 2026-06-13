@@ -1,22 +1,32 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, {
+  Fragment,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import Cabecera from "../components/Cabecera";
 import CategoriasPanel from "../components/CategoriasPanel";
 import ProductoCard from "../components/ProductoCard";
 import CarruselEspeciales from "../components/CarruselEspeciales";
 import CrearPublicacionModal from "../components/publicaciones/CrearPublicacionModal";
-import { Producto } from "../types/producto";
-import { Categoria } from "../types/categoria";
 import LoginModal from "../components/auth/LoginModal";
 import RegisterModal from "../components/auth/RegisterModal";
+import CambiarClaveModal from "../components/auth/CambiarClaveModal";
+import { BannerPublicidadCarousel } from "../components/banners/BannerPublicidadCarousel";
+
+import { Producto } from "../types/producto";
+import { Categoria } from "../types/categoria";
+import { PublicacionEditable } from "../types/publicacion.types";
+
 import {
   obtenerPublicaciones,
   obtenerMisPublicaciones,
   obtenerCategorias,
 } from "../api/publicacionesService";
+
 import { useUsuario } from "../context/UsuarioContext";
-import CambiarClaveModal from "../components/auth/CambiarClaveModal";
+import { useBannersHome } from "../hooks/useBannersHome";
 import { obtenerIconoCategoria } from "../utils/categoriaIconos";
-import { PublicacionEditable } from "../types/publicacion.types";
 
 type DatosPreviosRegistro = {
   email?: string;
@@ -27,7 +37,9 @@ type DatosPreviosRegistro = {
   proveedorId?: string;
 } | null;
 
-const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
+const mapearProductoAEditable = (
+  producto: Producto,
+): PublicacionEditable => {
   const planCreditoNormalizado = Array.isArray(producto.planCredito)
     ? producto.planCredito.map((plan: any) => ({
         cuotas: plan?.cuotas,
@@ -91,6 +103,13 @@ const Marketplace: React.FC = () => {
 
   const { usuario, puedePublicar } = useUsuario();
 
+  /*
+    NUEVO:
+    Consume GET /api/banners-publicitarios/home
+    y separa los anuncios según su ubicación.
+  */
+  const { homeTop, homeInline } = useBannersHome();
+
   const productosEspeciales = productos.filter((p) => p.esTemporada);
   const productosNormales = productos.filter((p) => !p.esTemporada);
 
@@ -98,6 +117,12 @@ const Marketplace: React.FC = () => {
 
   const mostrarCarruselEspeciales =
     !mostrarSoloMias && productosEspeciales.length > 0;
+
+  /*
+    Los banners comerciales aparecen solamente en la vitrina pública.
+    No se muestran dentro de "Mis publicaciones".
+  */
+  const mostrarBannersPublicitarios = !mostrarSoloMias;
 
   const showFab = !modalOpen && puedePublicar && !sidebarAbierto;
 
@@ -111,11 +136,15 @@ const Marketplace: React.FC = () => {
         data = await obtenerMisPublicaciones();
       } else {
         const categoria =
-          categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"
+          categoriaSeleccionada &&
+          categoriaSeleccionada.nombre !== "Todos"
             ? categoriaSeleccionada.nombre
             : undefined;
 
-        data = await obtenerPublicaciones(categoria, busqueda || undefined);
+        data = await obtenerPublicaciones(
+          categoria,
+          busqueda || undefined,
+        );
       }
 
       setProductos(data || []);
@@ -170,7 +199,10 @@ const Marketplace: React.FC = () => {
     window.addEventListener("abrir-recuperar", handleAbrirRecuperar);
 
     return () => {
-      window.removeEventListener("abrir-recuperar", handleAbrirRecuperar);
+      window.removeEventListener(
+        "abrir-recuperar",
+        handleAbrirRecuperar,
+      );
     };
   }, []);
 
@@ -185,7 +217,10 @@ const Marketplace: React.FC = () => {
     window.addEventListener("login-exitoso", handleLoginExitoso);
 
     return () => {
-      window.removeEventListener("login-exitoso", handleLoginExitoso);
+      window.removeEventListener(
+        "login-exitoso",
+        handleLoginExitoso,
+      );
     };
   }, [quierePublicar]);
 
@@ -196,7 +231,10 @@ const Marketplace: React.FC = () => {
       setBusqueda("");
     };
 
-    window.addEventListener("ver-mis-publicaciones", handleVerMisPublicaciones);
+    window.addEventListener(
+      "ver-mis-publicaciones",
+      handleVerMisPublicaciones,
+    );
 
     return () => {
       window.removeEventListener(
@@ -216,10 +254,16 @@ const Marketplace: React.FC = () => {
       setMostrarSoloMias(false);
     };
 
-    window.addEventListener("buscar-productos", handler as EventListener);
+    window.addEventListener(
+      "buscar-productos",
+      handler as EventListener,
+    );
 
     return () => {
-      window.removeEventListener("buscar-productos", handler as EventListener);
+      window.removeEventListener(
+        "buscar-productos",
+        handler as EventListener,
+      );
     };
   }, []);
 
@@ -231,7 +275,10 @@ const Marketplace: React.FC = () => {
     window.addEventListener("actualizar-publicaciones", actualizar);
 
     return () => {
-      window.removeEventListener("actualizar-publicaciones", actualizar);
+      window.removeEventListener(
+        "actualizar-publicaciones",
+        actualizar,
+      );
     };
   }, [cargarPublicaciones]);
 
@@ -316,10 +363,22 @@ const Marketplace: React.FC = () => {
                 : undefined,
             }}
           >
+            {/*
+              NUEVO:
+              Banner superior grande del marketplace.
+            */}
+            {mostrarBannersPublicitarios && homeTop.length > 0 && (
+              <BannerPublicidadCarousel
+                banners={homeTop}
+                ubicacion="HOME_TOP"
+              />
+            )}
+
             <h2 className="mb-4 text-2xl font-semibold text-white">
               {mostrarSoloMias
                 ? "Mis publicaciones"
-                : categoriaSeleccionada?.nombre || "Todos los productos"}
+                : categoriaSeleccionada?.nombre ||
+                  "Todos los productos"}
             </h2>
 
             {mostrarSoloMias && (
@@ -343,7 +402,9 @@ const Marketplace: React.FC = () => {
             ) : (
               <>
                 {mostrarCarruselEspeciales && (
-                  <CarruselEspeciales productos={productosEspeciales} />
+                  <CarruselEspeciales
+                    productos={productosEspeciales}
+                  />
                 )}
 
                 {itemsEnGrid.length === 0 ? (
@@ -353,24 +414,64 @@ const Marketplace: React.FC = () => {
                     </div>
                   )
                 ) : (
-                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
-                    {itemsEnGrid.map((p) => (
-                      <ProductoCard
-                        key={p.id}
-                        producto={p}
-                        onEliminado={(id) =>
-                          setProductos((prev) =>
-                            prev.filter((x) => x.id !== id),
-                          )
-                        }
-                        onEditar={handleEditarPublicacion}
-                        mostrarAcciones={mostrarSoloMias}
-                        variant={mostrarSoloMias ? "compact" : "default"}
-                      />
+                  <div className="grid grid-flow-row-dense grid-cols-2 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(250px,1fr))]">
+                    {itemsEnGrid.map((p, index) => (
+                      <Fragment key={p.id}>
+                        <ProductoCard
+                          producto={p}
+                          onEliminado={(id) =>
+                            setProductos((prev) =>
+                              prev.filter((x) => x.id !== id),
+                            )
+                          }
+                          onEditar={handleEditarPublicacion}
+                          mostrarAcciones={mostrarSoloMias}
+                          variant={
+                            mostrarSoloMias
+                              ? "compact"
+                              : "default"
+                          }
+                        />
+
+                        {/*
+                          NUEVO:
+                          Banner intermedio después de la sexta
+                          publicación normal.
+                        */}
+                        {mostrarBannersPublicitarios &&
+                          index === 7 &&
+                          homeInline.length > 0 && (
+                            <div className="home__banner-inline">
+                              <BannerPublicidadCarousel
+                                banners={homeInline}
+                                ubicacion="HOME_INLINE"
+                              />
+                            </div>
+                          )}
+                      </Fragment>
                     ))}
 
+                    {/*
+                      Si existen menos de seis publicaciones,
+                      igualmente mostramos el banner intermedio
+                      al final del grid.
+                    */}
+                    {mostrarBannersPublicitarios &&
+                      itemsEnGrid.length <= 7 &&
+                      homeInline.length > 0 && (
+                        <div className="home__banner-inline">
+                          <BannerPublicidadCarousel
+                            banners={homeInline}
+                            ubicacion="HOME_INLINE"
+                          />
+                        </div>
+                      )}
+
                     {showFab && (
-                      <div className="h-28 md:hidden" aria-hidden="true" />
+                      <div
+                        className="h-28 md:hidden"
+                        aria-hidden="true"
+                      />
                     )}
                   </div>
                 )}

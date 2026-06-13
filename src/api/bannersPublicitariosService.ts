@@ -95,10 +95,7 @@ function convertirTexto(valor: unknown): string | null {
   return texto.length > 0 ? texto : null;
 }
 
-function convertirNumero(
-  valor: unknown,
-  valorPredeterminado = 0,
-): number {
+function convertirNumero(valor: unknown, valorPredeterminado = 0): number {
   const numero = Number(valor);
 
   return Number.isFinite(numero) ? numero : valorPredeterminado;
@@ -123,9 +120,7 @@ function convertirBooleano(
   return valorPredeterminado;
 }
 
-function convertirId(
-  valor: unknown,
-): BannerPublicitarioId | null {
+function convertirId(valor: unknown): BannerPublicitarioId | null {
   if (typeof valor === "number" && Number.isFinite(valor)) {
     return valor;
   }
@@ -171,11 +166,32 @@ function convertirEstado(
   return estadoPredeterminado;
 }
 
+function extraerValorCatalogo(valor: unknown): unknown {
+  if (!esObjeto(valor)) {
+    return valor;
+  }
+
+  return obtenerPrimerValor(valor, [
+    "valor",
+    "Valor",
+    "value",
+    "Value",
+    "codigo",
+    "Codigo",
+    "code",
+    "Code",
+    "nombre",
+    "Nombre",
+    "tipoDestino",
+    "TipoDestino",
+  ]);
+}
+
 function convertirTipoDestino(
   valor: unknown,
-  tipoPredeterminado: BannerTipoDestino = BANNER_TIPOS_DESTINO.URL,
-): BannerTipoDestino {
-  const texto = convertirTexto(valor)?.toUpperCase();
+  tipoPredeterminado: BannerTipoDestino | null = BANNER_TIPOS_DESTINO.URL,
+): BannerTipoDestino | null {
+  const texto = convertirTexto(extraerValorCatalogo(valor))?.toUpperCase();
 
   if (texto === BANNER_TIPOS_DESTINO.WHATSAPP) {
     return BANNER_TIPOS_DESTINO.WHATSAPP;
@@ -185,7 +201,29 @@ function convertirTipoDestino(
     return BANNER_TIPOS_DESTINO.PERFIL_PUBLICO;
   }
 
+  if (texto === BANNER_TIPOS_DESTINO.URL) {
+    return BANNER_TIPOS_DESTINO.URL;
+  }
+
   return tipoPredeterminado;
+}
+
+function normalizarTiposDestinoConfiguracion(
+  valor: unknown,
+): BannerTipoDestino[] {
+  if (!Array.isArray(valor)) {
+    return Object.values(BANNER_TIPOS_DESTINO);
+  }
+
+  const tiposNormalizados = valor
+    .map((item) => convertirTipoDestino(item, null))
+    .filter((item): item is BannerTipoDestino => item !== null);
+
+  const tiposSinDuplicados = Array.from(new Set(tiposNormalizados));
+
+  return tiposSinDuplicados.length > 0
+    ? tiposSinDuplicados
+    : Object.values(BANNER_TIPOS_DESTINO);
 }
 
 function normalizarBannerPublico(
@@ -241,11 +279,7 @@ function normalizarBannerPublico(
     ubicacionPredeterminada,
   );
 
-  if (
-    id === null ||
-    (!imagenDesktopUrl && !imagenMobileUrl) ||
-    !ubicacion
-  ) {
+  if (id === null || (!imagenDesktopUrl && !imagenMobileUrl) || !ubicacion) {
     return null;
   }
 
@@ -261,9 +295,7 @@ function normalizarBannerPublico(
   return {
     id,
 
-    titulo: convertirTexto(
-      obtenerPrimerValor(valor, ["titulo", "Titulo"]),
-    ),
+    titulo: convertirTexto(obtenerPrimerValor(valor, ["titulo", "Titulo"])),
 
     subtitulo: convertirTexto(
       obtenerPrimerValor(valor, ["subtitulo", "Subtitulo"]),
@@ -280,9 +312,10 @@ function normalizarBannerPublico(
     imagenDesktopUrl: imagenDesktopUrl ?? imagenMobileUrl ?? "",
     imagenMobileUrl,
 
-    tipoDestino: convertirTipoDestino(
-      obtenerPrimerValor(valor, ["tipoDestino", "TipoDestino"]),
-    ),
+    tipoDestino:
+      convertirTipoDestino(
+        obtenerPrimerValor(valor, ["tipoDestino", "TipoDestino"]),
+      ) ?? BANNER_TIPOS_DESTINO.URL,
 
     urlDestino: convertirTexto(
       obtenerPrimerValor(valor, ["urlDestino", "UrlDestino"]),
@@ -303,32 +336,21 @@ function normalizarBannerPublico(
     ),
 
     textoBotonWhatsapp: convertirTexto(
-      obtenerPrimerValor(valor, [
-        "textoBotonWhatsapp",
-        "TextoBotonWhatsapp",
-      ]),
+      obtenerPrimerValor(valor, ["textoBotonWhatsapp", "TextoBotonWhatsapp"]),
     ),
 
     abrirNuevaPestana: convertirBooleano(
-      obtenerPrimerValor(valor, [
-        "abrirNuevaPestana",
-        "AbrirNuevaPestana",
-      ]),
+      obtenerPrimerValor(valor, ["abrirNuevaPestana", "AbrirNuevaPestana"]),
       true,
     ),
 
     ubicacion,
 
-    orden: convertirNumero(
-      obtenerPrimerValor(valor, ["orden", "Orden"]),
-      0,
-    ),
+    orden: convertirNumero(obtenerPrimerValor(valor, ["orden", "Orden"]), 0),
   };
 }
 
-function normalizarBannerAdmin(
-  valor: unknown,
-): BannerPublicitarioAdmin | null {
+function normalizarBannerAdmin(valor: unknown): BannerPublicitarioAdmin | null {
   if (!esObjeto(valor)) {
     return null;
   }
@@ -385,9 +407,7 @@ function normalizarBannerAdmin(
       obtenerPrimerValor(valor, ["storageKey", "StorageKey"]),
     ),
 
-    estado: convertirEstado(
-      obtenerPrimerValor(valor, ["estado", "Estado"]),
-    ),
+    estado: convertirEstado(obtenerPrimerValor(valor, ["estado", "Estado"])),
 
     prioridad: convertirNumero(
       obtenerPrimerValor(valor, ["prioridad", "Prioridad"]),
@@ -412,9 +432,7 @@ function normalizarBannerAdmin(
     ctr: convertirNumero(
       obtenerPrimerValor(valor, ["ctr", "Ctr", "CTR"]),
       cantidadImpresiones > 0
-        ? Number(
-            ((cantidadClicks / cantidadImpresiones) * 100).toFixed(2),
-          )
+        ? Number(((cantidadClicks / cantidadImpresiones) * 100).toFixed(2))
         : 0,
     ),
 
@@ -423,17 +441,12 @@ function normalizarBannerAdmin(
     ),
 
     fechaActualizacion: convertirTexto(
-      obtenerPrimerValor(valor, [
-        "fechaActualizacion",
-        "FechaActualizacion",
-      ]),
+      obtenerPrimerValor(valor, ["fechaActualizacion", "FechaActualizacion"]),
     ),
   };
 }
 
-function extraerContenidoPrincipal(
-  respuesta: unknown,
-): unknown {
+function extraerContenidoPrincipal(respuesta: unknown): unknown {
   if (!esObjeto(respuesta)) {
     return respuesta;
   }
@@ -451,38 +464,28 @@ function normalizarListaPublica(
 
   return valor
     .map((item) => normalizarBannerPublico(item, ubicacion))
-    .filter(
-      (banner): banner is BannerPublicitario => banner !== null,
-    )
+    .filter((banner): banner is BannerPublicitario => banner !== null)
     .sort((a, b) => a.orden - b.orden);
 }
 
-function separarBannersDesdeLista(
-  lista: unknown[],
-): BannersHomeResponse {
+function separarBannersDesdeLista(lista: unknown[]): BannersHomeResponse {
   const banners = lista
     .map((item) => normalizarBannerPublico(item))
-    .filter(
-      (banner): banner is BannerPublicitario => banner !== null,
-    )
+    .filter((banner): banner is BannerPublicitario => banner !== null)
     .sort((a, b) => a.orden - b.orden);
 
   return {
     homeTop: banners.filter(
-      (banner) =>
-        banner.ubicacion === BANNER_UBICACIONES.HOME_TOP,
+      (banner) => banner.ubicacion === BANNER_UBICACIONES.HOME_TOP,
     ),
 
     homeInline: banners.filter(
-      (banner) =>
-        banner.ubicacion === BANNER_UBICACIONES.HOME_INLINE,
+      (banner) => banner.ubicacion === BANNER_UBICACIONES.HOME_INLINE,
     ),
   };
 }
 
-function normalizarRespuestaHome(
-  respuesta: unknown,
-): BannersHomeResponse {
+function normalizarRespuestaHome(respuesta: unknown): BannersHomeResponse {
   const contenido = extraerContenidoPrincipal(respuesta);
 
   if (Array.isArray(contenido)) {
@@ -516,10 +519,7 @@ function normalizarRespuestaHome(
 
   if (Array.isArray(homeTop) || Array.isArray(homeInline)) {
     return {
-      homeTop: normalizarListaPublica(
-        homeTop,
-        BANNER_UBICACIONES.HOME_TOP,
-      ),
+      homeTop: normalizarListaPublica(homeTop, BANNER_UBICACIONES.HOME_TOP),
 
       homeInline: normalizarListaPublica(
         homeInline,
@@ -548,8 +548,7 @@ function obtenerMensajeError(
   mensajePredeterminado: string,
 ): string {
   const errores =
-    error?.response?.data?.Errors ??
-    error?.response?.data?.errors;
+    error?.response?.data?.Errors ?? error?.response?.data?.errors;
 
   if (Array.isArray(errores) && errores.length > 0) {
     return String(errores[0]);
@@ -606,11 +605,7 @@ function crearFormDataBanner(
 ): FormData {
   const formData = new FormData();
 
-  appendFormData(
-    formData,
-    "NombreCliente",
-    valores.nombreCliente.trim(),
-  );
+  appendFormData(formData, "NombreCliente", valores.nombreCliente.trim());
 
   appendFormData(formData, "Ubicacion", valores.ubicacion);
   appendFormData(formData, "Titulo", valores.titulo.trim());
@@ -636,11 +631,7 @@ function crearFormDataBanner(
     valores.textoBotonWhatsapp.trim(),
   );
 
-  appendFormData(
-    formData,
-    "AbrirNuevaPestana",
-    valores.abrirNuevaPestana,
-  );
+  appendFormData(formData, "AbrirNuevaPestana", valores.abrirNuevaPestana);
 
   appendFormData(formData, "FechaInicio", valores.fechaInicio);
   appendFormData(formData, "FechaFin", valores.fechaFin);
@@ -669,9 +660,7 @@ function crearFormDataBanner(
   return formData;
 }
 
-function normalizarMedidas(
-  valor: unknown,
-): BannerMedidaConfiguracion[] {
+function normalizarMedidas(valor: unknown): BannerMedidaConfiguracion[] {
   if (!Array.isArray(valor)) {
     return MEDIDAS_PREDETERMINADAS;
   }
@@ -714,15 +703,9 @@ function normalizarMedidas(
           ) ?? "Consultar backend",
       };
     })
-    .filter(
-      (
-        medida,
-      ): medida is BannerMedidaConfiguracion => medida !== null,
-    );
+    .filter((medida): medida is BannerMedidaConfiguracion => medida !== null);
 
-  return medidas.length > 0
-    ? medidas
-    : MEDIDAS_PREDETERMINADAS;
+  return medidas.length > 0 ? medidas : MEDIDAS_PREDETERMINADAS;
 }
 
 /**
@@ -780,10 +763,7 @@ export async function registrarEventoBanner(
       );
     }
   } catch (error) {
-    console.warn(
-      "No se pudo registrar el evento del banner.",
-      error,
-    );
+    console.warn("No se pudo registrar el evento del banner.", error);
   }
 }
 
@@ -795,12 +775,9 @@ export async function obtenerBannersPublicitariosAdmin(
   filtros: FiltrosBannersPublicitariosAdmin = {},
 ): Promise<ResultadoPaginadoBannersPublicitarios> {
   try {
-    const response = await instance.get<ApiResponse<any>>(
-      ADMIN_ENDPOINT,
-      {
-        params: filtros,
-      },
-    );
+    const response = await instance.get<ApiResponse<any>>(ADMIN_ENDPOINT, {
+      params: filtros,
+    });
 
     const data = extraerDataAdmin<any>(
       response.data,
@@ -809,20 +786,13 @@ export async function obtenerBannersPublicitariosAdmin(
 
     const itemsRaw = Array.isArray(data)
       ? data
-      : data?.items ??
-        data?.Items ??
-        data?.banners ??
-        data?.Banners ??
-        [];
+      : (data?.items ?? data?.Items ?? data?.banners ?? data?.Banners ?? []);
 
     const items = Array.isArray(itemsRaw)
       ? itemsRaw
           .map(normalizarBannerAdmin)
           .filter(
-            (
-              banner,
-            ): banner is BannerPublicitarioAdmin =>
-              banner !== null,
+            (banner): banner is BannerPublicitarioAdmin => banner !== null,
           )
       : [];
 
@@ -839,10 +809,7 @@ export async function obtenerBannersPublicitariosAdmin(
     };
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudieron obtener los banners.",
-      ),
+      obtenerMensajeError(error, "No se pudieron obtener los banners."),
     );
   }
 }
@@ -871,10 +838,7 @@ export async function obtenerBannerPublicitarioAdmin(
     return banner;
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo obtener el banner.",
-      ),
+      obtenerMensajeError(error, "No se pudo obtener el banner."),
     );
   }
 }
@@ -891,9 +855,7 @@ export async function obtenerResumenBannersPublicitariosAdmin(): Promise<Resumen
     );
 
     return {
-      totalBanners: convertirNumero(
-        data?.totalBanners ?? data?.TotalBanners,
-      ),
+      totalBanners: convertirNumero(data?.totalBanners ?? data?.TotalBanners),
 
       bannersActivos: convertirNumero(
         data?.bannersActivos ?? data?.BannersActivos,
@@ -922,16 +884,11 @@ export async function obtenerResumenBannersPublicitariosAdmin(): Promise<Resumen
           data?.CantidadWhatsApp,
       ),
 
-      ctr: convertirNumero(
-        data?.ctr ?? data?.Ctr ?? data?.CTR,
-      ),
+      ctr: convertirNumero(data?.ctr ?? data?.Ctr ?? data?.CTR),
     };
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo obtener el resumen.",
-      ),
+      obtenerMensajeError(error, "No se pudo obtener el resumen."),
     );
   }
 }
@@ -948,65 +905,47 @@ export async function obtenerConfiguracionBannersPublicitariosAdmin(): Promise<C
     );
 
     return {
-      ubicaciones: Array.isArray(
-        data?.ubicaciones ?? data?.Ubicaciones,
-      )
+      ubicaciones: Array.isArray(data?.ubicaciones ?? data?.Ubicaciones)
         ? (data?.ubicaciones ?? data?.Ubicaciones)
             .map((item: unknown) => convertirUbicacion(item))
             .filter(
-              (
-                item: BannerUbicacion | null,
-              ): item is BannerUbicacion => item !== null,
+              (item: BannerUbicacion | null): item is BannerUbicacion =>
+                item !== null,
             )
         : Object.values(BANNER_UBICACIONES),
 
-      tiposDestino: Array.isArray(
+      tiposDestino: normalizarTiposDestinoConfiguracion(
         data?.tiposDestino ?? data?.TiposDestino,
-      )
-        ? (data?.tiposDestino ?? data?.TiposDestino).map(
-            (item: unknown) => convertirTipoDestino(item),
-          )
-        : Object.values(BANNER_TIPOS_DESTINO),
+      ),
 
       estadosEditables: Array.isArray(
         data?.estadosEditables ?? data?.EstadosEditables,
       )
-        ? (
-            data?.estadosEditables ?? data?.EstadosEditables
-          ).map((item: unknown) => convertirEstado(item))
+        ? (data?.estadosEditables ?? data?.EstadosEditables).map(
+            (item: unknown) => convertirEstado(item),
+          )
         : Object.values(BANNER_ESTADOS),
 
       formatosPermitidos: Array.isArray(
         data?.formatosPermitidos ?? data?.FormatosPermitidos,
       )
-        ? (
-            data?.formatosPermitidos ?? data?.FormatosPermitidos
-          ).map(String)
+        ? (data?.formatosPermitidos ?? data?.FormatosPermitidos).map(String)
         : ["image/jpeg", "image/png", "image/webp"],
 
-      medidas: normalizarMedidas(
-        data?.medidas ?? data?.Medidas,
-      ),
+      medidas: normalizarMedidas(data?.medidas ?? data?.Medidas),
     };
   } catch (error) {
     /**
      * No bloqueamos el administrador si falla solamente
      * el endpoint informativo de configuración.
      */
-    console.warn(
-      "No se pudo consultar la configuración de banners.",
-      error,
-    );
+    console.warn("No se pudo consultar la configuración de banners.", error);
 
     return {
       ubicaciones: Object.values(BANNER_UBICACIONES),
       tiposDestino: Object.values(BANNER_TIPOS_DESTINO),
       estadosEditables: Object.values(BANNER_ESTADOS),
-      formatosPermitidos: [
-        "image/jpeg",
-        "image/png",
-        "image/webp",
-      ],
+      formatosPermitidos: ["image/jpeg", "image/png", "image/webp"],
       medidas: MEDIDAS_PREDETERMINADAS,
     };
   }
@@ -1022,12 +961,7 @@ export async function crearBannerPublicitarioAdmin(
       crearFormDataBanner(valores, archivos, false),
     );
   } catch (error: any) {
-    throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo crear el banner.",
-      ),
-    );
+    throw new Error(obtenerMensajeError(error, "No se pudo crear el banner."));
   }
 }
 
@@ -1043,10 +977,7 @@ export async function actualizarBannerPublicitarioAdmin(
     );
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo actualizar el banner.",
-      ),
+      obtenerMensajeError(error, "No se pudo actualizar el banner."),
     );
   }
 }
@@ -1056,18 +987,12 @@ export async function cambiarEstadoBannerPublicitarioAdmin(
   estado: BannerEstado,
 ): Promise<void> {
   try {
-    await instance.patch(
-      `${ADMIN_ENDPOINT}/${id}/estado`,
-      {
-        estado,
-      },
-    );
+    await instance.patch(`${ADMIN_ENDPOINT}/${id}/estado`, {
+      estado,
+    });
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo cambiar el estado del banner.",
-      ),
+      obtenerMensajeError(error, "No se pudo cambiar el estado del banner."),
     );
   }
 }
@@ -1079,10 +1004,7 @@ export async function eliminarBannerPublicitarioAdmin(
     await instance.delete(`${ADMIN_ENDPOINT}/${id}`);
   } catch (error: any) {
     throw new Error(
-      obtenerMensajeError(
-        error,
-        "No se pudo eliminar el banner.",
-      ),
+      obtenerMensajeError(error, "No se pudo eliminar el banner."),
     );
   }
 }

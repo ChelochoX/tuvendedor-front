@@ -6,10 +6,7 @@ import {
   type FormEvent,
 } from "react";
 
-import {
-  ImagePlus,
-  X,
-} from "lucide-react";
+import { ImagePlus, X } from "lucide-react";
 
 import {
   BANNER_ESTADOS,
@@ -50,11 +47,7 @@ interface SelectorImagenProps {
   onChange: (archivo: File | null) => void;
 }
 
-const TIPOS_PERMITIDOS = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-];
+const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp"];
 
 function pad(valor: number) {
   return String(valor).padStart(2, "0");
@@ -75,9 +68,7 @@ function sumarDias(fecha: Date, dias: number) {
   return resultado;
 }
 
-function normalizarFechaInput(
-  valor?: string | null,
-) {
+function normalizarFechaInput(valor?: string | null) {
   if (!valor) {
     return "";
   }
@@ -87,6 +78,17 @@ function normalizarFechaInput(
   return Number.isNaN(fecha.getTime())
     ? valor.slice(0, 16)
     : fechaLocalParaInput(fecha);
+}
+
+function unirOpcionesUnicas<T extends string>(
+  opcionesBase: T[],
+  opcionesConfiguradas?: T[] | null,
+): T[] {
+  const opciones = [...opcionesBase, ...(opcionesConfiguradas ?? [])].filter(
+    Boolean,
+  );
+
+  return Array.from(new Set(opciones));
 }
 
 function crearValoresIniciales(
@@ -110,14 +112,11 @@ function crearValoresIniciales(
 
       textoBoton: "Conocer más",
       mostrarBotonWhatsapp: false,
-      textoBotonWhatsapp:
-        "Escribir por WhatsApp",
+      textoBotonWhatsapp: "Escribir por WhatsApp",
       abrirNuevaPestana: true,
 
       fechaInicio: fechaLocalParaInput(ahora),
-      fechaFin: fechaLocalParaInput(
-        sumarDias(ahora, 30),
-      ),
+      fechaFin: fechaLocalParaInput(sumarDias(ahora, 30)),
 
       estado: BANNER_ESTADOS.BORRADOR,
       orden: 1,
@@ -137,33 +136,22 @@ function crearValoresIniciales(
     descripcion: banner.descripcion ?? "",
     etiqueta: banner.etiqueta ?? "Publicidad",
 
-    tipoDestino:
-      banner.tipoDestino ??
-      BANNER_TIPOS_DESTINO.URL,
+    tipoDestino: banner.tipoDestino ?? BANNER_TIPOS_DESTINO.URL,
 
     urlDestino: banner.urlDestino ?? "",
     whatsappUrl: banner.whatsappUrl ?? "",
 
-    textoBoton:
-      banner.textoBoton ?? "Conocer más",
+    textoBoton: banner.textoBoton ?? "Conocer más",
 
-    mostrarBotonWhatsapp:
-      banner.mostrarBotonWhatsapp,
+    mostrarBotonWhatsapp: banner.mostrarBotonWhatsapp,
 
-    textoBotonWhatsapp:
-      banner.textoBotonWhatsapp ??
-      "Escribir por WhatsApp",
+    textoBotonWhatsapp: banner.textoBotonWhatsapp ?? "Escribir por WhatsApp",
 
-    abrirNuevaPestana:
-      banner.abrirNuevaPestana,
+    abrirNuevaPestana: banner.abrirNuevaPestana,
 
-    fechaInicio: normalizarFechaInput(
-      banner.fechaInicio,
-    ),
+    fechaInicio: normalizarFechaInput(banner.fechaInicio),
 
-    fechaFin: normalizarFechaInput(
-      banner.fechaFin,
-    ),
+    fechaFin: normalizarFechaInput(banner.fechaFin),
 
     estado: banner.estado,
     orden: banner.orden,
@@ -184,10 +172,7 @@ function SelectorImagen({
   onChange,
 }: SelectorImagenProps) {
   const previewTemporal = useMemo(
-    () =>
-      archivo
-        ? URL.createObjectURL(archivo)
-        : "",
+    () => (archivo ? URL.createObjectURL(archivo) : ""),
     [archivo],
   );
 
@@ -199,28 +184,20 @@ function SelectorImagen({
     };
   }, [previewTemporal]);
 
-  const preview =
-    previewTemporal || imagenActual || "";
+  const preview = previewTemporal || imagenActual || "";
 
-  const manejarCambio = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
+  const manejarCambio = (event: ChangeEvent<HTMLInputElement>) => {
     onChange(event.target.files?.[0] ?? null);
   };
 
   return (
     <div className="flex flex-col gap-2">
       <div>
-        <label
-          htmlFor={id}
-          className="text-sm font-semibold text-gray-200"
-        >
+        <label htmlFor={id} className="text-sm font-semibold text-gray-200">
           {titulo}
         </label>
 
-        <p className="mt-1 text-xs leading-5 text-gray-400">
-          {ayuda}
-        </p>
+        <p className="mt-1 text-xs leading-5 text-gray-400">{ayuda}</p>
       </div>
 
       <label
@@ -241,9 +218,7 @@ function SelectorImagen({
               Seleccionar imagen
             </strong>
 
-            <span className="text-xs">
-              JPG, PNG o WebP
-            </span>
+            <span className="text-xs">JPG, PNG o WebP</span>
           </div>
         )}
       </label>
@@ -258,9 +233,7 @@ function SelectorImagen({
       />
 
       {archivo && (
-        <p className="text-xs text-gray-400">
-          Archivo nuevo: {archivo.name}
-        </p>
+        <p className="text-xs text-gray-400">Archivo nuevo: {archivo.name}</p>
       )}
     </div>
   );
@@ -278,10 +251,7 @@ function esUrlValida(valor: string) {
   try {
     const url = new URL(valor.trim());
 
-    return (
-      url.protocol === "http:" ||
-      url.protocol === "https:"
-    );
+    return url.protocol === "http:" || url.protocol === "https:";
   } catch {
     return false;
   }
@@ -295,27 +265,19 @@ function obtenerErrores(
   const errores: string[] = [];
 
   if (!valores.nombreCliente.trim()) {
-    errores.push(
-      "Ingresá el nombre del anunciante.",
-    );
+    errores.push("Ingresá el nombre del anunciante.");
   }
 
   if (!valores.titulo.trim()) {
-    errores.push(
-      "Ingresá un título para identificar la campaña.",
-    );
+    errores.push("Ingresá un título para identificar la campaña.");
   }
 
   if (!valores.fechaInicio) {
-    errores.push(
-      "Indicá la fecha de inicio.",
-    );
+    errores.push("Indicá la fecha de inicio.");
   }
 
   if (!valores.fechaFin) {
-    errores.push(
-      "Indicá la fecha de finalización.",
-    );
+    errores.push("Indicá la fecha de finalización.");
   }
 
   if (
@@ -324,61 +286,37 @@ function obtenerErrores(
     new Date(valores.fechaFin).getTime() <=
       new Date(valores.fechaInicio).getTime()
   ) {
-    errores.push(
-      "La fecha de finalización debe ser posterior al inicio.",
-    );
+    errores.push("La fecha de finalización debe ser posterior al inicio.");
   }
 
   if (!esEdicion && !archivos.imagenDesktop) {
-    errores.push(
-      "Seleccioná la imagen de escritorio.",
-    );
+    errores.push("Seleccioná la imagen de escritorio.");
   }
 
   if (
     archivos.imagenDesktop &&
-    !TIPOS_PERMITIDOS.includes(
-      archivos.imagenDesktop.type,
-    )
+    !TIPOS_PERMITIDOS.includes(archivos.imagenDesktop.type)
   ) {
-    errores.push(
-      "La imagen de escritorio debe ser JPG, PNG o WebP.",
-    );
+    errores.push("La imagen de escritorio debe ser JPG, PNG o WebP.");
   }
 
   if (
     archivos.imagenMobile &&
-    !TIPOS_PERMITIDOS.includes(
-      archivos.imagenMobile.type,
-    )
+    !TIPOS_PERMITIDOS.includes(archivos.imagenMobile.type)
   ) {
-    errores.push(
-      "La imagen móvil debe ser JPG, PNG o WebP.",
-    );
+    errores.push("La imagen móvil debe ser JPG, PNG o WebP.");
   }
 
-  if (
-    valores.tipoDestino ===
-    BANNER_TIPOS_DESTINO.WHATSAPP
-  ) {
+  if (valores.tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP) {
     if (!valores.whatsappUrl.trim()) {
-      errores.push(
-        "Ingresá el WhatsApp del anunciante.",
-      );
+      errores.push("Ingresá el WhatsApp del anunciante.");
     }
   } else if (!esUrlValida(valores.urlDestino)) {
-    errores.push(
-      "Ingresá una URL de destino válida.",
-    );
+    errores.push("Ingresá una URL de destino válida.");
   }
 
-  if (
-    valores.mostrarBotonWhatsapp &&
-    !valores.whatsappUrl.trim()
-  ) {
-    errores.push(
-      "Ingresá el WhatsApp para mostrar el botón secundario.",
-    );
+  if (valores.mostrarBotonWhatsapp && !valores.whatsappUrl.trim()) {
+    errores.push("Ingresá el WhatsApp para mostrar el botón secundario.");
   }
 
   return errores;
@@ -394,18 +332,13 @@ export default function BannerPublicitarioAdminModal({
 }: Props) {
   const esEdicion = Boolean(banner?.id);
 
-  const [valores, setValores] =
-    useState<BannerPublicitarioFormValues>(
-      () => crearValoresIniciales(banner),
-    );
+  const [valores, setValores] = useState<BannerPublicitarioFormValues>(() =>
+    crearValoresIniciales(banner),
+  );
 
-  const [archivos, setArchivos] =
-    useState<BannerPublicitarioArchivosForm>(
-      {},
-    );
+  const [archivos, setArchivos] = useState<BannerPublicitarioArchivosForm>({});
 
-  const [errores, setErrores] =
-    useState<string[]>([]);
+  const [errores, setErrores] = useState<string[]>([]);
 
   useEffect(() => {
     if (!abierto) {
@@ -420,8 +353,7 @@ export default function BannerPublicitarioAdminModal({
   const medidaActual = useMemo(
     () =>
       configuracion?.medidas.find(
-        (medida) =>
-          medida.ubicacion === valores.ubicacion,
+        (medida) => medida.ubicacion === valores.ubicacion,
       ),
     [configuracion?.medidas, valores.ubicacion],
   );
@@ -430,9 +362,7 @@ export default function BannerPublicitarioAdminModal({
     return null;
   }
 
-  const actualizarValor = <
-    K extends keyof BannerPublicitarioFormValues,
-  >(
+  const actualizarValor = <K extends keyof BannerPublicitarioFormValues>(
     nombre: K,
     valor: BannerPublicitarioFormValues[K],
   ) => {
@@ -442,16 +372,10 @@ export default function BannerPublicitarioAdminModal({
     }));
   };
 
-  const manejarSubmit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const manejarSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    const validaciones = obtenerErrores(
-      valores,
-      archivos,
-      esEdicion,
-    );
+    const validaciones = obtenerErrores(valores, archivos, esEdicion);
 
     if (validaciones.length > 0) {
       setErrores(validaciones);
@@ -463,24 +387,46 @@ export default function BannerPublicitarioAdminModal({
     await onGuardar(valores, archivos);
   };
 
-  const ubicaciones =
-    configuracion?.ubicaciones?.length
-      ? configuracion.ubicaciones
-      : Object.values(BANNER_UBICACIONES);
+  const ubicaciones = unirOpcionesUnicas<BannerUbicacion>(
+    Object.values(BANNER_UBICACIONES),
+    configuracion?.ubicaciones,
+  );
 
-  const tiposDestino =
-    configuracion?.tiposDestino?.length
-      ? configuracion.tiposDestino
-      : Object.values(BANNER_TIPOS_DESTINO);
+  const tiposDestino = unirOpcionesUnicas<BannerTipoDestino>(
+    Object.values(BANNER_TIPOS_DESTINO),
+    configuracion?.tiposDestino,
+  );
 
-  const estados =
-    configuracion?.estadosEditables?.length
-      ? configuracion.estadosEditables
-      : Object.values(BANNER_ESTADOS);
+  const estados = unirOpcionesUnicas<BannerEstado>(
+    Object.values(BANNER_ESTADOS),
+    configuracion?.estadosEditables,
+  );
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm">
-      <section className="max-h-[96vh] w-full max-w-5xl overflow-y-auto rounded-2xl border border-yellow-400/30 bg-[#202124] text-white shadow-2xl">
+      <section
+        className="
+          max-h-[96vh]
+          w-full
+          max-w-5xl
+          overflow-y-auto
+          rounded-2xl
+          border
+          border-yellow-400/30
+          bg-[#202124]
+          text-white
+          shadow-2xl
+          [scrollbar-width:thin]
+          [scrollbar-color:#facc15_rgba(255,255,255,0.08)]
+          [&::-webkit-scrollbar]:w-2
+          [&::-webkit-scrollbar-track]:rounded-full
+          [&::-webkit-scrollbar-track]:bg-white/10
+          [&::-webkit-scrollbar-thumb]:rounded-full
+          [&::-webkit-scrollbar-thumb]:bg-yellow-400
+          [&::-webkit-scrollbar-thumb:hover]:bg-yellow-300
+          [&::-webkit-scrollbar-button]:hidden
+        "
+      >
         <header className="sticky top-0 z-10 flex items-center justify-between gap-4 border-b border-white/10 bg-[#202124] px-5 py-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-yellow-400">
@@ -488,9 +434,7 @@ export default function BannerPublicitarioAdminModal({
             </p>
 
             <h2 className="mt-1 text-xl font-bold">
-              {esEdicion
-                ? "Editar banner"
-                : "Crear banner"}
+              {esEdicion ? "Editar banner" : "Crear banner"}
             </h2>
           </div>
 
@@ -505,15 +449,10 @@ export default function BannerPublicitarioAdminModal({
           </button>
         </header>
 
-        <form
-          onSubmit={manejarSubmit}
-          className="flex flex-col gap-5 p-5"
-        >
+        <form onSubmit={manejarSubmit} className="flex flex-col gap-5 p-5">
           {errores.length > 0 && (
             <div className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
-              <strong>
-                Revisá estos puntos:
-              </strong>
+              <strong>Revisá estos puntos:</strong>
 
               <ul className="mt-2 list-disc space-y-1 pl-5">
                 {errores.map((error) => (
@@ -536,16 +475,13 @@ export default function BannerPublicitarioAdminModal({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="text-sm font-semibold">
-                Anunciante
+                Cliente anunciante
               </label>
 
               <input
                 value={valores.nombreCliente}
                 onChange={(event) =>
-                  actualizarValor(
-                    "nombreCliente",
-                    event.target.value,
-                  )
+                  actualizarValor("nombreCliente", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Ej.: Ferretería San Miguel"
@@ -554,17 +490,12 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Título
-              </label>
+              <label className="text-sm font-semibold">Título de campaña</label>
 
               <input
                 value={valores.titulo}
                 onChange={(event) =>
-                  actualizarValor(
-                    "titulo",
-                    event.target.value,
-                  )
+                  actualizarValor("titulo", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Ej.: Promoción especial"
@@ -575,17 +506,12 @@ export default function BannerPublicitarioAdminModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold">
-                Subtítulo
-              </label>
+              <label className="text-sm font-semibold">Subtítulo</label>
 
               <input
                 value={valores.subtitulo}
                 onChange={(event) =>
-                  actualizarValor(
-                    "subtitulo",
-                    event.target.value,
-                  )
+                  actualizarValor("subtitulo", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Texto breve visible"
@@ -594,17 +520,12 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Etiqueta
-              </label>
+              <label className="text-sm font-semibold">Etiqueta</label>
 
               <input
                 value={valores.etiqueta}
                 onChange={(event) =>
-                  actualizarValor(
-                    "etiqueta",
-                    event.target.value,
-                  )
+                  actualizarValor("etiqueta", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Publicidad"
@@ -614,17 +535,12 @@ export default function BannerPublicitarioAdminModal({
           </div>
 
           <div>
-            <label className="text-sm font-semibold">
-              Descripción interna
-            </label>
+            <label className="text-sm font-semibold">Descripción interna</label>
 
             <textarea
               value={valores.descripcion}
               onChange={(event) =>
-                actualizarValor(
-                  "descripcion",
-                  event.target.value,
-                )
+                actualizarValor("descripcion", event.target.value)
               }
               rows={3}
               className="mt-2 w-full resize-y rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
@@ -635,17 +551,14 @@ export default function BannerPublicitarioAdminModal({
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="text-sm font-semibold">
-                Ubicación
-              </label>
+              <label className="text-sm font-semibold">Ubicación</label>
 
               <select
                 value={valores.ubicacion}
                 onChange={(event) =>
                   actualizarValor(
                     "ubicacion",
-                    event.target
-                      .value as BannerUbicacion,
+                    event.target.value as BannerUbicacion,
                   )
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
@@ -655,6 +568,7 @@ export default function BannerPublicitarioAdminModal({
                   <option
                     key={ubicacion}
                     value={ubicacion}
+                    className="bg-[#18191c] text-white"
                   >
                     {ubicacion}
                   </option>
@@ -663,19 +577,14 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Orden
-              </label>
+              <label className="text-sm font-semibold">Orden</label>
 
               <input
                 type="number"
                 min={1}
                 value={valores.orden}
                 onChange={(event) =>
-                  actualizarValor(
-                    "orden",
-                    Number(event.target.value),
-                  )
+                  actualizarValor("orden", Number(event.target.value))
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
@@ -683,19 +592,14 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Prioridad
-              </label>
+              <label className="text-sm font-semibold">Prioridad</label>
 
               <input
                 type="number"
                 min={0}
                 value={valores.prioridad}
                 onChange={(event) =>
-                  actualizarValor(
-                    "prioridad",
-                    Number(event.target.value),
-                  )
+                  actualizarValor("prioridad", Number(event.target.value))
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
@@ -706,18 +610,12 @@ export default function BannerPublicitarioAdminModal({
           <div className="rounded-xl border border-yellow-400/25 bg-yellow-400/5 px-4 py-3 text-sm text-gray-200">
             <p>
               Escritorio:{" "}
-              <strong>
-                {medidaActual?.desktop ||
-                  "Según configuración"}
-              </strong>
+              <strong>{medidaActual?.desktop || "Según configuración"}</strong>
             </p>
 
             <p className="mt-1">
               Celular:{" "}
-              <strong>
-                {medidaActual?.mobile ||
-                  "Según configuración"}
-              </strong>
+              <strong>{medidaActual?.mobile || "Según configuración"}</strong>
             </p>
           </div>
 
@@ -747,9 +645,7 @@ export default function BannerPublicitarioAdminModal({
               ayuda="Opcional. Si no cargás una pieza móvil, se utilizará la imagen de escritorio."
               archivo={archivos.imagenMobile}
               imagenActual={
-                valores.eliminarImagenMobile
-                  ? null
-                  : banner?.imagenMobileUrl
+                valores.eliminarImagenMobile ? null : banner?.imagenMobileUrl
               }
               disabled={procesando}
               onChange={(imagenMobile) => {
@@ -759,39 +655,26 @@ export default function BannerPublicitarioAdminModal({
                 }));
 
                 if (imagenMobile) {
-                  actualizarValor(
-                    "eliminarImagenMobile",
-                    false,
-                  );
+                  actualizarValor("eliminarImagenMobile", false);
                 }
               }}
             />
           </div>
 
-          {esEdicion &&
-            banner?.imagenMobileUrl && (
-              <label className="flex items-center gap-2 text-sm text-gray-200">
-                <input
-                  type="checkbox"
-                  checked={
-                    valores.eliminarImagenMobile
-                  }
-                  onChange={(event) =>
-                    actualizarValor(
-                      "eliminarImagenMobile",
-                      event.target.checked,
-                    )
-                  }
-                  disabled={
-                    procesando ||
-                    Boolean(archivos.imagenMobile)
-                  }
-                  className="accent-yellow-400"
-                />
-
-                Eliminar la imagen móvil actual
-              </label>
-            )}
+          {esEdicion && banner?.imagenMobileUrl && (
+            <label className="flex items-center gap-2 text-sm text-gray-200">
+              <input
+                type="checkbox"
+                checked={valores.eliminarImagenMobile}
+                onChange={(event) =>
+                  actualizarValor("eliminarImagenMobile", event.target.checked)
+                }
+                disabled={procesando || Boolean(archivos.imagenMobile)}
+                className="accent-yellow-400"
+              />
+              Eliminar la imagen móvil actual
+            </label>
+          )}
 
           <section className="border-t border-white/10 pt-5">
             <h3 className="text-base font-bold text-yellow-400">
@@ -805,24 +688,25 @@ export default function BannerPublicitarioAdminModal({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold">
-                Tipo de destino
-              </label>
+              <label className="text-sm font-semibold">Tipo de destino</label>
 
               <select
                 value={valores.tipoDestino}
                 onChange={(event) =>
                   actualizarValor(
                     "tipoDestino",
-                    event.target
-                      .value as BannerTipoDestino,
+                    event.target.value as BannerTipoDestino,
                   )
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
               >
                 {tiposDestino.map((tipo) => (
-                  <option key={tipo} value={tipo}>
+                  <option
+                    key={tipo}
+                    value={tipo}
+                    className="bg-[#18191c] text-white"
+                  >
                     {tipo}
                   </option>
                 ))}
@@ -837,37 +721,31 @@ export default function BannerPublicitarioAdminModal({
               <input
                 value={valores.textoBoton}
                 onChange={(event) =>
-                  actualizarValor(
-                    "textoBoton",
-                    event.target.value,
-                  )
+                  actualizarValor("textoBoton", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
-                placeholder="Conocer más"
+                placeholder={
+                  valores.tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+                    ? "Escribir por WhatsApp"
+                    : "Conocer más"
+                }
                 disabled={procesando}
               />
             </div>
           </div>
 
-          {valores.tipoDestino !==
-            BANNER_TIPOS_DESTINO.WHATSAPP && (
+          {valores.tipoDestino !== BANNER_TIPOS_DESTINO.WHATSAPP && (
             <div>
-              <label className="text-sm font-semibold">
-                URL principal
-              </label>
+              <label className="text-sm font-semibold">URL principal</label>
 
               <input
                 value={valores.urlDestino}
                 onChange={(event) =>
-                  actualizarValor(
-                    "urlDestino",
-                    event.target.value,
-                  )
+                  actualizarValor("urlDestino", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder={
-                  valores.tipoDestino ===
-                  BANNER_TIPOS_DESTINO.PERFIL_PUBLICO
+                  valores.tipoDestino === BANNER_TIPOS_DESTINO.PERFIL_PUBLICO
                     ? "https://www.tuvendedor.com.py/vendedor/mi-negocio"
                     : "https://www.cliente.com.py"
                 }
@@ -885,10 +763,7 @@ export default function BannerPublicitarioAdminModal({
               <input
                 value={valores.whatsappUrl}
                 onChange={(event) =>
-                  actualizarValor(
-                    "whatsappUrl",
-                    event.target.value,
-                  )
+                  actualizarValor("whatsappUrl", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="595981123456 o https://wa.me/595981123456"
@@ -904,10 +779,7 @@ export default function BannerPublicitarioAdminModal({
               <input
                 value={valores.textoBotonWhatsapp}
                 onChange={(event) =>
-                  actualizarValor(
-                    "textoBotonWhatsapp",
-                    event.target.value,
-                  )
+                  actualizarValor("textoBotonWhatsapp", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Escribir por WhatsApp"
@@ -920,38 +792,29 @@ export default function BannerPublicitarioAdminModal({
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={
-                  valores.mostrarBotonWhatsapp
-                }
+                checked={valores.mostrarBotonWhatsapp}
                 onChange={(event) =>
-                  actualizarValor(
-                    "mostrarBotonWhatsapp",
-                    event.target.checked,
-                  )
+                  actualizarValor("mostrarBotonWhatsapp", event.target.checked)
                 }
-                disabled={procesando}
+                disabled={
+                  procesando ||
+                  valores.tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+                }
                 className="accent-yellow-400"
               />
-
               Mostrar botón secundario de WhatsApp
             </label>
 
             <label className="flex items-center gap-2">
               <input
                 type="checkbox"
-                checked={
-                  valores.abrirNuevaPestana
-                }
+                checked={valores.abrirNuevaPestana}
                 onChange={(event) =>
-                  actualizarValor(
-                    "abrirNuevaPestana",
-                    event.target.checked,
-                  )
+                  actualizarValor("abrirNuevaPestana", event.target.checked)
                 }
                 disabled={procesando}
                 className="accent-yellow-400"
               />
-
               Abrir destino en una pestaña nueva
             </label>
           </div>
@@ -964,18 +827,13 @@ export default function BannerPublicitarioAdminModal({
 
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="text-sm font-semibold">
-                Inicio
-              </label>
+              <label className="text-sm font-semibold">Inicio</label>
 
               <input
                 type="datetime-local"
                 value={valores.fechaInicio}
                 onChange={(event) =>
-                  actualizarValor(
-                    "fechaInicio",
-                    event.target.value,
-                  )
+                  actualizarValor("fechaInicio", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
@@ -983,18 +841,13 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Finalización
-              </label>
+              <label className="text-sm font-semibold">Finalización</label>
 
               <input
                 type="datetime-local"
                 value={valores.fechaFin}
                 onChange={(event) =>
-                  actualizarValor(
-                    "fechaFin",
-                    event.target.value,
-                  )
+                  actualizarValor("fechaFin", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
@@ -1002,17 +855,12 @@ export default function BannerPublicitarioAdminModal({
             </div>
 
             <div>
-              <label className="text-sm font-semibold">
-                Estado
-              </label>
+              <label className="text-sm font-semibold">Estado</label>
 
               <select
                 value={valores.estado}
                 onChange={(event) =>
-                  actualizarValor(
-                    "estado",
-                    event.target.value as BannerEstado,
-                  )
+                  actualizarValor("estado", event.target.value as BannerEstado)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando}
@@ -1021,6 +869,7 @@ export default function BannerPublicitarioAdminModal({
                   <option
                     key={estado}
                     value={estado}
+                    className="bg-[#18191c] text-white"
                   >
                     {estado}
                   </option>
@@ -1034,15 +883,11 @@ export default function BannerPublicitarioAdminModal({
               type="checkbox"
               checked={valores.esExclusivo}
               onChange={(event) =>
-                actualizarValor(
-                  "esExclusivo",
-                  event.target.checked,
-                )
+                actualizarValor("esExclusivo", event.target.checked)
               }
               disabled={procesando}
               className="accent-yellow-400"
             />
-
             Banner exclusivo para su ubicación durante la vigencia
           </label>
 

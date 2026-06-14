@@ -47,7 +47,105 @@ interface SelectorImagenProps {
   onChange: (archivo: File | null) => void;
 }
 
+interface CampoNumeroProps {
+  label: string;
+  value: number;
+  min?: number;
+  disabled?: boolean;
+  onChange: (value: number) => void;
+}
+
+function CampoNumero({
+  label,
+  value,
+  min = 0,
+  disabled = false,
+  onChange,
+}: CampoNumeroProps) {
+  const [texto, setTexto] = useState(String(value ?? min));
+
+  useEffect(() => {
+    setTexto(String(value ?? min));
+  }, [value, min]);
+
+  const aplicarValor = (valorTexto: string) => {
+    const valorLimpio = valorTexto.trim();
+
+    if (valorLimpio === "") {
+      setTexto("");
+      return;
+    }
+
+    if (!/^\d+$/.test(valorLimpio)) {
+      return;
+    }
+
+    const numero = Math.max(Number(valorLimpio), min);
+
+    setTexto(String(numero));
+    onChange(numero);
+  };
+
+  const normalizarAlSalir = () => {
+    if (texto.trim() === "") {
+      setTexto(String(min));
+      onChange(min);
+      return;
+    }
+
+    const numero = Math.max(Number(texto), min);
+
+    setTexto(String(numero));
+    onChange(numero);
+  };
+
+  return (
+    <div>
+      <label className="text-sm font-semibold">{label}</label>
+
+      <input
+        type="text"
+        inputMode="numeric"
+        value={texto}
+        onChange={(event) => aplicarValor(event.target.value)}
+        onBlur={normalizarAlSalir}
+        onFocus={(event) => event.target.select()}
+        className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
+        disabled={disabled}
+      />
+    </div>
+  );
+}
+
+type TipoDispositivoBanner = "DESKTOP" | "MOBILE";
+
 const TIPOS_PERMITIDOS = ["image/jpeg", "image/png", "image/webp"];
+
+const MEDIDAS_BANNER: Record<
+  BannerUbicacion,
+  Record<TipoDispositivoBanner, { width: number; height: number }>
+> = {
+  HOME_TOP: {
+    DESKTOP: {
+      width: 1600,
+      height: 420,
+    },
+    MOBILE: {
+      width: 1080,
+      height: 720,
+    },
+  },
+  HOME_INLINE: {
+    DESKTOP: {
+      width: 1600,
+      height: 240,
+    },
+    MOBILE: {
+      width: 1080,
+      height: 480,
+    },
+  },
+};
 
 function pad(valor: number) {
   return String(valor).padStart(2, "0");
@@ -106,7 +204,7 @@ function crearValoresIniciales(
       descripcion: "",
       etiqueta: "Publicidad",
 
-      tipoDestino: BANNER_TIPOS_DESTINO.URL,
+      tipoDestino: BANNER_TIPOS_DESTINO.WEB,
       urlDestino: "",
       whatsappUrl: "",
 
@@ -136,21 +234,17 @@ function crearValoresIniciales(
     descripcion: banner.descripcion ?? "",
     etiqueta: banner.etiqueta ?? "Publicidad",
 
-    tipoDestino: banner.tipoDestino ?? BANNER_TIPOS_DESTINO.URL,
+    tipoDestino: banner.tipoDestino ?? BANNER_TIPOS_DESTINO.WEB,
 
     urlDestino: banner.urlDestino ?? "",
     whatsappUrl: banner.whatsappUrl ?? "",
 
     textoBoton: banner.textoBoton ?? "Conocer más",
-
     mostrarBotonWhatsapp: banner.mostrarBotonWhatsapp,
-
     textoBotonWhatsapp: banner.textoBotonWhatsapp ?? "Escribir por WhatsApp",
-
     abrirNuevaPestana: banner.abrirNuevaPestana,
 
     fechaInicio: normalizarFechaInput(banner.fechaInicio),
-
     fechaFin: normalizarFechaInput(banner.fechaFin),
 
     estado: banner.estado,
@@ -160,6 +254,89 @@ function crearValoresIniciales(
 
     eliminarImagenMobile: false,
   };
+}
+
+async function cargarImagenDesdeArchivo(file: File): Promise<HTMLImageElement> {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const imagen = new Image();
+
+    imagen.decoding = "async";
+
+    await new Promise<void>((resolve, reject) => {
+      imagen.onload = () => resolve();
+      imagen.onerror = () =>
+        reject(new Error("No se pudo leer la imagen seleccionada."));
+      imagen.src = url;
+    });
+
+    return imagen;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function ajustarImagenAmedida(
+  archivoOriginal: File,
+  ubicacion: BannerUbicacion,
+  dispositivo: TipoDispositivoBanner,
+): Promise<File> {
+  const medida = MEDIDAS_BANNER[ubicacion][dispositivo];
+
+  const imagen = await cargarImagenDesdeArchivo(archivoOriginal);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = medida.width;
+  canvas.height = medida.height;
+
+  const contexto = canvas.getContext("2d");
+
+  if (!contexto) {
+    throw new Error("El navegador no permitió procesar la imagen.");
+  }
+
+  contexto.imageSmoothingEnabled = true;
+  contexto.imageSmoothingQuality = "high";
+
+  const escala = Math.max(
+    medida.width / imagen.naturalWidth,
+    medida.height / imagen.naturalHeight,
+  );
+
+  const anchoEscalado = imagen.naturalWidth * escala;
+  const altoEscalado = imagen.naturalHeight * escala;
+
+  const x = (medida.width - anchoEscalado) / 2;
+  const y = (medida.height - altoEscalado) / 2;
+
+  contexto.drawImage(imagen, x, y, anchoEscalado, altoEscalado);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (resultado) => {
+        if (!resultado) {
+          reject(new Error("No se pudo convertir la imagen."));
+          return;
+        }
+
+        resolve(resultado);
+      },
+      "image/png",
+      0.92,
+    );
+  });
+
+  const nombreBase = archivoOriginal.name.replace(/\.[^/.]+$/, "");
+
+  return new File(
+    [blob],
+    `${nombreBase}-${ubicacion.toLowerCase()}-${dispositivo.toLowerCase()}-${medida.width}x${medida.height}.png`,
+    {
+      type: "image/png",
+      lastModified: Date.now(),
+    },
+  );
 }
 
 function SelectorImagen({
@@ -218,7 +395,9 @@ function SelectorImagen({
               Seleccionar imagen
             </strong>
 
-            <span className="text-xs">JPG, PNG o WebP</span>
+            <span className="text-xs">
+              Se ajustará automáticamente al tamaño requerido
+            </span>
           </div>
         )}
       </label>
@@ -233,7 +412,7 @@ function SelectorImagen({
       />
 
       {archivo && (
-        <p className="text-xs text-gray-400">Archivo nuevo: {archivo.name}</p>
+        <p className="text-xs text-gray-400">Archivo listo: {archivo.name}</p>
       )}
     </div>
   );
@@ -339,6 +518,7 @@ export default function BannerPublicitarioAdminModal({
   const [archivos, setArchivos] = useState<BannerPublicitarioArchivosForm>({});
 
   const [errores, setErrores] = useState<string[]>([]);
+  const [procesandoImagen, setProcesandoImagen] = useState(false);
 
   useEffect(() => {
     if (!abierto) {
@@ -348,6 +528,7 @@ export default function BannerPublicitarioAdminModal({
     setValores(crearValoresIniciales(banner));
     setArchivos({});
     setErrores([]);
+    setProcesandoImagen(false);
   }, [abierto, banner]);
 
   const medidaActual = useMemo(
@@ -370,6 +551,56 @@ export default function BannerPublicitarioAdminModal({
       ...actual,
       [nombre]: valor,
     }));
+
+    if (nombre === "ubicacion") {
+      setArchivos({});
+    }
+  };
+
+  const seleccionarImagen = async (
+    archivo: File | null,
+    dispositivo: TipoDispositivoBanner,
+  ) => {
+    if (!archivo) {
+      setArchivos((actual) => ({
+        ...actual,
+        [dispositivo === "DESKTOP" ? "imagenDesktop" : "imagenMobile"]: null,
+      }));
+
+      return;
+    }
+
+    if (!TIPOS_PERMITIDOS.includes(archivo.type)) {
+      setErrores(["La imagen debe ser JPG, PNG o WebP."]);
+      return;
+    }
+
+    setProcesandoImagen(true);
+    setErrores([]);
+
+    try {
+      const archivoAjustado = await ajustarImagenAmedida(
+        archivo,
+        valores.ubicacion,
+        dispositivo,
+      );
+
+      setArchivos((actual) => ({
+        ...actual,
+        [dispositivo === "DESKTOP" ? "imagenDesktop" : "imagenMobile"]:
+          archivoAjustado,
+      }));
+
+      if (dispositivo === "MOBILE") {
+        actualizarValor("eliminarImagenMobile", false);
+      }
+    } catch (error: any) {
+      setErrores([
+        error?.message ?? "No se pudo ajustar la imagen seleccionada.",
+      ]);
+    } finally {
+      setProcesandoImagen(false);
+    }
   };
 
   const manejarSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -393,7 +624,14 @@ export default function BannerPublicitarioAdminModal({
   );
 
   const tiposDestino = unirOpcionesUnicas<BannerTipoDestino>(
-    Object.values(BANNER_TIPOS_DESTINO),
+    [
+      BANNER_TIPOS_DESTINO.WEB,
+      BANNER_TIPOS_DESTINO.FACEBOOK,
+      BANNER_TIPOS_DESTINO.INSTAGRAM,
+      BANNER_TIPOS_DESTINO.WHATSAPP,
+      BANNER_TIPOS_DESTINO.VITRINA_INTERNA,
+      BANNER_TIPOS_DESTINO.OTRO,
+    ],
     configuracion?.tiposDestino,
   );
 
@@ -401,6 +639,8 @@ export default function BannerPublicitarioAdminModal({
     Object.values(BANNER_ESTADOS),
     configuracion?.estadosEditables,
   );
+
+  const medidasFrontend = MEDIDAS_BANNER[valores.ubicacion];
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/75 p-3 backdrop-blur-sm">
@@ -441,7 +681,7 @@ export default function BannerPublicitarioAdminModal({
           <button
             type="button"
             onClick={onClose}
-            disabled={procesando}
+            disabled={procesando || procesandoImagen}
             className="rounded-full bg-white/10 p-2 text-gray-200 transition hover:bg-white/20"
             aria-label="Cerrar"
           >
@@ -459,6 +699,12 @@ export default function BannerPublicitarioAdminModal({
                   <li key={error}>{error}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {procesandoImagen && (
+            <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-sm text-yellow-100">
+              Ajustando imagen automáticamente al tamaño requerido...
             </div>
           )}
 
@@ -485,7 +731,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Ej.: Ferretería San Miguel"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
 
@@ -499,7 +745,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Ej.: Promoción especial"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
           </div>
@@ -515,7 +761,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Texto breve visible"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
 
@@ -529,7 +775,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Publicidad"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
           </div>
@@ -545,7 +791,7 @@ export default function BannerPublicitarioAdminModal({
               rows={3}
               className="mt-2 w-full resize-y rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
               placeholder="Información adicional de la campaña"
-              disabled={procesando}
+              disabled={procesando || procesandoImagen}
             />
           </div>
 
@@ -562,7 +808,7 @@ export default function BannerPublicitarioAdminModal({
                   )
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               >
                 {ubicaciones.map((ubicacion) => (
                   <option
@@ -576,88 +822,80 @@ export default function BannerPublicitarioAdminModal({
               </select>
             </div>
 
-            <div>
-              <label className="text-sm font-semibold">Orden</label>
+            <CampoNumero
+              label="Orden"
+              value={valores.orden}
+              min={1}
+              disabled={procesando || procesandoImagen}
+              onChange={(nuevoValor) => actualizarValor("orden", nuevoValor)}
+            />
 
-              <input
-                type="number"
-                min={1}
-                value={valores.orden}
-                onChange={(event) =>
-                  actualizarValor("orden", Number(event.target.value))
-                }
-                className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold">Prioridad</label>
-
-              <input
-                type="number"
-                min={0}
-                value={valores.prioridad}
-                onChange={(event) =>
-                  actualizarValor("prioridad", Number(event.target.value))
-                }
-                className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
-              />
-            </div>
+            <CampoNumero
+              label="Prioridad"
+              value={valores.prioridad}
+              min={0}
+              disabled={procesando || procesandoImagen}
+              onChange={(nuevoValor) =>
+                actualizarValor("prioridad", nuevoValor)
+              }
+            />
           </div>
 
           <div className="rounded-xl border border-yellow-400/25 bg-yellow-400/5 px-4 py-3 text-sm text-gray-200">
             <p>
-              Escritorio:{" "}
-              <strong>{medidaActual?.desktop || "Según configuración"}</strong>
+              Escritorio requerido:{" "}
+              <strong>
+                {medidasFrontend.DESKTOP.width} ×{" "}
+                {medidasFrontend.DESKTOP.height} px
+              </strong>
             </p>
 
             <p className="mt-1">
-              Celular:{" "}
-              <strong>{medidaActual?.mobile || "Según configuración"}</strong>
+              Celular requerido:{" "}
+              <strong>
+                {medidasFrontend.MOBILE.width} × {medidasFrontend.MOBILE.height}{" "}
+                px
+              </strong>
+            </p>
+
+            {medidaActual && (
+              <p className="mt-2 text-xs text-gray-400">
+                Configuración backend: escritorio {medidaActual.desktop},
+                celular {medidaActual.mobile}.
+              </p>
+            )}
+
+            <p className="mt-2 text-xs text-yellow-200">
+              Podés subir imágenes de cualquier medida. El sistema las ajusta
+              antes de guardar.
             </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
             <SelectorImagen
               id="banner-imagen-desktop"
-              titulo="Imagen de escritorio"
+              titulo={`${valores.ubicacion} · Escritorio`}
               ayuda={
                 esEdicion
                   ? "Podés dejarla sin cambios para conservar la imagen actual."
-                  : "Obligatoria al crear el banner."
+                  : "Obligatoria al crear el banner. Se ajusta automáticamente."
               }
               archivo={archivos.imagenDesktop}
               imagenActual={banner?.imagenDesktopUrl}
-              disabled={procesando}
-              onChange={(imagenDesktop) =>
-                setArchivos((actual) => ({
-                  ...actual,
-                  imagenDesktop,
-                }))
-              }
+              disabled={procesando || procesandoImagen}
+              onChange={(archivo) => void seleccionarImagen(archivo, "DESKTOP")}
             />
 
             <SelectorImagen
               id="banner-imagen-mobile"
-              titulo="Imagen para celular"
-              ayuda="Opcional. Si no cargás una pieza móvil, se utilizará la imagen de escritorio."
+              titulo={`${valores.ubicacion} · Celular`}
+              ayuda="Opcional. Si no cargás una pieza móvil, se usará la imagen de escritorio."
               archivo={archivos.imagenMobile}
               imagenActual={
                 valores.eliminarImagenMobile ? null : banner?.imagenMobileUrl
               }
-              disabled={procesando}
-              onChange={(imagenMobile) => {
-                setArchivos((actual) => ({
-                  ...actual,
-                  imagenMobile,
-                }));
-
-                if (imagenMobile) {
-                  actualizarValor("eliminarImagenMobile", false);
-                }
-              }}
+              disabled={procesando || procesandoImagen}
+              onChange={(archivo) => void seleccionarImagen(archivo, "MOBILE")}
             />
           </div>
 
@@ -669,7 +907,11 @@ export default function BannerPublicitarioAdminModal({
                 onChange={(event) =>
                   actualizarValor("eliminarImagenMobile", event.target.checked)
                 }
-                disabled={procesando || Boolean(archivos.imagenMobile)}
+                disabled={
+                  procesando ||
+                  procesandoImagen ||
+                  Boolean(archivos.imagenMobile)
+                }
                 className="accent-yellow-400"
               />
               Eliminar la imagen móvil actual
@@ -699,7 +941,7 @@ export default function BannerPublicitarioAdminModal({
                   )
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               >
                 {tiposDestino.map((tipo) => (
                   <option
@@ -729,7 +971,7 @@ export default function BannerPublicitarioAdminModal({
                     ? "Escribir por WhatsApp"
                     : "Conocer más"
                 }
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
           </div>
@@ -745,11 +987,16 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder={
-                  valores.tipoDestino === BANNER_TIPOS_DESTINO.PERFIL_PUBLICO
-                    ? "https://www.tuvendedor.com.py/vendedor/mi-negocio"
-                    : "https://www.cliente.com.py"
+                  valores.tipoDestino === BANNER_TIPOS_DESTINO.INSTAGRAM
+                    ? "https://www.instagram.com/usuario/"
+                    : valores.tipoDestino === BANNER_TIPOS_DESTINO.FACEBOOK
+                      ? "https://www.facebook.com/usuario"
+                      : valores.tipoDestino ===
+                          BANNER_TIPOS_DESTINO.VITRINA_INTERNA
+                        ? "https://www.tuvendedor.com.py/vendedor/mi-negocio"
+                        : "https://www.cliente.com.py"
                 }
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
           )}
@@ -767,7 +1014,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="595981123456 o https://wa.me/595981123456"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
 
@@ -783,7 +1030,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
                 placeholder="Escribir por WhatsApp"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
           </div>
@@ -798,6 +1045,7 @@ export default function BannerPublicitarioAdminModal({
                 }
                 disabled={
                   procesando ||
+                  procesandoImagen ||
                   valores.tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
                 }
                 className="accent-yellow-400"
@@ -812,7 +1060,7 @@ export default function BannerPublicitarioAdminModal({
                 onChange={(event) =>
                   actualizarValor("abrirNuevaPestana", event.target.checked)
                 }
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
                 className="accent-yellow-400"
               />
               Abrir destino en una pestaña nueva
@@ -836,7 +1084,7 @@ export default function BannerPublicitarioAdminModal({
                   actualizarValor("fechaInicio", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
 
@@ -850,7 +1098,7 @@ export default function BannerPublicitarioAdminModal({
                   actualizarValor("fechaFin", event.target.value)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-black/25 px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               />
             </div>
 
@@ -863,7 +1111,7 @@ export default function BannerPublicitarioAdminModal({
                   actualizarValor("estado", event.target.value as BannerEstado)
                 }
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
-                disabled={procesando}
+                disabled={procesando || procesandoImagen}
               >
                 {estados.map((estado) => (
                   <option
@@ -885,7 +1133,7 @@ export default function BannerPublicitarioAdminModal({
               onChange={(event) =>
                 actualizarValor("esExclusivo", event.target.checked)
               }
-              disabled={procesando}
+              disabled={procesando || procesandoImagen}
               className="accent-yellow-400"
             />
             Banner exclusivo para su ubicación durante la vigencia
@@ -895,7 +1143,7 @@ export default function BannerPublicitarioAdminModal({
             <button
               type="button"
               onClick={onClose}
-              disabled={procesando}
+              disabled={procesando || procesandoImagen}
               className="rounded-lg border border-white/15 px-4 py-2 font-semibold text-gray-200 transition hover:bg-white/10"
             >
               Cancelar
@@ -903,14 +1151,16 @@ export default function BannerPublicitarioAdminModal({
 
             <button
               type="submit"
-              disabled={procesando}
+              disabled={procesando || procesandoImagen}
               className="rounded-lg bg-yellow-400 px-4 py-2 font-bold text-black transition hover:bg-yellow-300 disabled:cursor-wait disabled:opacity-60"
             >
-              {procesando
-                ? "Guardando..."
-                : esEdicion
-                  ? "Guardar cambios"
-                  : "Crear banner"}
+              {procesandoImagen
+                ? "Ajustando imagen..."
+                : procesando
+                  ? "Guardando..."
+                  : esEdicion
+                    ? "Guardar cambios"
+                    : "Crear banner"}
             </button>
           </footer>
         </form>

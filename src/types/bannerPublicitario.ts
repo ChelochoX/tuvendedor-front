@@ -25,9 +25,24 @@ export type BannerEstado =
   (typeof BANNER_ESTADOS)[keyof typeof BANNER_ESTADOS];
 
 export const BANNER_TIPOS_DESTINO = {
-  URL: "URL",
+  WEB: "WEB",
+  FACEBOOK: "FACEBOOK",
+  INSTAGRAM: "INSTAGRAM",
   WHATSAPP: "WHATSAPP",
-  PERFIL_PUBLICO: "PERFIL_PUBLICO",
+  VITRINA_INTERNA: "VITRINA_INTERNA",
+  OTRO: "OTRO",
+
+  /**
+   * Alias para no romper código anterior.
+   * URL ahora se envía al backend como WEB.
+   */
+  URL: "WEB",
+
+  /**
+   * Alias para no romper código anterior.
+   * PERFIL_PUBLICO ahora se envía al backend como VITRINA_INTERNA.
+   */
+  PERFIL_PUBLICO: "VITRINA_INTERNA",
 } as const;
 
 export type BannerTipoDestino =
@@ -35,9 +50,6 @@ export type BannerTipoDestino =
 
 export type BannerPublicitarioId = number | string;
 
-/**
- * Contrato utilizado por la vitrina pública.
- */
 export interface BannerPublicitario {
   id: BannerPublicitarioId;
 
@@ -62,9 +74,6 @@ export interface BannerPublicitario {
   orden: number;
 }
 
-/**
- * Respuesta pública agrupada por ubicación.
- */
 export interface BannersHomeResponse {
   homeTop: BannerPublicitario[];
   homeInline: BannerPublicitario[];
@@ -75,9 +84,6 @@ export interface RegistrarEventoBannerRequest {
   tipoEvento: BannerEventoTipo;
 }
 
-/**
- * Registro completo utilizado por el administrador.
- */
 export interface BannerPublicitarioAdmin
   extends BannerPublicitario {
   nombreCliente: string;

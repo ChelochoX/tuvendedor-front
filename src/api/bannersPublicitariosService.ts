@@ -57,10 +57,22 @@ const MEDIDAS_PREDETERMINADAS: BannerMedidaConfiguracion[] = [
   },
   {
     ubicacion: BANNER_UBICACIONES.HOME_INLINE,
-    desktop: "1600 × 360 px",
-    mobile: "1080 × 720 px",
+    desktop: "1600 × 240 px",
+    mobile: "1080 × 480 px",
   },
 ];
+
+const CONFIG_MULTIPART = {
+  headers: {
+    "Content-Type": "multipart/form-data",
+  },
+};
+
+const CONFIG_JSON = {
+  headers: {
+    "Content-Type": "application/json",
+  },
+};
 
 function construirUrl(endpoint: string): string {
   return `${API_BASE_URL}${endpoint}`;
@@ -96,9 +108,9 @@ function convertirTexto(valor: unknown): string | null {
 }
 
 function convertirNumero(valor: unknown, valorPredeterminado = 0): number {
-  const numero = Number(valor);
+  const parsedValue = Number(valor);
 
-  return Number.isFinite(numero) ? numero : valorPredeterminado;
+  return Number.isFinite(parsedValue) ? parsedValue : valorPredeterminado;
 }
 
 function convertirBooleano(
@@ -109,12 +121,12 @@ function convertirBooleano(
     return valor;
   }
 
-  if (typeof valor === "string") {
-    return valor.toLowerCase() === "true";
-  }
-
   if (typeof valor === "number") {
     return valor === 1;
+  }
+
+  if (typeof valor === "string") {
+    return valor.toLowerCase() === "true";
   }
 
   return valorPredeterminado;
@@ -130,40 +142,6 @@ function convertirId(valor: unknown): BannerPublicitarioId | null {
   }
 
   return null;
-}
-
-function convertirUbicacion(
-  valor: unknown,
-  ubicacionPredeterminada?: BannerUbicacion,
-): BannerUbicacion | null {
-  const texto = convertirTexto(valor)?.toUpperCase();
-
-  if (texto === BANNER_UBICACIONES.HOME_TOP) {
-    return BANNER_UBICACIONES.HOME_TOP;
-  }
-
-  if (texto === BANNER_UBICACIONES.HOME_INLINE) {
-    return BANNER_UBICACIONES.HOME_INLINE;
-  }
-
-  return ubicacionPredeterminada ?? null;
-}
-
-function convertirEstado(
-  valor: unknown,
-  estadoPredeterminado: BannerEstado = BANNER_ESTADOS.BORRADOR,
-): BannerEstado {
-  const texto = convertirTexto(valor)?.toUpperCase();
-
-  if (texto === BANNER_ESTADOS.ACTIVO) {
-    return BANNER_ESTADOS.ACTIVO;
-  }
-
-  if (texto === BANNER_ESTADOS.PAUSADO) {
-    return BANNER_ESTADOS.PAUSADO;
-  }
-
-  return estadoPredeterminado;
 }
 
 function extraerValorCatalogo(valor: unknown): unknown {
@@ -182,37 +160,158 @@ function extraerValorCatalogo(valor: unknown): unknown {
     "Code",
     "nombre",
     "Nombre",
+    "descripcion",
+    "Descripcion",
+    "description",
+    "Description",
     "tipoDestino",
     "TipoDestino",
+    "estado",
+    "Estado",
+    "ubicacion",
+    "Ubicacion",
   ]);
+}
+
+function convertirUbicacion(
+  valor: unknown,
+  ubicacionPredeterminada?: BannerUbicacion,
+): BannerUbicacion | null {
+  const texto = convertirTexto(extraerValorCatalogo(valor))?.toUpperCase();
+
+  if (texto === BANNER_UBICACIONES.HOME_TOP) {
+    return BANNER_UBICACIONES.HOME_TOP;
+  }
+
+  if (texto === BANNER_UBICACIONES.HOME_INLINE) {
+    return BANNER_UBICACIONES.HOME_INLINE;
+  }
+
+  return ubicacionPredeterminada ?? null;
+}
+
+function convertirEstado(
+  valor: unknown,
+  estadoPredeterminado: BannerEstado = BANNER_ESTADOS.BORRADOR,
+): BannerEstado {
+  const texto = convertirTexto(extraerValorCatalogo(valor))?.toUpperCase();
+
+  if (texto === BANNER_ESTADOS.ACTIVO) {
+    return BANNER_ESTADOS.ACTIVO;
+  }
+
+  if (texto === BANNER_ESTADOS.PAUSADO) {
+    return BANNER_ESTADOS.PAUSADO;
+  }
+
+  if (texto === BANNER_ESTADOS.BORRADOR) {
+    return BANNER_ESTADOS.BORRADOR;
+  }
+
+  return estadoPredeterminado;
+}
+
+function convertirEstadoConfiguracion(valor: unknown): BannerEstado | null {
+  const texto = convertirTexto(extraerValorCatalogo(valor))?.toUpperCase();
+
+  if (texto === BANNER_ESTADOS.ACTIVO) {
+    return BANNER_ESTADOS.ACTIVO;
+  }
+
+  if (texto === BANNER_ESTADOS.PAUSADO) {
+    return BANNER_ESTADOS.PAUSADO;
+  }
+
+  if (texto === BANNER_ESTADOS.BORRADOR) {
+    return BANNER_ESTADOS.BORRADOR;
+  }
+
+  return null;
 }
 
 function convertirTipoDestino(
   valor: unknown,
-  tipoPredeterminado: BannerTipoDestino | null = BANNER_TIPOS_DESTINO.URL,
+  tipoPredeterminado: BannerTipoDestino | null = BANNER_TIPOS_DESTINO.WEB,
 ): BannerTipoDestino | null {
   const texto = convertirTexto(extraerValorCatalogo(valor))?.toUpperCase();
 
-  if (texto === BANNER_TIPOS_DESTINO.WHATSAPP) {
+  if (
+    texto === BANNER_TIPOS_DESTINO.WEB ||
+    texto === "URL" ||
+    texto === "WEB" ||
+    texto === "URL_EXTERNA" ||
+    texto === "SITIO_WEB"
+  ) {
+    return BANNER_TIPOS_DESTINO.WEB;
+  }
+
+  if (
+    texto === BANNER_TIPOS_DESTINO.FACEBOOK ||
+    texto === "FACEBOOK" ||
+    texto === "FB"
+  ) {
+    return BANNER_TIPOS_DESTINO.FACEBOOK;
+  }
+
+  if (
+    texto === BANNER_TIPOS_DESTINO.INSTAGRAM ||
+    texto === "INSTAGRAM" ||
+    texto === "IG"
+  ) {
+    return BANNER_TIPOS_DESTINO.INSTAGRAM;
+  }
+
+  if (texto === BANNER_TIPOS_DESTINO.WHATSAPP || texto === "WA") {
     return BANNER_TIPOS_DESTINO.WHATSAPP;
   }
 
-  if (texto === BANNER_TIPOS_DESTINO.PERFIL_PUBLICO) {
-    return BANNER_TIPOS_DESTINO.PERFIL_PUBLICO;
+  if (
+    texto === BANNER_TIPOS_DESTINO.VITRINA_INTERNA ||
+    texto === "PERFIL_PUBLICO" ||
+    texto === "PERFIL" ||
+    texto === "PERFIL_VENDEDOR" ||
+    texto === "VITRINA"
+  ) {
+    return BANNER_TIPOS_DESTINO.VITRINA_INTERNA;
   }
 
-  if (texto === BANNER_TIPOS_DESTINO.URL) {
-    return BANNER_TIPOS_DESTINO.URL;
+  if (texto === BANNER_TIPOS_DESTINO.OTRO || texto === "OTROS") {
+    return BANNER_TIPOS_DESTINO.OTRO;
   }
 
   return tipoPredeterminado;
 }
 
+function normalizarUbicacionesConfiguracion(valor: unknown): BannerUbicacion[] {
+  if (!Array.isArray(valor)) {
+    return Object.values(BANNER_UBICACIONES);
+  }
+
+  const ubicacionesNormalizadas = valor
+    .map((item) => convertirUbicacion(item))
+    .filter((item): item is BannerUbicacion => item !== null);
+
+  const ubicacionesSinDuplicados = Array.from(new Set(ubicacionesNormalizadas));
+
+  return ubicacionesSinDuplicados.length > 0
+    ? ubicacionesSinDuplicados
+    : Object.values(BANNER_UBICACIONES);
+}
+
 function normalizarTiposDestinoConfiguracion(
   valor: unknown,
 ): BannerTipoDestino[] {
+  const tiposPredeterminados: BannerTipoDestino[] = [
+    BANNER_TIPOS_DESTINO.WEB,
+    BANNER_TIPOS_DESTINO.FACEBOOK,
+    BANNER_TIPOS_DESTINO.INSTAGRAM,
+    BANNER_TIPOS_DESTINO.WHATSAPP,
+    BANNER_TIPOS_DESTINO.VITRINA_INTERNA,
+    BANNER_TIPOS_DESTINO.OTRO,
+  ];
+
   if (!Array.isArray(valor)) {
-    return Object.values(BANNER_TIPOS_DESTINO);
+    return tiposPredeterminados;
   }
 
   const tiposNormalizados = valor
@@ -223,7 +322,25 @@ function normalizarTiposDestinoConfiguracion(
 
   return tiposSinDuplicados.length > 0
     ? tiposSinDuplicados
-    : Object.values(BANNER_TIPOS_DESTINO);
+    : tiposPredeterminados;
+}
+
+function normalizarEstadosEditablesConfiguracion(
+  valor: unknown,
+): BannerEstado[] {
+  if (!Array.isArray(valor)) {
+    return Object.values(BANNER_ESTADOS);
+  }
+
+  const estadosNormalizados = valor
+    .map(convertirEstadoConfiguracion)
+    .filter((item): item is BannerEstado => item !== null);
+
+  const estadosSinDuplicados = Array.from(new Set(estadosNormalizados));
+
+  return estadosSinDuplicados.length > 0
+    ? estadosSinDuplicados
+    : Object.values(BANNER_ESTADOS);
 }
 
 function normalizarBannerPublico(
@@ -240,6 +357,7 @@ function normalizarBannerPublico(
       "Id",
       "bannerPublicitarioId",
       "BannerPublicitarioId",
+      "banner_publicitario_id",
       "idBannerPublicitario",
       "IdBannerPublicitario",
     ]),
@@ -249,6 +367,7 @@ function normalizarBannerPublico(
     obtenerPrimerValor(valor, [
       "imagenDesktopUrl",
       "ImagenDesktopUrl",
+      "imagen_desktop_url",
       "imagenEscritorioUrl",
       "ImagenEscritorioUrl",
       "urlImagenDesktop",
@@ -260,6 +379,7 @@ function normalizarBannerPublico(
     obtenerPrimerValor(valor, [
       "imagenMobileUrl",
       "ImagenMobileUrl",
+      "imagen_mobile_url",
       "imagenMovilUrl",
       "ImagenMovilUrl",
       "urlImagenMobile",
@@ -273,6 +393,7 @@ function normalizarBannerPublico(
       "Ubicacion",
       "tipoUbicacion",
       "TipoUbicacion",
+      "tipo_ubicacion",
       "posicion",
       "Posicion",
     ]),
@@ -287,15 +408,19 @@ function normalizarBannerPublico(
     obtenerPrimerValor(valor, [
       "whatsappUrl",
       "WhatsappUrl",
+      "whatsapp_url",
       "urlWhatsapp",
       "UrlWhatsapp",
+      "url_whatsapp",
     ]),
   );
 
   return {
     id,
 
-    titulo: convertirTexto(obtenerPrimerValor(valor, ["titulo", "Titulo"])),
+    titulo: convertirTexto(
+      obtenerPrimerValor(valor, ["titulo", "Titulo", "nombre", "Nombre"]),
+    ),
 
     subtitulo: convertirTexto(
       obtenerPrimerValor(valor, ["subtitulo", "Subtitulo"]),
@@ -318,7 +443,7 @@ function normalizarBannerPublico(
       ) ?? BANNER_TIPOS_DESTINO.URL,
 
     urlDestino: convertirTexto(
-      obtenerPrimerValor(valor, ["urlDestino", "UrlDestino"]),
+      obtenerPrimerValor(valor, ["urlDestino", "UrlDestino", "url", "Url"]),
     ),
 
     whatsappUrl,
@@ -520,7 +645,6 @@ function normalizarRespuestaHome(respuesta: unknown): BannersHomeResponse {
   if (Array.isArray(homeTop) || Array.isArray(homeInline)) {
     return {
       homeTop: normalizarListaPublica(homeTop, BANNER_UBICACIONES.HOME_TOP),
-
       homeInline: normalizarListaPublica(
         homeInline,
         BANNER_UBICACIONES.HOME_INLINE,
@@ -598,6 +722,18 @@ function appendFormData(
   formData.append(nombre, String(valor));
 }
 
+function obtenerUrlDestinoParaEnvio(
+  valores: BannerPublicitarioFormValues,
+): string {
+  const tipoDestino = valores.tipoDestino;
+
+  if (tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP) {
+    return valores.whatsappUrl.trim();
+  }
+
+  return valores.urlDestino.trim();
+}
+
 function crearFormDataBanner(
   valores: BannerPublicitarioFormValues,
   archivos: BannerPublicitarioArchivosForm,
@@ -606,31 +742,28 @@ function crearFormDataBanner(
   const formData = new FormData();
 
   appendFormData(formData, "NombreCliente", valores.nombreCliente.trim());
-
   appendFormData(formData, "Ubicacion", valores.ubicacion);
+
   appendFormData(formData, "Titulo", valores.titulo.trim());
   appendFormData(formData, "Subtitulo", valores.subtitulo.trim());
   appendFormData(formData, "Descripcion", valores.descripcion.trim());
   appendFormData(formData, "Etiqueta", valores.etiqueta.trim());
 
   appendFormData(formData, "TipoDestino", valores.tipoDestino);
-  appendFormData(formData, "UrlDestino", valores.urlDestino.trim());
+  appendFormData(formData, "UrlDestino", obtenerUrlDestinoParaEnvio(valores));
   appendFormData(formData, "WhatsappUrl", valores.whatsappUrl.trim());
 
   appendFormData(formData, "TextoBoton", valores.textoBoton.trim());
-
   appendFormData(
     formData,
     "MostrarBotonWhatsapp",
     valores.mostrarBotonWhatsapp,
   );
-
   appendFormData(
     formData,
     "TextoBotonWhatsapp",
     valores.textoBotonWhatsapp.trim(),
   );
-
   appendFormData(formData, "AbrirNuevaPestana", valores.abrirNuevaPestana);
 
   appendFormData(formData, "FechaInicio", valores.fechaInicio);
@@ -905,26 +1038,17 @@ export async function obtenerConfiguracionBannersPublicitariosAdmin(): Promise<C
     );
 
     return {
-      ubicaciones: Array.isArray(data?.ubicaciones ?? data?.Ubicaciones)
-        ? (data?.ubicaciones ?? data?.Ubicaciones)
-            .map((item: unknown) => convertirUbicacion(item))
-            .filter(
-              (item: BannerUbicacion | null): item is BannerUbicacion =>
-                item !== null,
-            )
-        : Object.values(BANNER_UBICACIONES),
+      ubicaciones: normalizarUbicacionesConfiguracion(
+        data?.ubicaciones ?? data?.Ubicaciones,
+      ),
 
       tiposDestino: normalizarTiposDestinoConfiguracion(
         data?.tiposDestino ?? data?.TiposDestino,
       ),
 
-      estadosEditables: Array.isArray(
+      estadosEditables: normalizarEstadosEditablesConfiguracion(
         data?.estadosEditables ?? data?.EstadosEditables,
-      )
-        ? (data?.estadosEditables ?? data?.EstadosEditables).map(
-            (item: unknown) => convertirEstado(item),
-          )
-        : Object.values(BANNER_ESTADOS),
+      ),
 
       formatosPermitidos: Array.isArray(
         data?.formatosPermitidos ?? data?.FormatosPermitidos,
@@ -935,10 +1059,6 @@ export async function obtenerConfiguracionBannersPublicitariosAdmin(): Promise<C
       medidas: normalizarMedidas(data?.medidas ?? data?.Medidas),
     };
   } catch (error) {
-    /**
-     * No bloqueamos el administrador si falla solamente
-     * el endpoint informativo de configuración.
-     */
     console.warn("No se pudo consultar la configuración de banners.", error);
 
     return {
@@ -959,6 +1079,7 @@ export async function crearBannerPublicitarioAdmin(
     await instance.post(
       ADMIN_ENDPOINT,
       crearFormDataBanner(valores, archivos, false),
+      CONFIG_MULTIPART,
     );
   } catch (error: any) {
     throw new Error(obtenerMensajeError(error, "No se pudo crear el banner."));
@@ -971,9 +1092,18 @@ export async function actualizarBannerPublicitarioAdmin(
   archivos: BannerPublicitarioArchivosForm,
 ): Promise<void> {
   try {
+    /**
+     * El backend tiene:
+     * [Consumes("multipart/form-data")]
+     * [FromForm]
+     *
+     * Por eso el PUT debe enviarse SIEMPRE como FormData,
+     * aunque no se reemplacen imágenes.
+     */
     await instance.put(
       `${ADMIN_ENDPOINT}/${id}`,
       crearFormDataBanner(valores, archivos, true),
+      CONFIG_MULTIPART,
     );
   } catch (error: any) {
     throw new Error(
@@ -987,9 +1117,13 @@ export async function cambiarEstadoBannerPublicitarioAdmin(
   estado: BannerEstado,
 ): Promise<void> {
   try {
-    await instance.patch(`${ADMIN_ENDPOINT}/${id}/estado`, {
-      estado,
-    });
+    await instance.patch(
+      `${ADMIN_ENDPOINT}/${id}/estado`,
+      {
+        estado,
+      },
+      CONFIG_JSON,
+    );
   } catch (error: any) {
     throw new Error(
       obtenerMensajeError(error, "No se pudo cambiar el estado del banner."),

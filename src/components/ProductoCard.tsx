@@ -77,6 +77,86 @@ const ProductoCard: React.FC<Props> = ({
     esAdmin ||
     (usuario?.permisos?.includes("QuitarPublicacionTemporada") ?? false);
 
+  const mostrarModalPremiumServicio = async ({
+    variante = "gold",
+    badge,
+    titulo,
+    descripcion,
+    beneficios,
+    notaTitulo,
+    notaDescripcion,
+  }: {
+    variante?: "gold" | "purple";
+    badge: string;
+    titulo: string;
+    descripcion: string;
+    beneficios: string[];
+    notaTitulo: string;
+    notaDescripcion: string;
+  }) => {
+    const htmlBeneficios = beneficios
+      .map(
+        (beneficio) => `
+        <div class="tv-premium-modal__benefit">
+          <span class="tv-premium-modal__check">✓</span>
+          <span class="tv-premium-modal__benefit-text">${beneficio}</span>
+        </div>
+      `,
+      )
+      .join("");
+
+    return Swal.fire({
+      html: `
+      <div class="tv-premium-modal ${
+        variante === "purple" ? "tv-premium-modal--purple" : ""
+      }">
+        <div class="tv-premium-modal__hero">
+          <span class="tv-premium-modal__badge">
+            ${badge}
+          </span>
+
+          <h2 class="tv-premium-modal__title">
+            ${titulo}
+          </h2>
+
+          <p class="tv-premium-modal__text">
+            ${descripcion}
+          </p>
+        </div>
+
+        <div class="tv-premium-modal__benefits">
+          ${htmlBeneficios}
+        </div>
+
+        <div class="tv-premium-modal__notice">
+          <p class="tv-premium-modal__notice-title">
+            Activación posterior al pago
+          </p>
+
+          <p class="tv-premium-modal__notice-text">
+            ${notaDescripcion}
+          </p>
+        </div>
+      </div>
+    `,
+      showCancelButton: true,
+      confirmButtonText: "Consultar por WhatsApp",
+      cancelButtonText: "Ahora no",
+      buttonsStyling: false,
+      background: "#0b111c",
+      color: "#fff",
+      width: 440,
+      padding: 0,
+      customClass: {
+        popup: "tv-premium-swal-popup",
+        htmlContainer: "tv-premium-swal-html",
+        actions: "tv-premium-swal-actions",
+        confirmButton: "tv-premium-swal-confirm",
+        cancelButton: "tv-premium-swal-cancel",
+      },
+    });
+  };
+
   const handleVerDetalle = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!onVerDetalle) return;
 
@@ -229,78 +309,37 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const solicitarEspecialPorWhatsapp = async () => {
-    const respuesta = await Swal.fire({
-      icon: "info",
-      title: "🎉 Participá en una campaña especial",
-      html: `
-    <div style="text-align:left;color:#ddd;line-height:1.65;margin-top:8px">
-      <p>
-        Mostrá tu producto dentro del carrusel temático principal
-        y aprovechá las fechas comerciales más importantes.
-      </p>
-
-      <div style="
-        margin-top:16px;
-        padding:14px;
-        border-radius:14px;
-        background:rgba(217,70,239,0.08);
-        border:1px solid rgba(217,70,239,0.22);
-      ">
-        <p>✅ Presencia dentro del carrusel principal</p>
-        <p>✅ Badge especial de temporada</p>
-        <p>✅ Mayor exposición visual</p>
-        <p>✅ Ideal para promociones y fechas comerciales</p>
-      </div>
-
-      <div style="
-        margin-top:16px;
-        padding:14px;
-        border-radius:14px;
-        background:rgba(255,255,255,0.05);
-        border:1px solid rgba(255,255,255,0.12);
-      ">
-        <p style="
-          margin:0 0 6px 0;
-          color:#facc15;
-          font-weight:700;
-        ">
-          💳 Servicio Premium con activación posterior al pago
-        </p>
-
-        <p style="margin:0;color:#d1d5db">
-          Solicitá tu participación por WhatsApp para conocer las
-          campañas disponibles, el precio y las formas de pago.
-          Una vez confirmado el pago, agregaremos tu publicación
-          al carrusel especial.
-        </p>
-      </div>
-    </div>
-  `,
-      showCancelButton: true,
-      confirmButtonText: "Consultar precio por WhatsApp",
-      cancelButtonText: "Ahora no",
-      confirmButtonColor: "#facc15",
-      cancelButtonColor: "#6b7280",
-      background: "#1e1f23",
-      color: "#fff",
+    const respuesta = await mostrarModalPremiumServicio({
+      variante: "purple",
+      badge: "🎉 Campaña especial",
+      titulo: "Sumá tu publicación a una campaña destacada",
+      descripcion:
+        "Tu producto puede aparecer dentro de carruseles temáticos, promociones de temporada y espacios con mayor impacto visual.",
+      beneficios: [
+        "Presencia dentro del carrusel principal",
+        "Badge especial de temporada o campaña",
+        "Mayor exposición visual en fechas comerciales",
+        "Ideal para promociones, ofertas y lanzamientos",
+      ],
+      notaTitulo: "Servicio Premium con activación posterior al pago",
+      notaDescripcion:
+        "Solicitá tu participación por WhatsApp para conocer las campañas disponibles, el precio y las formas de pago. Una vez confirmado el pago, agregaremos tu publicación al carrusel especial.",
     });
 
     if (!respuesta.isConfirmed) return;
 
     await intentarRegistrarSolicitudPremium({
       tipoServicio: TIPOS_SERVICIO_PREMIUM.PUBLICACION_ESPECIAL,
-
       idPublicacion: producto.id,
-
       observacion: "Solicitud enviada desde el CTA de publicación especial.",
     });
 
     const mensaje = `Hola 👋 Quiero incluir una publicación en una campaña especial de Tu Vendedor.
 
-    Publicación: ${producto.nombre}
-    Código: ${producto.id}
+Publicación: ${producto.nombre}
+Código: ${producto.id}
 
-    Quisiera conocer las campañas disponibles y el costo de activación.`;
+Quisiera conocer las campañas disponibles y el costo de activación.`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
@@ -430,77 +469,37 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const solicitarDestacadoPorWhatsapp = async () => {
-    const respuesta = await Swal.fire({
-      icon: "info",
-      title: "⭐ Dale más visibilidad a tu publicación",
-      html: `
-    <div style="text-align:left;color:#ddd;line-height:1.65;margin-top:8px">
-      <p>
-        Tu producto puede aparecer antes que las publicaciones normales
-        y llamar mucho más la atención dentro de Tu Vendedor.
-      </p>
-
-      <div style="
-        margin-top:16px;
-        padding:14px;
-        border-radius:14px;
-        background:rgba(250,204,21,0.08);
-        border:1px solid rgba(250,204,21,0.22);
-      ">
-        <p>✅ Mayor exposición dentro del marketplace</p>
-        <p>✅ Ubicación prioritaria en el listado</p>
-        <p>✅ Badge visual de publicación destacada</p>
-        <p>✅ Activación disponible por 7, 15 o 30 días</p>
-      </div>
-
-      <div style="
-        margin-top:16px;
-        padding:14px;
-        border-radius:14px;
-        background:rgba(255,255,255,0.05);
-        border:1px solid rgba(255,255,255,0.12);
-      ">
-        <p style="
-          margin:0 0 6px 0;
-          color:#facc15;
-          font-weight:700;
-        ">
-          💳 Servicio Premium con activación posterior al pago
-        </p>
-
-        <p style="margin:0;color:#d1d5db">
-          Solicitá la promoción por WhatsApp para recibir los planes
-          disponibles y las formas de pago. Una vez confirmado el pago,
-          activaremos el destacado en tu publicación.
-        </p>
-      </div>
-    </div>
-  `,
-      showCancelButton: true,
-      confirmButtonText: "Consultar precio por WhatsApp",
-      cancelButtonText: "Ahora no",
-      confirmButtonColor: "#facc15",
-      cancelButtonColor: "#6b7280",
-      background: "#1e1f23",
-      color: "#fff",
+    const respuesta = await mostrarModalPremiumServicio({
+      variante: "gold",
+      badge: "⭐ Publicación destacada",
+      titulo: "Dale más visibilidad a tu publicación",
+      descripcion:
+        "Hacé que tu producto tenga más presencia dentro del marketplace y llame más la atención frente a publicaciones normales.",
+      beneficios: [
+        "Mayor exposición dentro de Tu Vendedor",
+        "Ubicación prioritaria en el listado",
+        "Badge visual de publicación destacada",
+        "Activación disponible por 7, 15 o 30 días",
+      ],
+      notaTitulo: "Servicio Premium con activación posterior al pago",
+      notaDescripcion:
+        "Solicitá la promoción por WhatsApp para recibir los planes disponibles y las formas de pago. Una vez confirmado el pago, activaremos el destacado en tu publicación.",
     });
 
     if (!respuesta.isConfirmed) return;
 
     await intentarRegistrarSolicitudPremium({
       tipoServicio: TIPOS_SERVICIO_PREMIUM.PUBLICACION_DESTACADA,
-
       idPublicacion: producto.id,
-
       observacion: "Solicitud enviada desde el CTA de publicación destacada.",
     });
 
     const mensaje = `Hola 👋 Quiero destacar una publicación en Tu Vendedor.
 
-      Publicación: ${producto.nombre}
-      Código: ${producto.id}
+Publicación: ${producto.nombre}
+Código: ${producto.id}
 
-      Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 días.`;
+Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 días.`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };

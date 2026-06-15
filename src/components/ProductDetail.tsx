@@ -6,7 +6,6 @@ import {
   useMediaQuery,
   useTheme,
   IconButton,
-  Divider,
   Chip,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -1498,6 +1497,87 @@ const ProductDetail: React.FC<Props> = ({
                 >
                   {precioTexto}
                 </Typography>
+
+                {producto.mostrarBotonesCompra && (
+                  <Box mt={1.15} display="grid" gap={0.9}>
+                    <Box
+                      sx={{
+                        borderRadius: 2,
+                        p: 1.15,
+                        bgcolor: "rgba(250,204,21,0.10)",
+                        border: "1px solid rgba(250,204,21,0.18)",
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          color: "#facc15",
+                          fontWeight: 950,
+                          fontSize: "0.68rem",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        Precio contado
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          mt: 0.35,
+                          color: "#fff",
+                          fontWeight: 950,
+                          fontSize: "0.95rem",
+                          letterSpacing: "-0.02em",
+                        }}
+                      >
+                        {precioTexto}
+                      </Typography>
+                    </Box>
+
+                    {cuotas.length > 0 && (
+                      <Box
+                        sx={{
+                          borderRadius: 2,
+                          p: 1.15,
+                          bgcolor: "rgba(250,204,21,0.055)",
+                          border: "1px solid rgba(250,204,21,0.22)",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            color: "#facc15",
+                            fontWeight: 950,
+                            fontSize: "0.68rem",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.04em",
+                            mb: 0.75,
+                          }}
+                        >
+                          ¿Preferís comprar en cuotas?
+                        </Typography>
+
+                        <Box display="grid" gap={0.7}>
+                          {cuotas.map((cuota) => (
+                            <Box
+                              key={cuota}
+                              sx={{
+                                borderRadius: 1.5,
+                                border: "1px solid rgba(250,204,21,0.85)",
+                                px: 1,
+                                py: 0.75,
+                                color: "#fff",
+                                fontSize: "0.72rem",
+                                fontWeight: 850,
+                                lineHeight: 1.25,
+                              }}
+                            >
+                              {cuota}
+                            </Box>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                )}
               </Box>
             </Box>
 
@@ -1862,32 +1942,46 @@ const ProductDetail: React.FC<Props> = ({
                 sx={{
                   ...cardSx,
                   borderRadius: 3,
-                  px: 2,
-                  py: 1.6,
-                  display: "flex",
+                  p: 1.35,
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) minmax(230px, 280px)",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 2,
+                  gap: 1.2,
+                  "@media (max-width: 1100px)": {
+                    gridTemplateColumns: "1fr",
+                  },
                 }}
               >
-                <Box display="flex" alignItems="center" gap={1}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  sx={{
+                    minWidth: 0,
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Button
                     onClick={handleCompartir}
                     startIcon={<ShareRoundedIcon />}
                     sx={{
+                      minHeight: 42,
+                      borderRadius: "999px",
+                      px: 1.4,
                       color: "rgba(255,255,255,0.78)",
-                      fontWeight: 800,
+                      bgcolor: "rgba(255,255,255,0.045)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      fontWeight: 850,
+                      fontSize: "0.78rem",
                       textTransform: "none",
+                      "&:hover": {
+                        bgcolor: "rgba(255,255,255,0.08)",
+                        color: "#fff",
+                      },
                     }}
                   >
                     Compartir
                   </Button>
-
-                  <Divider
-                    orientation="vertical"
-                    flexItem
-                    sx={{ borderColor: "rgba(255,255,255,0.12)" }}
-                  />
 
                   <Button
                     onClick={onToggleFavorite}
@@ -1895,16 +1989,60 @@ const ProductDetail: React.FC<Props> = ({
                       isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />
                     }
                     sx={{
+                      minHeight: 42,
+                      borderRadius: "999px",
+                      px: 1.4,
                       color: isFavorite ? "#facc15" : "rgba(255,255,255,0.78)",
-                      fontWeight: 800,
+                      bgcolor: isFavorite
+                        ? "rgba(250,204,21,0.10)"
+                        : "rgba(255,255,255,0.045)",
+                      border: isFavorite
+                        ? "1px solid rgba(250,204,21,0.26)"
+                        : "1px solid rgba(255,255,255,0.08)",
+                      fontWeight: 850,
+                      fontSize: "0.78rem",
                       textTransform: "none",
+                      "&:hover": {
+                        bgcolor: isFavorite
+                          ? "rgba(250,204,21,0.16)"
+                          : "rgba(255,255,255,0.08)",
+                      },
                     }}
                   >
                     Guardar
                   </Button>
                 </Box>
 
-                <Box width={280}>{botonWhatsapp}</Box>
+                <Button
+                  fullWidth
+                  onClick={handleContactarVendedor}
+                  sx={{
+                    minHeight: 46,
+                    borderRadius: "999px",
+                    bgcolor: "#22c55e",
+                    background:
+                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    color: "#fff",
+                    fontWeight: 950,
+                    textTransform: "none",
+                    fontSize: "0.84rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.75,
+                    whiteSpace: "nowrap",
+                    boxShadow:
+                      "0 12px 26px rgba(34,197,94,0.22), inset 0 1px 0 rgba(255,255,255,0.16)",
+                    "&:hover": {
+                      bgcolor: "#16a34a",
+                      background:
+                        "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                    },
+                  }}
+                >
+                  <WhatsAppIcon sx={{ fontSize: 18 }} />
+                  Consultar por WhatsApp
+                </Button>
               </Box>
             </Box>
           </Box>

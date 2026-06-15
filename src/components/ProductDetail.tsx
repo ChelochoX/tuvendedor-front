@@ -1078,7 +1078,6 @@ const ProductDetail: React.FC<Props> = ({
         >
           {relacionadas.map((item) => {
             const img = item.imagenes?.[0];
-            const imgUrl = obtenerThumbMedia(img) || obtenerUrlMedia(img);
 
             return (
               <Box
@@ -1099,17 +1098,15 @@ const ProductDetail: React.FC<Props> = ({
                 }}
               >
                 <Box
-                  component="img"
-                  src={imgUrl}
-                  alt={item.nombre}
                   sx={{
                     width: "100%",
                     height: isMobile ? 86 : 108,
-                    display: "block",
-                    objectFit: "cover",
+                    overflow: "hidden",
                     bgcolor: "#111827",
                   }}
-                />
+                >
+                  <MiniaturaMedia media={img} alt={item.nombre} />
+                </Box>
 
                 <Box p={1}>
                   <Typography

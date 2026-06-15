@@ -24,6 +24,7 @@ import {
   registrarMetaAngelaContactoWhatsapp,
   registrarMetaAngelaViewContent,
 } from "../../utils/metaPixel";
+import VitrinaMedia from "../../components/perfilVendedor/VitrinaMedia";
 
 interface Props {
   publicacion: PublicacionPerfilVendedor;
@@ -316,13 +317,19 @@ ${urlPublicacion}`;
               <X size={23} />
             </button>
 
-            <section className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
+            <section className="tv-scroll flex min-h-0 flex-1 flex-col overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:overflow-hidden">
               <div className="relative flex h-[48dvh] min-h-[330px] shrink-0 items-center justify-center bg-black p-3 pt-16 lg:h-full lg:p-6 lg:pt-16">
-                <img
-                  src={imagenActiva}
-                  alt={publicacion.titulo}
-                  className="max-h-full max-w-full rounded-2xl object-contain"
-                />
+                <div className="h-full w-full max-w-full overflow-hidden rounded-2xl">
+                  <VitrinaMedia
+                    media={imagenActiva}
+                    alt={publicacion.titulo}
+                    className="h-full w-full rounded-2xl"
+                    objectFit="contain"
+                    controls
+                    showVideoBadge
+                    showPlayIcon={false}
+                  />
+                </div>
 
                 {imagenes.length > 1 && (
                   <>
@@ -348,7 +355,7 @@ ${urlPublicacion}`;
 
                 {imagenes.length > 1 && (
                   <div className="absolute bottom-3 left-0 right-0 flex justify-center px-3">
-                    <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-black/55 px-2 py-2 backdrop-blur">
+                    <div className="tv-scroll flex max-w-full gap-2 overflow-x-auto rounded-2xl bg-black/55 px-2 py-2 backdrop-blur">
                       {imagenes.map((img, index) => (
                         <button
                           key={`${img}-${index}`}
@@ -361,10 +368,14 @@ ${urlPublicacion}`;
                               : "border-transparent"
                           }`}
                         >
-                          <img
-                            src={img}
+                          <VitrinaMedia
+                            media={img}
                             alt={`Vista ${index + 1}`}
-                            className="h-full w-full object-cover"
+                            className="h-full w-full"
+                            objectFit="cover"
+                            controls={false}
+                            showVideoBadge={false}
+                            showPlayIcon
                           />
                         </button>
                       ))}
@@ -373,7 +384,7 @@ ${urlPublicacion}`;
                 )}
               </div>
 
-              <aside className="flex min-h-0 flex-col overflow-visible bg-[#101722] p-4 pt-16 text-white lg:h-full lg:overflow-y-auto lg:border-l lg:border-white/10 lg:p-5 lg:pt-16">
+              <aside className="tv-scroll flex min-h-0 flex-col overflow-visible bg-[#101722] p-4 pt-16 text-white lg:h-full lg:overflow-y-auto lg:border-l lg:border-white/10 lg:p-5 lg:pt-16">
                 <div className="mb-3">
                   <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">
                     Publicación

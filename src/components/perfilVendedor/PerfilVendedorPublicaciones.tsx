@@ -4,6 +4,7 @@ import { Eye, MapPin, Search, SlidersHorizontal, Star } from "lucide-react";
 import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
 import { Producto } from "../../types/producto";
 import FavoritoButton from "../publicaciones/FavoritoButton";
+import VitrinaMedia from "./VitrinaMedia";
 
 interface Props {
   publicaciones?: PublicacionPerfilVendedor[];
@@ -64,6 +65,17 @@ const obtenerUrlImagen = (item: PublicacionPerfilVendedor): string => {
     item.thumbUrl ||
     anyItem.imagenes?.[0]?.thumbUrl ||
     anyItem.imagenes?.[0]?.mainUrl ||
+    "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900"
+  );
+};
+
+const obtenerMediaPrincipal = (item: PublicacionPerfilVendedor): any => {
+  const anyItem = item as any;
+
+  return (
+    item.imagenPrincipal ||
+    item.thumbUrl ||
+    anyItem.imagenes?.[0] ||
     "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900"
   );
 };
@@ -275,7 +287,7 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {publicacionesFiltradas.map((item) => {
-            const imagen = obtenerUrlImagen(item);
+            const mediaPrincipal = obtenerMediaPrincipal(item);
             const productoFavorito = adaptarProductoFavorito(item);
 
             return (
@@ -285,12 +297,14 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                 className="group cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-[#101722] shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-yellow-400/40 hover:shadow-yellow-400/10"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-black">
-                  <img
-                    src={imagen}
+                  <VitrinaMedia
+                    media={mediaPrincipal}
                     alt={item.titulo}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    className="h-full w-full transition duration-500 group-hover:scale-105"
+                    objectFit="cover"
+                    controls={false}
+                    showVideoBadge
+                    showPlayIcon
                   />
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />

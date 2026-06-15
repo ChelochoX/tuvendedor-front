@@ -6,7 +6,6 @@ import {
   useMediaQuery,
   useTheme,
   IconButton,
-  Divider,
   Chip,
 } from "@mui/material";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
@@ -429,6 +428,42 @@ const obtenerDestacadosRapidos = (producto: Producto): string[] => {
   return destacados;
 };
 
+const esPublicacionInmobiliaria = (producto: Producto): boolean => {
+  const texto = `${producto.nombre || ""} ${producto.categoria || ""} ${
+    producto.descripcion || ""
+  }`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  return (
+    texto.includes("inmueble") ||
+    texto.includes("casa") ||
+    texto.includes("departamento") ||
+    texto.includes("duplex") ||
+    texto.includes("terreno") ||
+    texto.includes("lote") ||
+    texto.includes("quinta") ||
+    texto.includes("oficina") ||
+    texto.includes("salon") ||
+    texto.includes("local") ||
+    texto.includes("alquiler") ||
+    texto.includes("venta sobre")
+  );
+};
+
+const obtenerEtiquetaPrecioPrincipal = (producto: Producto): string => {
+  if (producto.mostrarBotonesCompra) {
+    return "Precio contado";
+  }
+
+  if (esPublicacionInmobiliaria(producto)) {
+    return "Precio de venta";
+  }
+
+  return "Precio publicado";
+};
+
 const ProductDetail: React.FC<Props> = ({
   producto,
   isFavorite,
@@ -474,6 +509,7 @@ const ProductDetail: React.FC<Props> = ({
 
   const precioTexto = formatearPrecio(producto.precio, producto.moneda);
   const urlVitrina = slugVendedor ? `/vendedor/${slugVendedor}` : "";
+  const etiquetaPrecioPrincipal = obtenerEtiquetaPrecioPrincipal(producto);
 
   const cuotas = useMemo(() => {
     return (
@@ -706,6 +742,86 @@ const ProductDetail: React.FC<Props> = ({
       Consultar por WhatsApp
     </Button>
   );
+
+  const precioPrincipalCard = (
+    <Box
+      sx={{
+        borderRadius: 2,
+        p: isMobile ? 1.15 : 1.4,
+        bgcolor: "rgba(250,204,21,0.10)",
+        border: "1px solid rgba(250,204,21,0.18)",
+      }}
+    >
+      <Typography
+        sx={{
+          color: "#facc15",
+          fontWeight: 950,
+          fontSize: isMobile ? "0.68rem" : "0.75rem",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+        }}
+      >
+        {etiquetaPrecioPrincipal}
+      </Typography>
+
+      <Typography
+        sx={{
+          mt: 0.35,
+          color: "#fff",
+          fontWeight: 950,
+          fontSize: isMobile ? "0.95rem" : "1.08rem",
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {precioTexto}
+      </Typography>
+    </Box>
+  );
+
+  const cuotasCard =
+    producto.mostrarBotonesCompra && cuotas.length > 0 ? (
+      <Box
+        sx={{
+          borderRadius: 2,
+          p: isMobile ? 1.15 : 1.4,
+          bgcolor: "rgba(250,204,21,0.055)",
+          border: "1px solid rgba(250,204,21,0.22)",
+        }}
+      >
+        <Typography
+          sx={{
+            color: "#facc15",
+            fontWeight: 950,
+            fontSize: isMobile ? "0.68rem" : "0.75rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            mb: 0.75,
+          }}
+        >
+          ¿Preferís comprar en cuotas?
+        </Typography>
+
+        <Box display="grid" gap={0.7}>
+          {cuotas.map((cuota) => (
+            <Box
+              key={cuota}
+              sx={{
+                borderRadius: 1.5,
+                border: "1px solid rgba(250,204,21,0.85)",
+                px: isMobile ? 1 : 1.2,
+                py: isMobile ? 0.75 : 0.8,
+                color: "#fff",
+                fontSize: isMobile ? "0.72rem" : "0.78rem",
+                fontWeight: 850,
+                lineHeight: 1.25,
+              }}
+            >
+              {cuota}
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    ) : null;
 
   const VendedorAvatar = vendedorAvatar ? (
     <Box
@@ -1484,17 +1600,10 @@ const ProductDetail: React.FC<Props> = ({
                   </Typography>
                 </Box>
 
-                <Typography
-                  sx={{
-                    mt: 1.05,
-                    color: "#fff",
-                    fontWeight: 950,
-                    letterSpacing: "-0.03em",
-                    fontSize: "1.15rem",
-                  }}
-                >
-                  {precioTexto}
-                </Typography>
+                <Box mt={1.15} display="grid" gap={0.9}>
+                  {precioPrincipalCard}
+                  {cuotasCard}
+                </Box>
               </Box>
             </Box>
 
@@ -1859,32 +1968,46 @@ const ProductDetail: React.FC<Props> = ({
                 sx={{
                   ...cardSx,
                   borderRadius: 3,
-                  px: 2,
-                  py: 1.6,
-                  display: "flex",
+                  p: 1.35,
+                  display: "grid",
+                  gridTemplateColumns: "minmax(0, 1fr) minmax(230px, 280px)",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 2,
+                  gap: 1.2,
+                  "@media (max-width: 1100px)": {
+                    gridTemplateColumns: "1fr",
+                  },
                 }}
               >
-                <Box display="flex" alignItems="center" gap={1}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  sx={{
+                    minWidth: 0,
+                    flexWrap: "wrap",
+                  }}
+                >
                   <Button
                     onClick={handleCompartir}
                     startIcon={<ShareRoundedIcon />}
                     sx={{
+                      minHeight: 42,
+                      borderRadius: "999px",
+                      px: 1.4,
                       color: "rgba(255,255,255,0.78)",
-                      fontWeight: 800,
+                      bgcolor: "rgba(255,255,255,0.045)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      fontWeight: 850,
+                      fontSize: "0.78rem",
                       textTransform: "none",
+                      "&:hover": {
+                        bgcolor: "rgba(255,255,255,0.08)",
+                        color: "#fff",
+                      },
                     }}
                   >
                     Compartir
                   </Button>
-
-                  <Divider
-                    orientation="vertical"
-                    flexItem
-                    sx={{ borderColor: "rgba(255,255,255,0.12)" }}
-                  />
 
                   <Button
                     onClick={onToggleFavorite}
@@ -1892,16 +2015,60 @@ const ProductDetail: React.FC<Props> = ({
                       isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />
                     }
                     sx={{
+                      minHeight: 42,
+                      borderRadius: "999px",
+                      px: 1.4,
                       color: isFavorite ? "#facc15" : "rgba(255,255,255,0.78)",
-                      fontWeight: 800,
+                      bgcolor: isFavorite
+                        ? "rgba(250,204,21,0.10)"
+                        : "rgba(255,255,255,0.045)",
+                      border: isFavorite
+                        ? "1px solid rgba(250,204,21,0.26)"
+                        : "1px solid rgba(255,255,255,0.08)",
+                      fontWeight: 850,
+                      fontSize: "0.78rem",
                       textTransform: "none",
+                      "&:hover": {
+                        bgcolor: isFavorite
+                          ? "rgba(250,204,21,0.16)"
+                          : "rgba(255,255,255,0.08)",
+                      },
                     }}
                   >
                     Guardar
                   </Button>
                 </Box>
 
-                <Box width={280}>{botonWhatsapp}</Box>
+                <Button
+                  fullWidth
+                  onClick={handleContactarVendedor}
+                  sx={{
+                    minHeight: 46,
+                    borderRadius: "999px",
+                    bgcolor: "#22c55e",
+                    background:
+                      "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)",
+                    color: "#fff",
+                    fontWeight: 950,
+                    textTransform: "none",
+                    fontSize: "0.84rem",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 0.75,
+                    whiteSpace: "nowrap",
+                    boxShadow:
+                      "0 12px 26px rgba(34,197,94,0.22), inset 0 1px 0 rgba(255,255,255,0.16)",
+                    "&:hover": {
+                      bgcolor: "#16a34a",
+                      background:
+                        "linear-gradient(135deg, #16a34a 0%, #15803d 100%)",
+                    },
+                  }}
+                >
+                  <WhatsAppIcon sx={{ fontSize: 18 }} />
+                  Consultar por WhatsApp
+                </Button>
               </Box>
             </Box>
           </Box>
@@ -1990,96 +2157,12 @@ const ProductDetail: React.FC<Props> = ({
                 </Typography>
               </Box>
 
-              <Typography
-                sx={{
-                  mt: 1.7,
-                  color: "#fff",
-                  fontWeight: 950,
-                  letterSpacing: "-0.03em",
-                  fontSize: "1.7rem",
-                }}
-              >
-                {precioTexto}
-              </Typography>
-
               <Box mt={1.4}>{botonWhatsapp}</Box>
 
-              {producto.mostrarBotonesCompra && (
-                <Box mt={1.4} display="grid" gap={1}>
-                  <Box
-                    sx={{
-                      borderRadius: 2,
-                      p: 1.4,
-                      bgcolor: "rgba(250,204,21,0.12)",
-                      border: "1px solid rgba(250,204,21,0.2)",
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        color: "#facc15",
-                        fontWeight: 950,
-                        fontSize: "0.75rem",
-                      }}
-                    >
-                      Precio contado
-                    </Typography>
-
-                    <Typography
-                      sx={{
-                        color: "#fff",
-                        fontWeight: 950,
-                        fontSize: "1.08rem",
-                        mt: 0.4,
-                      }}
-                    >
-                      {precioTexto}
-                    </Typography>
-                  </Box>
-
-                  {cuotas.length > 0 && (
-                    <Box
-                      sx={{
-                        borderRadius: 2,
-                        p: 1.4,
-                        bgcolor: "rgba(250,204,21,0.06)",
-                        border: "1px solid rgba(250,204,21,0.2)",
-                      }}
-                    >
-                      <Typography
-                        sx={{
-                          color: "#facc15",
-                          fontWeight: 950,
-                          fontSize: "0.75rem",
-                          mb: 0.8,
-                        }}
-                      >
-                        ¿Preferís comprar en cuotas?
-                      </Typography>
-
-                      {cuotas.map((cuota) => (
-                        <Box
-                          key={cuota}
-                          sx={{
-                            borderRadius: 1.5,
-                            border: "1px solid #facc15",
-                            px: 1.2,
-                            py: 0.8,
-                            color: "#fff",
-                            fontSize: "0.78rem",
-                            fontWeight: 800,
-                            mb: 0.8,
-                            "&:last-child": {
-                              mb: 0,
-                            },
-                          }}
-                        >
-                          {cuota}
-                        </Box>
-                      ))}
-                    </Box>
-                  )}
-                </Box>
-              )}
+              <Box mt={1.4} display="grid" gap={1}>
+                {precioPrincipalCard}
+                {cuotasCard}
+              </Box>
             </Box>
 
             {destacadosCard}

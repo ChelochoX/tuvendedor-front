@@ -14,11 +14,13 @@ import Swal from "sweetalert2";
 import {
   actualizarPublicacion,
   crearPublicacion,
+  obtenerCategorias,
 } from "../../api/publicacionesService";
 import {
   CategoriaPublicacionOption,
   PublicacionEditable,
 } from "../../types/publicacion.types";
+import { obtenerIconoCategoria } from "../../utils/categoriaIconos";
 
 import { useCrearPublicacionForm } from "./hooks/useCrearPublicacionForm";
 import PublicacionDatosBasicos from "./crear-publicacion/PublicacionDatosBasicos";
@@ -115,6 +117,9 @@ const CrearPublicacionModal: React.FC<Props> = ({
   const modalAbierto = abierto ?? isOpen ?? false;
   const [guardando, setGuardando] = useState(false);
   const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
+  const [categoriasRemotas, setCategoriasRemotas] = useState<
+    CategoriaPublicacionOption[]
+  >([]);
 
   const [ubicacionGps, setUbicacionGps] = useState<UbicacionGpsForm>({
     latitud: "",
@@ -170,15 +175,87 @@ const CrearPublicacionModal: React.FC<Props> = ({
     esCategoriaInmobiliaria(form.categoria) ||
     esCategoriaInmobiliaria(rubroVendedor);
 
-  const categoriasFinales = useMemo<CategoriaPublicacionOption[]>(() => {
-    if (categorias?.length) return categorias;
+  useEffect(() => {
+    if (!modalAbierto || categorias?.length) return;
 
-    if (esCategoriaInmobiliaria(rubroVendedor)) {
-      return categoriasInmuebles.map((nombre) => ({ nombre }));
+    let cancelado = false;
+
+    const cargarCategoriasModal = async () => {
+      try {
+        const data = await obtenerCategorias();
+
+        if (cancelado) return;
+
+        const categoriasMapeadas = data
+          .filter((c) => c.nombre && c.nombre !== "Todos")
+          .map((c) => ({
+            id: c.id,
+            nombre: c.nombre,
+            icono: c.icono || obtenerIconoCategoria(c.nombre),
+          }));
+
+        setCategoriasRemotas(categoriasMapeadas);
+      } catch (error) {
+        console.error("Error al cargar categorías para el modal:", error);
+        setCategoriasRemotas([]);
+      }
+    };
+
+    void cargarCategoriasModal();
+
+    return () => {
+      cancelado = true;
+    };
+  }, [modalAbierto, categorias?.length]);
+
+  const categoriasFinales = useMemo<CategoriaPublicacionOption[]>(() => {
+    const fuente = categorias?.length ? categorias : categoriasRemotas;
+
+    const categoriasLimpias = fuente
+      .filter((c) => c.nombre && c.nombre !== "Todos")
+      .reduce<CategoriaPublicacionOption[]>((acc, categoria) => {
+        const yaExiste = acc.some(
+          (item) =>
+            item.nombre.trim().toLowerCase() ===
+            categoria.nombre.trim().toLowerCase(),
+        );
+
+        if (!yaExiste) {
+          acc.push({
+            ...categoria,
+            icono: categoria.icono || obtenerIconoCategoria(categoria.nombre),
+          });
+        }
+
+        return acc;
+      }, []);
+
+    if (categoriasLimpias.length > 0) {
+      if (esCategoriaInmobiliaria(rubroVendedor)) {
+        const categoriasInmobiliarias = categoriasLimpias.filter((categoria) =>
+          esCategoriaInmobiliaria(categoria.nombre),
+        );
+
+        if (categoriasInmobiliarias.length > 0) {
+          return categoriasInmobiliarias;
+        }
+      }
+
+      return categoriasLimpias;
     }
 
-    return categoriasGenerales.map((nombre) => ({ nombre }));
-  }, [categorias, rubroVendedor]);
+    if (esCategoriaInmobiliaria(rubroVendedor)) {
+      return categoriasInmuebles.map((nombre) => ({
+        nombre,
+        icono: obtenerIconoCategoria(nombre),
+      }));
+    }
+
+    return categoriasGenerales.map((nombre) => ({
+      nombre,
+      icono: obtenerIconoCategoria(nombre),
+    }));
+  }, [categorias, categoriasRemotas, rubroVendedor]);
 
   const googleMapsUrlFinal = useMemo(() => {
     const urlPorCoordenadas = construirGoogleMapsUrl(

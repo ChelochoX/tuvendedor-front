@@ -12,6 +12,7 @@ import { BannerPublicidadCarousel } from "../components/banners/BannerPublicidad
 import { Producto } from "../types/producto";
 import { Categoria } from "../types/categoria";
 import { PublicacionEditable } from "../types/publicacion.types";
+import PromocionBannersCTA from "../components/banners/PromocionBannersCTA";
 
 import {
   obtenerPublicaciones,
@@ -345,6 +346,10 @@ const Marketplace: React.FC = () => {
               />
             )}
 
+            {mostrarBannersPublicitarios && (
+              <PromocionBannersCTA variant="mobile" />
+            )}
+
             <h2 className="mb-4 text-2xl font-semibold text-white">
               {mostrarSoloMias
                 ? "Mis publicaciones"
@@ -452,6 +457,7 @@ const Marketplace: React.FC = () => {
         onActualizada={handlePublicacionGuardada}
         modo="marketplace"
         publicacionAEditar={publicacionAEditar}
+        categorias={categorias.filter((c) => c.nombre !== "Todos")}
       />
 
       {showFab && (

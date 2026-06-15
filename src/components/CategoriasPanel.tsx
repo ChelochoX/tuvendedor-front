@@ -12,6 +12,7 @@ import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacione
 import SugerenciaModal from "./SugerenciaModal";
 import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
 import ImageIcon from "@mui/icons-material/Image";
+import PromocionBannersCTA from "./banners/PromocionBannersCTA";
 
 interface Props {
   categorias: Categoria[];
@@ -258,16 +259,21 @@ const CategoriasPanel: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* FOOTER — NO SE TOCA */}
-      <div className="mt-4 pt-3 border-t border-yellow-400 opacity-40 text-center text-xs text-gray-400 flex flex-col gap-1">
-        <span>
+      {/* CTA FIJO SOLO ESCRITORIO */}
+      <div className="hidden md:block mt-4">
+        <PromocionBannersCTA variant="desktop" />
+      </div>
+
+      {/* FOOTER / CONTACTO Y SUGERENCIAS */}
+      <div className="mt-4 rounded-2xl border border-yellow-400/25 bg-black/25 p-3 text-center text-xs text-gray-300 shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+        <span className="block">
           Desarrollado por{" "}
           <a
             href="https://www.graciatech.com.py"
             onClick={onCerrarSidebar}
             target="_blank"
             rel="noreferrer"
-            className="text-yellow-400 font-semibold hover:underline"
+            className="font-bold text-yellow-300 hover:text-yellow-200 hover:underline"
           >
             Gracia Tech
           </a>
@@ -276,7 +282,7 @@ const CategoriasPanel: React.FC<Props> = ({
         <a
           href="mailto:soporte@tuvendedor.com.py"
           onClick={onCerrarSidebar}
-          className="text-gray-400 hover:text-yellow-400 hover:underline"
+          className="mt-2 block rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 font-semibold text-gray-100 transition hover:border-yellow-400/50 hover:text-yellow-300"
         >
           soporte@tuvendedor.com.py
         </a>
@@ -286,7 +292,7 @@ const CategoriasPanel: React.FC<Props> = ({
             setAbrirSugerencia(true);
             onCerrarSidebar?.();
           }}
-          className="text-center w-full mt-2 text-yellow-400 hover:text-yellow-300 text-sm underline"
+          className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-yellow-400/40 bg-yellow-400/10 px-3 py-2 font-bold text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
         >
           Enviar sugerencia
         </button>

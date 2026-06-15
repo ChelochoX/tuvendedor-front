@@ -113,9 +113,10 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
           ) : (
             <button
               onClick={() => window.dispatchEvent(new Event("abrir-login"))}
-              className="text-xs bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1 rounded-full"
+              aria-label="Iniciar sesión"
+              className="text-xs bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-1 rounded-full font-semibold min-w-[76px]"
             >
-              Iniciar
+              Ingresar
             </button>
           )}
         </div>

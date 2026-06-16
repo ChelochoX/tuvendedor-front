@@ -5,14 +5,14 @@ import AddIcon from "@mui/icons-material/Add";
 import PersonIcon from "@mui/icons-material/Person";
 import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
 import PublicIcon from "@mui/icons-material/Public";
+import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
+import ImageIcon from "@mui/icons-material/Image";
+import DashboardIcon from "@mui/icons-material/Dashboard";
 import { useNavigate } from "react-router-dom";
 import { useUsuario } from "../context/UsuarioContext";
 import Swal from "sweetalert2";
 import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacionesService";
 import SugerenciaModal from "./SugerenciaModal";
-import WorkspacePremiumIcon from "@mui/icons-material/WorkspacePremium";
-import ImageIcon from "@mui/icons-material/Image";
-import PromocionBannersCTA from "./banners/PromocionBannersCTA";
 
 interface Props {
   categorias: Categoria[];
@@ -75,31 +75,37 @@ const CategoriasPanel: React.FC<Props> = ({
     onCerrarSidebar?.();
   };
 
+  const irADashboardComercial = () => {
+    navigate("/admin/dashboard-comercial");
+    onCerrarSidebar?.();
+  };
+
   const verMisPublicaciones = () => {
     window.dispatchEvent(new Event("ver-mis-publicaciones"));
     onCerrarSidebar?.();
   };
 
+  const botonAdminClass =
+    "w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-full font-semibold text-sm text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all";
+
+  const botonUsuarioClass =
+    "w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-full font-semibold text-sm text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all";
+
+  const botonMobileClass =
+    "flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all";
+
   return (
-    <div className="flex flex-col h-full justify-start">
-      {/* 🔥 ENCABEZADO MOBILE */}
-      <div className="flex flex-col gap-2 mb-0 md:hidden px-1">
+    <div className="flex h-full flex-col justify-start">
+      {/* ENCABEZADO MOBILE */}
+      <div className="mb-2 flex flex-col gap-2 px-1 md:hidden">
         {!esVisitante && puedePublicar && (
           <>
-            <button
-              onClick={verMisPublicaciones}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-            >
+            <button onClick={verMisPublicaciones} className={botonMobileClass}>
               <LibraryBooksIcon fontSize="small" />
               Mis publicaciones
             </button>
 
-            <button
-              onClick={irAMiVitrinaPublica}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-            >
+            <button onClick={irAMiVitrinaPublica} className={botonMobileClass}>
               <PublicIcon fontSize="small" />
               Mi vitrina pública
             </button>
@@ -107,11 +113,7 @@ const CategoriasPanel: React.FC<Props> = ({
         )}
 
         {puedeVerClientes && (
-          <button
-            onClick={irAGestionClientes}
-            className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-              text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
-          >
+          <button onClick={irAGestionClientes} className={botonMobileClass}>
             <PersonIcon fontSize="small" />
             Gestionar Clientes
           </button>
@@ -120,18 +122,21 @@ const CategoriasPanel: React.FC<Props> = ({
         {esAdmin && (
           <>
             <button
-              onClick={irAServiciosPremium}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              onClick={irADashboardComercial}
+              className={botonMobileClass}
             >
+              <DashboardIcon fontSize="small" />
+              Dashboard comercial
+            </button>
+
+            <button onClick={irAServiciosPremium} className={botonMobileClass}>
               <WorkspacePremiumIcon fontSize="small" />
               Servicios Premium
             </button>
 
             <button
               onClick={irABannersPublicitarios}
-              className="flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm 
-                text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+              className={botonMobileClass}
             >
               <ImageIcon fontSize="small" />
               Banners publicitarios
@@ -142,16 +147,21 @@ const CategoriasPanel: React.FC<Props> = ({
         <hr className="border-yellow-400 opacity-40" />
       </div>
 
-      {/* 🔥 LISTA DE CATEGORÍAS */}
-      <div className="flex flex-col gap-1 md:gap-3">
-        <h3 className="text-lg font-semibold text-yellow-400 px-1">
-          Categorías
-        </h3>
+      {/* LISTA DE CATEGORÍAS MÁS COMPACTA */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-base font-semibold text-yellow-400">
+            Categorías
+          </h3>
 
-        {/* Ocultar en móvil */}
-        <hr className="border-yellow-400 opacity-40 hidden md:block" />
+          <span className="hidden text-[10px] text-gray-400 md:inline">
+            Filtrar
+          </span>
+        </div>
 
-        <div className="scroll-elegante flex flex-col gap-1 overflow-y-auto h-[400px] pr-2">
+        <hr className="hidden border-yellow-400 opacity-40 md:block" />
+
+        <div className="scroll-elegante flex h-[210px] flex-col gap-1 overflow-y-auto pr-2 md:h-[230px] xl:h-[250px]">
           {categorias.map((cat) => {
             const esSel = categoriaSeleccionada?.id === cat.id;
 
@@ -162,33 +172,26 @@ const CategoriasPanel: React.FC<Props> = ({
                   onSelect(cat);
                   onCerrarSidebar?.();
                 }}
-                className={`flex items-center 
-                  gap-1 md:gap-2
-                  px-2 md:px-3
-                  py-0.5 md:py-1
-                  rounded-md text-xs md:text-sm transition-all
-                  ${
-                    esSel
-                      ? "bg-yellow-400 text-black font-semibold"
-                      : "text-white hover:bg-[#3b3b3b]"
-                  }
-                `}
+                className={`flex items-center gap-2 rounded-md px-2 py-1 text-xs transition-all md:text-[13px] ${
+                  esSel
+                    ? "bg-yellow-400 font-semibold text-black"
+                    : "text-white hover:bg-[#3b3b3b]"
+                }`}
               >
-                <span className="text-base md:text-lg">{cat.icono}</span>
+                <span className="text-base">{cat.icono}</span>
                 <span className="truncate">{cat.nombre}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Ocultar en móvil */}
-        <hr className="border-yellow-400 opacity-40 mt-2 hidden md:block" />
+        <hr className="hidden border-yellow-400 opacity-40 md:block" />
 
-        {/* ESCRITORIO */}
-        <div className="hidden md:flex flex-col gap-3">
+        {/* BOTONES ESCRITORIO */}
+        <div className="hidden flex-col gap-2 md:flex">
           {puedePublicar && (
             <button
-              className="flex items-center gap-2 justify-center px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow hover:bg-yellow-300 transition-all"
+              className="flex items-center justify-center gap-2 rounded-full bg-yellow-400 px-4 py-2 font-semibold text-black shadow transition-all hover:bg-yellow-300"
               onClick={onCrearPublicacion}
             >
               <AddIcon fontSize="small" />
@@ -202,8 +205,7 @@ const CategoriasPanel: React.FC<Props> = ({
 
               <button
                 onClick={verMisPublicaciones}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+                className={botonUsuarioClass}
               >
                 <LibraryBooksIcon fontSize="small" />
                 Mis publicaciones
@@ -211,8 +213,7 @@ const CategoriasPanel: React.FC<Props> = ({
 
               <button
                 onClick={irAMiVitrinaPublica}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+                className={botonUsuarioClass}
               >
                 <PublicIcon fontSize="small" />
                 Mi vitrina pública
@@ -226,8 +227,7 @@ const CategoriasPanel: React.FC<Props> = ({
 
               <button
                 onClick={irAGestionClientes}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+                className={botonUsuarioClass}
               >
                 <PersonIcon fontSize="small" />
                 Gestionar Clientes
@@ -238,18 +238,21 @@ const CategoriasPanel: React.FC<Props> = ({
           {esAdmin && (
             <>
               <button
-                onClick={irAServiciosPremium}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+                onClick={irADashboardComercial}
+                className={botonAdminClass}
               >
+                <DashboardIcon fontSize="small" />
+                Dashboard comercial
+              </button>
+
+              <button onClick={irAServiciosPremium} className={botonAdminClass}>
                 <WorkspacePremiumIcon fontSize="small" />
                 Servicios Premium
               </button>
 
               <button
                 onClick={irABannersPublicitarios}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-full font-semibold 
-                  text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all"
+                className={botonAdminClass}
               >
                 <ImageIcon fontSize="small" />
                 Banners publicitarios
@@ -259,21 +262,47 @@ const CategoriasPanel: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* CTA FIJO SOLO ESCRITORIO */}
-      <div className="hidden md:block mt-4">
-        <PromocionBannersCTA variant="desktop" />
+      {/* BLOQUE COMERCIAL */}
+      <div className="mt-3 rounded-xl border border-yellow-400/40 bg-yellow-400/5 p-3">
+        <div className="flex items-start gap-2">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-yellow-400/40 bg-yellow-400/10 text-yellow-400">
+            📣
+          </div>
+
+          <div>
+            <p className="text-sm font-bold text-white">Anunciá tu negocio</p>
+
+            <p className="mt-1 text-xs leading-5 text-white">
+              Tu empresa puede aparecer en banners dentro de Tu Vendedor y
+              llegar a más personas desde la portada del marketplace.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={() => {
+            window.open(
+              "https://wa.me/595982456111?text=Hola,%20quiero%20consultar%20por%20espacios%20publicitarios%20en%20TuVendedor",
+              "_blank",
+              "noopener,noreferrer",
+            );
+          }}
+          className="mt-3 w-full rounded-full bg-yellow-400 px-3 py-2 text-sm font-bold text-black transition hover:bg-yellow-300"
+        >
+          Consultar espacios
+        </button>
       </div>
 
-      {/* FOOTER / CONTACTO Y SUGERENCIAS */}
-      <div className="mt-4 rounded-2xl border border-yellow-400/25 bg-black/25 p-3 text-center text-xs text-gray-300 shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
-        <span className="block">
+      {/* FOOTER */}
+      <div className="mt-3 flex flex-col gap-2 rounded-xl border border-yellow-400/30 bg-white/5 p-3 text-center text-xs text-gray-400">
+        <span>
           Desarrollado por{" "}
           <a
             href="https://www.graciatech.com.py"
             onClick={onCerrarSidebar}
             target="_blank"
             rel="noreferrer"
-            className="font-bold text-yellow-300 hover:text-yellow-200 hover:underline"
+            className="font-semibold text-yellow-400 hover:underline"
           >
             Gracia Tech
           </a>
@@ -282,7 +311,7 @@ const CategoriasPanel: React.FC<Props> = ({
         <a
           href="mailto:soporte@tuvendedor.com.py"
           onClick={onCerrarSidebar}
-          className="mt-2 block rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 font-semibold text-gray-100 transition hover:border-yellow-400/50 hover:text-yellow-300"
+          className="rounded-lg border border-white/10 bg-black/20 px-2 py-1 text-[11px] text-gray-300 hover:text-yellow-400"
         >
           soporte@tuvendedor.com.py
         </a>
@@ -292,7 +321,7 @@ const CategoriasPanel: React.FC<Props> = ({
             setAbrirSugerencia(true);
             onCerrarSidebar?.();
           }}
-          className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-yellow-400/40 bg-yellow-400/10 px-3 py-2 font-bold text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+          className="rounded-full border border-yellow-400/40 px-3 py-1.5 text-center text-xs font-semibold text-yellow-400 hover:bg-yellow-400 hover:text-black"
         >
           Enviar sugerencia
         </button>

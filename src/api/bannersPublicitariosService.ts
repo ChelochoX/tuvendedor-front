@@ -870,10 +870,84 @@ export async function obtenerBannersHome(
 /**
  * El registro estadístico nunca debe bloquear la navegación.
  */
+function obtenerDispositivoBanner(): "DESKTOP" | "MOBILE" | "TABLET" {
+  if (typeof window === "undefined") {
+    return "DESKTOP";
+  }
+
+  const ancho = window.innerWidth;
+
+  if (ancho <= 767) {
+    return "MOBILE";
+  }
+
+  if (ancho <= 1024) {
+    return "TABLET";
+  }
+
+  return "DESKTOP";
+}
+
+function obtenerPaginaActualBanner(): string {
+  if (typeof window === "undefined") {
+    return "/";
+  }
+
+  return `${window.location.pathname}${window.location.search}`.slice(0, 250);
+}
+
+function obtenerVisitorIdBanner(): string {
+  const storageKey = "tuvendedor_visitor_id";
+
+  try {
+    const existente = localStorage.getItem(storageKey);
+
+    if (existente) {
+      return existente;
+    }
+
+    const nuevo =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    localStorage.setItem(storageKey, nuevo);
+
+    return nuevo;
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
+/**
+ * El registro estadístico nunca debe bloquear la navegación.
+ */
 export async function registrarEventoBanner(
   request: RegistrarEventoBannerRequest,
 ): Promise<void> {
   try {
+    const idBannerRaw = request.idBanner ?? request.bannerPublicitarioId;
+
+    const idBanner = Number(idBannerRaw);
+
+    if (!Number.isFinite(idBanner) || idBanner <= 0 || !request.ubicacion) {
+      console.warn(
+        "No se pudo registrar evento de banner: datos incompletos.",
+        request,
+      );
+
+      return;
+    }
+
+    const payload = {
+      idBanner,
+      tipoEvento: request.tipoEvento,
+      ubicacion: request.ubicacion,
+      dispositivo: request.dispositivo ?? obtenerDispositivoBanner(),
+      pagina: request.pagina ?? obtenerPaginaActualBanner(),
+      visitorId: request.visitorId ?? obtenerVisitorIdBanner(),
+    };
+
     const response = await fetch(
       construirUrl(PUBLIC_ENDPOINTS.registrarEvento),
       {
@@ -884,7 +958,7 @@ export async function registrarEventoBanner(
           Accept: "application/json",
         },
 
-        body: JSON.stringify(request),
+        body: JSON.stringify(payload),
 
         keepalive: true,
       },
@@ -893,6 +967,7 @@ export async function registrarEventoBanner(
     if (!response.ok) {
       console.warn(
         `No se pudo registrar el evento del banner. HTTP: ${response.status}`,
+        payload,
       );
     }
   } catch (error) {

@@ -22,9 +22,7 @@ interface BannerPublicidadCarouselProps {
   className?: string;
 }
 
-function obtenerUrlSegura(
-  valor?: string | null,
-): string | null {
+function obtenerUrlSegura(valor?: string | null): string | null {
   if (!valor?.trim()) {
     return null;
   }
@@ -42,19 +40,14 @@ function obtenerUrlSegura(
   return `https://${url}`;
 }
 
-function obtenerWhatsappUrl(
-  valor?: string | null,
-): string | null {
+function obtenerWhatsappUrl(valor?: string | null): string | null {
   if (!valor?.trim()) {
     return null;
   }
 
   const texto = valor.trim();
 
-  if (
-    texto.startsWith("https://") ||
-    texto.startsWith("http://")
-  ) {
+  if (texto.startsWith("https://") || texto.startsWith("http://")) {
     return texto;
   }
 
@@ -84,10 +77,7 @@ export function BannerPublicidadCarousel({
     }
 
     const intervalId = window.setInterval(() => {
-      setIndiceActivo(
-        (indiceActual) =>
-          (indiceActual + 1) % banners.length,
-      );
+      setIndiceActivo((indiceActual) => (indiceActual + 1) % banners.length);
     }, intervaloMs);
 
     return () => {
@@ -97,11 +87,10 @@ export function BannerPublicidadCarousel({
 
   const bannerActivo = banners[indiceActivo];
 
-  const referenciaImpresion =
-    useRegistrarImpresionBanner({
-      bannerPublicitarioId: bannerActivo?.id,
-      ubicacion,
-    });
+  const referenciaImpresion = useRegistrarImpresionBanner({
+    bannerPublicitarioId: bannerActivo?.id,
+    ubicacion,
+  });
 
   const urlDestino = useMemo(
     () => obtenerUrlSegura(bannerActivo?.urlDestino),
@@ -119,14 +108,10 @@ export function BannerPublicidadCarousel({
 
   const tipoDestino =
     bannerActivo.tipoDestino ??
-    (urlDestino
-      ? BANNER_TIPOS_DESTINO.URL
-      : BANNER_TIPOS_DESTINO.WHATSAPP);
+    (urlDestino ? BANNER_TIPOS_DESTINO.URL : BANNER_TIPOS_DESTINO.WHATSAPP);
 
   const destinoPrincipal =
-    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
-      ? whatsappUrl
-      : urlDestino;
+    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP ? whatsappUrl : urlDestino;
 
   const eventoPrincipal: BannerEventoTipo =
     tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
@@ -143,9 +128,7 @@ export function BannerPublicidadCarousel({
       ? bannerActivo.imagenMobileUrl
       : bannerActivo.imagenDesktopUrl;
 
-  const imagenTieneAccion = Boolean(
-    destinoPrincipal || whatsappUrl,
-  );
+  const imagenTieneAccion = Boolean(destinoPrincipal || whatsappUrl);
 
   const registrarYAbrirDestino = (
     destino: string,
@@ -154,14 +137,11 @@ export function BannerPublicidadCarousel({
     void registrarEventoBanner({
       bannerPublicitarioId: bannerActivo.id,
       tipoEvento,
+      ubicacion,
     });
 
     if (bannerActivo.abrirNuevaPestana) {
-      window.open(
-        destino,
-        "_blank",
-        "noopener,noreferrer",
-      );
+      window.open(destino, "_blank", "noopener,noreferrer");
 
       return;
     }
@@ -171,39 +151,27 @@ export function BannerPublicidadCarousel({
 
   const manejarClickImagen = () => {
     if (destinoPrincipal) {
-      registrarYAbrirDestino(
-        destinoPrincipal,
-        eventoPrincipal,
-      );
+      registrarYAbrirDestino(destinoPrincipal, eventoPrincipal);
 
       return;
     }
 
     if (whatsappUrl) {
-      registrarYAbrirDestino(
-        whatsappUrl,
-        BANNER_EVENTOS.WHATSAPP,
-      );
+      registrarYAbrirDestino(whatsappUrl, BANNER_EVENTOS.WHATSAPP);
     }
   };
 
   const irAnterior = () => {
     setIndiceActivo((indiceActual) =>
-      indiceActual === 0
-        ? banners.length - 1
-        : indiceActual - 1,
+      indiceActual === 0 ? banners.length - 1 : indiceActual - 1,
     );
   };
 
   const irSiguiente = () => {
-    setIndiceActivo(
-      (indiceActual) =>
-        (indiceActual + 1) % banners.length,
-    );
+    setIndiceActivo((indiceActual) => (indiceActual + 1) % banners.length);
   };
 
-  const esHomeTop =
-    ubicacion === BANNER_UBICACIONES.HOME_TOP;
+  const esHomeTop = ubicacion === BANNER_UBICACIONES.HOME_TOP;
 
   return (
     <section
@@ -246,10 +214,7 @@ export function BannerPublicidadCarousel({
         >
           <img
             src={imagenActual}
-            alt={
-              bannerActivo.titulo ??
-              "Banner publicitario"
-            }
+            alt={bannerActivo.titulo ?? "Banner publicitario"}
             className="banner-publicidad__imagen"
             loading={esHomeTop ? "eager" : "lazy"}
             onError={(event) => {
@@ -257,12 +222,10 @@ export function BannerPublicidadCarousel({
 
               if (
                 bannerActivo.imagenDesktopUrl &&
-                imagen.src !==
-                  bannerActivo.imagenDesktopUrl
+                imagen.src !== bannerActivo.imagenDesktopUrl
               ) {
                 imagen.onerror = null;
-                imagen.src =
-                  bannerActivo.imagenDesktopUrl;
+                imagen.src = bannerActivo.imagenDesktopUrl;
               }
             }}
           />
@@ -338,11 +301,9 @@ export function BannerPublicidadCarousel({
               </strong>
             )}
 
-            {(bannerActivo.subtitulo ||
-              bannerActivo.descripcion) && (
+            {(bannerActivo.subtitulo || bannerActivo.descripcion) && (
               <span className="banner-publicidad__descripcion">
-                {bannerActivo.subtitulo ||
-                  bannerActivo.descripcion}
+                {bannerActivo.subtitulo || bannerActivo.descripcion}
               </span>
             )}
           </div>
@@ -353,36 +314,27 @@ export function BannerPublicidadCarousel({
                 type="button"
                 className="banner-publicidad__boton banner-publicidad__boton--principal"
                 onClick={() =>
-                  registrarYAbrirDestino(
-                    destinoPrincipal,
-                    eventoPrincipal,
-                  )
+                  registrarYAbrirDestino(destinoPrincipal, eventoPrincipal)
                 }
               >
                 {bannerActivo.textoBoton ||
-                  (tipoDestino ===
-                  BANNER_TIPOS_DESTINO.WHATSAPP
+                  (tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
                     ? "Escribir por WhatsApp"
                     : "Conocer más")}
               </button>
             )}
 
-            {mostrarWhatsappSecundario &&
-              whatsappUrl && (
-                <button
-                  type="button"
-                  className="banner-publicidad__boton banner-publicidad__boton--whatsapp"
-                  onClick={() =>
-                    registrarYAbrirDestino(
-                      whatsappUrl,
-                      BANNER_EVENTOS.WHATSAPP,
-                    )
-                  }
-                >
-                  {bannerActivo.textoBotonWhatsapp ||
-                    "Escribir por WhatsApp"}
-                </button>
-              )}
+            {mostrarWhatsappSecundario && whatsappUrl && (
+              <button
+                type="button"
+                className="banner-publicidad__boton banner-publicidad__boton--whatsapp"
+                onClick={() =>
+                  registrarYAbrirDestino(whatsappUrl, BANNER_EVENTOS.WHATSAPP)
+                }
+              >
+                {bannerActivo.textoBotonWhatsapp || "Escribir por WhatsApp"}
+              </button>
+            )}
           </div>
         </div>
       )}

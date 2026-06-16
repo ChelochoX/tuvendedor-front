@@ -21,8 +21,7 @@ export const BANNER_ESTADOS = {
   PAUSADO: "PAUSADO",
 } as const;
 
-export type BannerEstado =
-  (typeof BANNER_ESTADOS)[keyof typeof BANNER_ESTADOS];
+export type BannerEstado = (typeof BANNER_ESTADOS)[keyof typeof BANNER_ESTADOS];
 
 export const BANNER_TIPOS_DESTINO = {
   WEB: "WEB",
@@ -80,12 +79,16 @@ export interface BannersHomeResponse {
 }
 
 export interface RegistrarEventoBannerRequest {
-  bannerPublicitarioId: BannerPublicitarioId;
+  bannerPublicitarioId?: BannerPublicitarioId;
+  idBanner?: BannerPublicitarioId;
   tipoEvento: BannerEventoTipo;
+  ubicacion: BannerUbicacion;
+  dispositivo?: "DESKTOP" | "MOBILE" | "TABLET";
+  pagina?: string;
+  visitorId?: string;
 }
 
-export interface BannerPublicitarioAdmin
-  extends BannerPublicitario {
+export interface BannerPublicitarioAdmin extends BannerPublicitario {
   nombreCliente: string;
   storageKey?: string | null;
 

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
+
 import { registrarEventoBanner } from "../api/bannersPublicitariosService";
+
 import {
   BANNER_EVENTOS,
   type BannerPublicitarioId,
@@ -13,7 +15,7 @@ interface UseRegistrarImpresionBannerParams {
 
 function construirClave(
   bannerPublicitarioId: BannerPublicitarioId,
-  ubicacion: BannerUbicacion
+  ubicacion: BannerUbicacion,
 ): string {
   return `tuvendedor:banner:impresion:${ubicacion}:${bannerPublicitarioId}`;
 }
@@ -31,7 +33,6 @@ function marcarImpresionComoRegistrada(clave: string): void {
     sessionStorage.setItem(clave, "1");
   } catch {
     // El navegador puede bloquear sessionStorage.
-    // Esto no debe impedir que el banner funcione.
   }
 }
 
@@ -48,7 +49,10 @@ export function useRegistrarImpresionBanner({
       return;
     }
 
-    const clave = construirClave(bannerPublicitarioId, ubicacion);
+    const clave = construirClave(
+      bannerPublicitarioId,
+      ubicacion,
+    );
 
     if (impresionYaRegistrada(clave)) {
       return;
@@ -67,6 +71,7 @@ export function useRegistrarImpresionBanner({
       void registrarEventoBanner({
         bannerPublicitarioId,
         tipoEvento: BANNER_EVENTOS.IMPRESION,
+        ubicacion,
       });
     };
 
@@ -79,7 +84,8 @@ export function useRegistrarImpresionBanner({
       (entradas) => {
         const bannerVisible = entradas.some(
           (entrada) =>
-            entrada.isIntersecting && entrada.intersectionRatio >= 0.45
+            entrada.isIntersecting &&
+            entrada.intersectionRatio >= 0.45,
         );
 
         if (!bannerVisible) {
@@ -91,7 +97,7 @@ export function useRegistrarImpresionBanner({
       },
       {
         threshold: [0.45],
-      }
+      },
     );
 
     observer.observe(elemento);

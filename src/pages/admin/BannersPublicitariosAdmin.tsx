@@ -219,6 +219,73 @@ export default function BannersPublicitariosAdmin() {
     });
   }, [banners, busqueda]);
 
+  const resumenVista = useMemo<ResumenBannersPublicitarios>(() => {
+    const totalBannersDesdeLista = banners.length;
+
+    const bannersActivosDesdeLista = banners.filter(
+      (banner) => banner.estado === BANNER_ESTADOS.ACTIVO,
+    ).length;
+
+    const cantidadImpresionesDesdeLista = banners.reduce(
+      (total, banner) => total + Number(banner.cantidadImpresiones ?? 0),
+      0,
+    );
+
+    const cantidadClicksDesdeLista = banners.reduce(
+      (total, banner) => total + Number(banner.cantidadClicks ?? 0),
+      0,
+    );
+
+    const cantidadWhatsappDesdeLista = banners.reduce(
+      (total, banner) => total + Number(banner.cantidadWhatsapp ?? 0),
+      0,
+    );
+
+    const cantidadImpresiones = Math.max(
+      Number(resumen.cantidadImpresiones ?? 0),
+      cantidadImpresionesDesdeLista,
+    );
+
+    const cantidadClicks = Math.max(
+      Number(resumen.cantidadClicks ?? 0),
+      cantidadClicksDesdeLista,
+    );
+
+    const cantidadWhatsapp = Math.max(
+      Number(resumen.cantidadWhatsapp ?? 0),
+      cantidadWhatsappDesdeLista,
+    );
+
+    const ctr =
+      cantidadImpresiones > 0
+        ? Number(((cantidadClicks / cantidadImpresiones) * 100).toFixed(2))
+        : 0;
+
+    return {
+      totalBanners: Math.max(
+        Number(resumen.totalBanners ?? 0),
+        totalBannersDesdeLista,
+      ),
+
+      bannersActivos: Math.max(
+        Number(resumen.bannersActivos ?? 0),
+        bannersActivosDesdeLista,
+      ),
+
+      bannersPausados: Number(resumen.bannersPausados ?? 0),
+
+      bannersBorrador: Number(resumen.bannersBorrador ?? 0),
+
+      cantidadImpresiones,
+
+      cantidadClicks,
+
+      cantidadWhatsapp,
+
+      ctr,
+    };
+  }, [banners, resumen]);
+
   const abrirCreacion = () => {
     setBannerSeleccionado(null);
     setModalAbierto(true);
@@ -463,28 +530,28 @@ export default function BannersPublicitariosAdmin() {
         <section className="mt-5 grid grid-cols-2 gap-2 sm:mt-7 sm:gap-3 xl:grid-cols-4">
           <TarjetaResumen
             titulo="Campañas"
-            valor={formatearNumero(resumen.totalBanners)}
-            ayuda={`${formatearNumero(resumen.bannersActivos)} activas`}
+            valor={formatearNumero(resumenVista.totalBanners)}
+            ayuda={`${formatearNumero(resumenVista.bannersActivos)} activas`}
             icono={<Eye size={18} />}
           />
 
           <TarjetaResumen
             titulo="Impresiones"
-            valor={formatearNumero(resumen.cantidadImpresiones)}
+            valor={formatearNumero(resumenVista.cantidadImpresiones)}
             ayuda="Visualizaciones registradas"
             icono={<Eye size={18} />}
           />
 
           <TarjetaResumen
             titulo="Clics"
-            valor={formatearNumero(resumen.cantidadClicks)}
-            ayuda={`CTR: ${resumen.ctr.toFixed(2)}%`}
+            valor={formatearNumero(resumenVista.cantidadClicks)}
+            ayuda={`CTR: ${resumenVista.ctr.toFixed(2)}%`}
             icono={<MousePointerClick size={18} />}
           />
 
           <TarjetaResumen
             titulo="WhatsApp"
-            valor={formatearNumero(resumen.cantidadWhatsapp)}
+            valor={formatearNumero(resumenVista.cantidadWhatsapp)}
             ayuda="Contactos iniciados"
             icono={<MessageCircle size={18} />}
           />

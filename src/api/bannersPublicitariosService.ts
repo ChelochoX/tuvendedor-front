@@ -512,6 +512,12 @@ function normalizarBannerAdmin(valor: unknown): BannerPublicitarioAdmin | null {
       "CantidadWhatsApp",
       "totalWhatsapp",
       "TotalWhatsapp",
+      "totalWhatsApp",
+      "TotalWhatsApp",
+      "whatsApp",
+      "WhatsApp",
+      "whatsapp",
+      "Whatsapp",
     ]),
   );
 
@@ -867,9 +873,6 @@ export async function obtenerBannersHome(
   return normalizarRespuestaHome(await response.json());
 }
 
-/**
- * El registro estadístico nunca debe bloquear la navegación.
- */
 function obtenerDispositivoBanner(): "DESKTOP" | "MOBILE" | "TABLET" {
   if (typeof window === "undefined") {
     return "DESKTOP";
@@ -1062,6 +1065,48 @@ export async function obtenerResumenBannersPublicitariosAdmin(): Promise<Resumen
       "No se pudo obtener el resumen.",
     );
 
+    const cantidadImpresiones = convertirNumero(
+      data?.cantidadImpresiones ??
+        data?.CantidadImpresiones ??
+        data?.totalImpresiones ??
+        data?.TotalImpresiones ??
+        data?.impresiones ??
+        data?.Impresiones,
+    );
+
+    const cantidadClicks = convertirNumero(
+      data?.cantidadClicks ??
+        data?.CantidadClicks ??
+        data?.totalClicks ??
+        data?.TotalClicks ??
+        data?.clicks ??
+        data?.Clicks ??
+        data?.clics ??
+        data?.Clics,
+    );
+
+    const cantidadWhatsapp = convertirNumero(
+      data?.cantidadWhatsapp ??
+        data?.CantidadWhatsapp ??
+        data?.cantidadWhatsApp ??
+        data?.CantidadWhatsApp ??
+        data?.totalWhatsapp ??
+        data?.TotalWhatsapp ??
+        data?.totalWhatsApp ??
+        data?.TotalWhatsApp ??
+        data?.whatsApp ??
+        data?.WhatsApp ??
+        data?.whatsapp ??
+        data?.Whatsapp,
+    );
+
+    const ctrBackend = convertirNumero(data?.ctr ?? data?.Ctr ?? data?.CTR);
+
+    const ctrCalculado =
+      cantidadImpresiones > 0
+        ? Number(((cantidadClicks / cantidadImpresiones) * 100).toFixed(2))
+        : 0;
+
     return {
       totalBanners: convertirNumero(data?.totalBanners ?? data?.TotalBanners),
 
@@ -1070,29 +1115,26 @@ export async function obtenerResumenBannersPublicitariosAdmin(): Promise<Resumen
       ),
 
       bannersPausados: convertirNumero(
-        data?.bannersPausados ?? data?.BannersPausados,
+        data?.bannersPausados ??
+          data?.BannersPausados ??
+          data?.bannersProgramados ??
+          data?.BannersProgramados,
       ),
 
       bannersBorrador: convertirNumero(
-        data?.bannersBorrador ?? data?.BannersBorrador,
+        data?.bannersBorrador ??
+          data?.BannersBorrador ??
+          data?.bannersVencidos ??
+          data?.BannersVencidos,
       ),
 
-      cantidadImpresiones: convertirNumero(
-        data?.cantidadImpresiones ?? data?.CantidadImpresiones,
-      ),
+      cantidadImpresiones,
 
-      cantidadClicks: convertirNumero(
-        data?.cantidadClicks ?? data?.CantidadClicks,
-      ),
+      cantidadClicks,
 
-      cantidadWhatsapp: convertirNumero(
-        data?.cantidadWhatsapp ??
-          data?.CantidadWhatsapp ??
-          data?.cantidadWhatsApp ??
-          data?.CantidadWhatsApp,
-      ),
+      cantidadWhatsapp,
 
-      ctr: convertirNumero(data?.ctr ?? data?.Ctr ?? data?.CTR),
+      ctr: ctrBackend > 0 ? ctrBackend : ctrCalculado,
     };
   } catch (error: any) {
     throw new Error(
@@ -1167,14 +1209,6 @@ export async function actualizarBannerPublicitarioAdmin(
   archivos: BannerPublicitarioArchivosForm,
 ): Promise<void> {
   try {
-    /**
-     * El backend tiene:
-     * [Consumes("multipart/form-data")]
-     * [FromForm]
-     *
-     * Por eso el PUT debe enviarse SIEMPRE como FormData,
-     * aunque no se reemplacen imágenes.
-     */
     await instance.put(
       `${ADMIN_ENDPOINT}/${id}`,
       crearFormDataBanner(valores, archivos, true),

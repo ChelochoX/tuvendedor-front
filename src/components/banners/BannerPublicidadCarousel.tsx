@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { registrarEventoBanner } from "../../api/bannersPublicitariosService";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
-import { useRegistrarImpresionBanner } from "../../hooks/useRegistrarImpresionBanner";
 
 import {
   BANNER_EVENTOS,
@@ -56,6 +55,29 @@ function obtenerWhatsappUrl(valor?: string | null): string | null {
   return numero ? `https://wa.me/${numero}` : null;
 }
 
+function construirClaveImpresion(
+  ubicacion: BannerUbicacion,
+  idBanner: string | number,
+): string {
+  return `tuvendedor:banner:impresion:v2:${ubicacion}:${idBanner}`;
+}
+
+function impresionYaRegistrada(clave: string): boolean {
+  try {
+    return sessionStorage.getItem(clave) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function marcarImpresionRegistrada(clave: string): void {
+  try {
+    sessionStorage.setItem(clave, "1");
+  } catch {
+    // El navegador puede bloquear sessionStorage.
+  }
+}
+
 export function BannerPublicidadCarousel({
   banners,
   ubicacion,
@@ -87,10 +109,46 @@ export function BannerPublicidadCarousel({
 
   const bannerActivo = banners[indiceActivo];
 
-  const referenciaImpresion = useRegistrarImpresionBanner({
-    bannerPublicitarioId: bannerActivo?.id,
-    ubicacion,
-  });
+  const registrarImpresionSiCorresponde = useCallback(
+    (banner?: BannerPublicitario | null) => {
+      if (!banner?.id || !ubicacion) {
+        return;
+      }
+
+      const claveImpresion = construirClaveImpresion(ubicacion, banner.id);
+
+      if (impresionYaRegistrada(claveImpresion)) {
+        return;
+      }
+
+      marcarImpresionRegistrada(claveImpresion);
+
+      void registrarEventoBanner({
+        bannerPublicitarioId: banner.id,
+        tipoEvento: BANNER_EVENTOS.IMPRESION,
+        ubicacion,
+      });
+    },
+    [ubicacion],
+  );
+
+  useEffect(() => {
+    if (!bannerActivo) {
+      return;
+    }
+
+    /*
+      Registramos la impresión cuando el banner activo ya está renderizado.
+      Esto evita depender únicamente de IntersectionObserver/ref.
+    */
+    const timeoutId = window.setTimeout(() => {
+      registrarImpresionSiCorresponde(bannerActivo);
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [bannerActivo, registrarImpresionSiCorresponde]);
 
   const urlDestino = useMemo(
     () => obtenerUrlSegura(bannerActivo?.urlDestino),
@@ -134,6 +192,12 @@ export function BannerPublicidadCarousel({
     destino: string,
     tipoEvento: BannerEventoTipo,
   ) => {
+    /*
+      Si alguien hizo click, sí o sí vio el banner.
+      Por eso garantizamos impresión antes del click/WhatsApp.
+    */
+    registrarImpresionSiCorresponde(bannerActivo);
+
     void registrarEventoBanner({
       bannerPublicitarioId: bannerActivo.id,
       tipoEvento,
@@ -175,7 +239,6 @@ export function BannerPublicidadCarousel({
 
   return (
     <section
-      ref={referenciaImpresion}
       className={[
         "banner-publicidad",
         esHomeTop
@@ -217,6 +280,7 @@ export function BannerPublicidadCarousel({
             alt={bannerActivo.titulo ?? "Banner publicitario"}
             className="banner-publicidad__imagen"
             loading={esHomeTop ? "eager" : "lazy"}
+            onLoad={() => registrarImpresionSiCorresponde(bannerActivo)}
             onError={(event) => {
               const imagen = event.currentTarget;
 

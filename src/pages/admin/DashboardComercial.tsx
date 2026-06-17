@@ -65,6 +65,18 @@ interface GraficoActividadProps {
   onCambiarMetrica: (metrica: MetricaGraficoComercial) => void;
 }
 
+interface FechaPartes {
+  dia: string;
+  mes: string;
+  year: string;
+}
+
+interface FechaPartesInputProps {
+  titulo: string;
+  value: FechaPartes;
+  onChange: (value: FechaPartes) => void;
+}
+
 const METRICAS_GRAFICO: Array<{
   key: MetricaGraficoComercial;
   label: string;
@@ -171,20 +183,42 @@ function formatearFecha(valor?: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-function convertirFechaTextoAInput(valor: string): string | null {
-  const texto = valor.trim();
+function obtenerPartesFecha(valor: string): FechaPartes {
+  const fechaNormalizada = normalizarFechaInput(valor);
 
-  const match = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-
-  if (!match) {
-    return null;
+  if (!fechaNormalizada) {
+    return {
+      dia: "",
+      mes: "",
+      year: "",
+    };
   }
 
-  const [, diaRaw, mesRaw, yearRaw] = match;
+  const [year, mes, dia] = fechaNormalizada.split("-");
 
-  const dia = Number(diaRaw);
-  const mes = Number(mesRaw);
-  const year = Number(yearRaw);
+  return {
+    dia,
+    mes,
+    year,
+  };
+}
+
+function limpiarNumero(valor: string, maxLength: number): string {
+  return valor.replace(/\D/g, "").slice(0, maxLength);
+}
+
+function convertirPartesFechaAInput(partes: FechaPartes): string | null {
+  const dia = Number(partes.dia);
+  const mes = Number(partes.mes);
+  const year = Number(partes.year);
+
+  if (
+    partes.dia.length < 1 ||
+    partes.mes.length < 1 ||
+    partes.year.length !== 4
+  ) {
+    return null;
+  }
 
   const fecha = new Date(year, mes - 1, dia);
 
@@ -197,27 +231,10 @@ function convertirFechaTextoAInput(valor: string): string | null {
     return null;
   }
 
-  const diaTexto = String(dia).padStart(2, "0");
-  const mesTexto = String(mes).padStart(2, "0");
-
-  return `${yearRaw}-${mesTexto}-${diaTexto}`;
-}
-
-function aplicarMascaraFecha(valor: string): string {
-  const soloNumeros = valor.replace(/\D/g, "").slice(0, 8);
-
-  if (soloNumeros.length <= 2) {
-    return soloNumeros;
-  }
-
-  if (soloNumeros.length <= 4) {
-    return `${soloNumeros.slice(0, 2)}/${soloNumeros.slice(2)}`;
-  }
-
-  return `${soloNumeros.slice(0, 2)}/${soloNumeros.slice(
+  return `${String(year).padStart(4, "0")}-${String(mes).padStart(
     2,
-    4,
-  )}/${soloNumeros.slice(4)}`;
+    "0",
+  )}-${String(dia).padStart(2, "0")}`;
 }
 
 function obtenerClaveFecha(valor?: string | null): string {
@@ -1127,6 +1144,78 @@ function BotonPeriodo({ activo, texto, onClick }: BotonPeriodoProps) {
   );
 }
 
+function FechaPartesInput({ titulo, value, onChange }: FechaPartesInputProps) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+      <span className="mb-2 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+        {titulo}
+      </span>
+
+      <div className="grid grid-cols-[1fr_1fr_1.4fr] gap-2">
+        <label className="block">
+          <span className="mb-1 block text-[9px] font-black uppercase tracking-wider text-gray-500">
+            Día
+          </span>
+
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="DD"
+            value={value.dia}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                dia: limpiarNumero(event.target.value, 2),
+              })
+            }
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-center text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[9px] font-black uppercase tracking-wider text-gray-500">
+            Mes
+          </span>
+
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="MM"
+            value={value.mes}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                mes: limpiarNumero(event.target.value, 2),
+              })
+            }
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-center text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
+          />
+        </label>
+
+        <label className="block">
+          <span className="mb-1 block text-[9px] font-black uppercase tracking-wider text-gray-500">
+            Año
+          </span>
+
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="AAAA"
+            value={value.year}
+            onChange={(event) =>
+              onChange({
+                ...value,
+                year: limpiarNumero(event.target.value, 4),
+              })
+            }
+            className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-center text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 function GraficoActividad({
   serie,
   metrica,
@@ -1303,11 +1392,11 @@ export default function DashboardComercial() {
 
   const [fechaDesde, setFechaDesde] = useState(rangoInicial.fechaDesde);
   const [fechaHasta, setFechaHasta] = useState(rangoInicial.fechaHasta);
-  const [fechaDesdeTexto, setFechaDesdeTexto] = useState(
-    formatearFecha(rangoInicial.fechaDesde),
+  const [fechaDesdePartes, setFechaDesdePartes] = useState(() =>
+    obtenerPartesFecha(rangoInicial.fechaDesde),
   );
-  const [fechaHastaTexto, setFechaHastaTexto] = useState(
-    formatearFecha(rangoInicial.fechaHasta),
+  const [fechaHastaPartes, setFechaHastaPartes] = useState(() =>
+    obtenerPartesFecha(rangoInicial.fechaHasta),
   );
   const [mostrarRangoPersonalizado, setMostrarRangoPersonalizado] =
     useState(false);
@@ -1399,8 +1488,8 @@ export default function DashboardComercial() {
   const aplicarRango = (desde: string, hasta: string) => {
     setFechaDesde(desde);
     setFechaHasta(hasta);
-    setFechaDesdeTexto(formatearFecha(desde));
-    setFechaHastaTexto(formatearFecha(hasta));
+    setFechaDesdePartes(obtenerPartesFecha(desde));
+    setFechaHastaPartes(obtenerPartesFecha(hasta));
     setMostrarRangoPersonalizado(false);
   };
 
@@ -1420,19 +1509,19 @@ export default function DashboardComercial() {
   };
 
   const abrirRangoPersonalizado = () => {
-    setFechaDesdeTexto(formatearFecha(fechaDesde));
-    setFechaHastaTexto(formatearFecha(fechaHasta));
+    setFechaDesdePartes(obtenerPartesFecha(fechaDesde));
+    setFechaHastaPartes(obtenerPartesFecha(fechaHasta));
     setMostrarRangoPersonalizado((valorActual) => !valorActual);
   };
 
   const aplicarRangoPersonalizado = async () => {
-    const desde = convertirFechaTextoAInput(fechaDesdeTexto);
-    const hasta = convertirFechaTextoAInput(fechaHastaTexto);
+    const desde = convertirPartesFechaAInput(fechaDesdePartes);
+    const hasta = convertirPartesFechaAInput(fechaHastaPartes);
 
     if (!desde || !hasta) {
       await Swal.fire({
         title: "Fecha inválida",
-        text: "Usá el formato día/mes/año. Ejemplo: 20/05/2026.",
+        text: "Cargá día, mes y año correctamente. Ejemplo: 20 / 05 / 2026.",
         icon: "warning",
         confirmButtonColor: "#facc15",
       });
@@ -1634,49 +1723,23 @@ export default function DashboardComercial() {
               />
 
               {mostrarRangoPersonalizado && (
-                <div className="col-span-2 grid w-full grid-cols-1 gap-3 rounded-2xl border border-yellow-400/20 bg-black/20 p-3 sm:col-span-3 sm:grid-cols-3 lg:min-w-[560px]">
-                  <label className="block">
-                    <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Desde
-                    </span>
+                <div className="col-span-2 grid w-full grid-cols-1 gap-3 rounded-2xl border border-yellow-400/20 bg-black/20 p-3 sm:col-span-3 lg:min-w-[560px]">
+                  <FechaPartesInput
+                    titulo="Desde"
+                    value={fechaDesdePartes}
+                    onChange={setFechaDesdePartes}
+                  />
 
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="dd/mm/aaaa"
-                      value={fechaDesdeTexto}
-                      onChange={(event) =>
-                        setFechaDesdeTexto(
-                          aplicarMascaraFecha(event.target.value),
-                        )
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
-                      Hasta
-                    </span>
-
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="dd/mm/aaaa"
-                      value={fechaHastaTexto}
-                      onChange={(event) =>
-                        setFechaHastaTexto(
-                          aplicarMascaraFecha(event.target.value),
-                        )
-                      }
-                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
-                    />
-                  </label>
+                  <FechaPartesInput
+                    titulo="Hasta"
+                    value={fechaHastaPartes}
+                    onChange={setFechaHastaPartes}
+                  />
 
                   <button
                     type="button"
                     onClick={() => void aplicarRangoPersonalizado()}
-                    className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 self-end rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black transition hover:bg-yellow-300"
+                    className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black transition hover:bg-yellow-300"
                   >
                     <RefreshCcw size={18} />
                     Aplicar rango

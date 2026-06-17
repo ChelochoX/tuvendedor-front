@@ -92,8 +92,8 @@ const METRICAS_GRAFICO: Array<{
   },
   {
     key: "solicitudesVisita",
-    label: "Solicitudes",
-    descripcion: "Solicitudes recibidas desde publicaciones",
+    label: "Solicitudes internas",
+    descripcion: "Consultas enviadas desde formularios internos",
   },
 ];
 
@@ -171,16 +171,57 @@ function formatearFecha(valor?: string | null): string {
   return `${day}/${month}/${year}`;
 }
 
-function obtenerClaveFecha(valor?: string | null): string {
-  return normalizarFechaInput(valor);
+function convertirFechaTextoAInput(valor: string): string | null {
+  const texto = valor.trim();
+
+  const match = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, diaRaw, mesRaw, yearRaw] = match;
+
+  const dia = Number(diaRaw);
+  const mes = Number(mesRaw);
+  const year = Number(yearRaw);
+
+  const fecha = new Date(year, mes - 1, dia);
+
+  const fechaValida =
+    fecha.getFullYear() === year &&
+    fecha.getMonth() === mes - 1 &&
+    fecha.getDate() === dia;
+
+  if (!fechaValida) {
+    return null;
+  }
+
+  const diaTexto = String(dia).padStart(2, "0");
+  const mesTexto = String(mes).padStart(2, "0");
+
+  return `${yearRaw}-${mesTexto}-${diaTexto}`;
 }
 
-function abrirSelectorFecha(event: React.MouseEvent<HTMLInputElement>) {
-  const input = event.currentTarget as HTMLInputElement & {
-    showPicker?: () => void;
-  };
+function aplicarMascaraFecha(valor: string): string {
+  const soloNumeros = valor.replace(/\D/g, "").slice(0, 8);
 
-  input.showPicker?.();
+  if (soloNumeros.length <= 2) {
+    return soloNumeros;
+  }
+
+  if (soloNumeros.length <= 4) {
+    return `${soloNumeros.slice(0, 2)}/${soloNumeros.slice(2)}`;
+  }
+
+  return `${soloNumeros.slice(0, 2)}/${soloNumeros.slice(
+    2,
+    4,
+  )}/${soloNumeros.slice(4)}`;
+}
+
+function obtenerClaveFecha(valor?: string | null): string {
+  return normalizarFechaInput(valor);
 }
 
 function completarSerieDiaria(
@@ -787,7 +828,9 @@ function generarHtmlReporteComercial(data: ComercialDashboard): string {
 
       <div class="card">
         <span class="label">Tasa de contacto</span>
-        <span class="value">${formatearPorcentaje(tasaContactoPublicaciones)}</span>
+        <span class="value">${formatearPorcentaje(
+          tasaContactoPublicaciones,
+        )}</span>
         <span class="help">Relación entre vistas y clicks a WhatsApp.</span>
       </div>
 
@@ -1073,7 +1116,7 @@ function BotonPeriodo({ activo, texto, onClick }: BotonPeriodoProps) {
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-xl px-3 py-2 text-xs font-black transition ${
+      className={`min-h-[42px] w-full rounded-xl px-3 py-2 text-xs font-black transition lg:w-auto ${
         activo
           ? "bg-yellow-400 text-black"
           : "border border-white/10 bg-white/5 text-gray-300 hover:border-yellow-400/40 hover:text-yellow-300"
@@ -1260,6 +1303,14 @@ export default function DashboardComercial() {
 
   const [fechaDesde, setFechaDesde] = useState(rangoInicial.fechaDesde);
   const [fechaHasta, setFechaHasta] = useState(rangoInicial.fechaHasta);
+  const [fechaDesdeTexto, setFechaDesdeTexto] = useState(
+    formatearFecha(rangoInicial.fechaDesde),
+  );
+  const [fechaHastaTexto, setFechaHastaTexto] = useState(
+    formatearFecha(rangoInicial.fechaHasta),
+  );
+  const [mostrarRangoPersonalizado, setMostrarRangoPersonalizado] =
+    useState(false);
   const [dashboard, setDashboard] = useState<ComercialDashboard | null>(null);
   const [cargando, setCargando] = useState(true);
   const [metricaGrafico, setMetricaGrafico] = useState<MetricaGraficoComercial>(
@@ -1313,34 +1364,97 @@ export default function DashboardComercial() {
     );
   }, [dashboard, fechaDesde, fechaHasta]);
 
+  const fechaInicioMesActual = useMemo(() => {
+    const ahora = new Date();
+
+    return obtenerFechaLocalInput(
+      new Date(ahora.getFullYear(), ahora.getMonth(), 1),
+    );
+  }, []);
+
+  const fechaFinMesActual = useMemo(() => {
+    const ahora = new Date();
+
+    return obtenerFechaLocalInput(
+      new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0),
+    );
+  }, []);
+
+  const fechaInicioMesAnterior = useMemo(() => {
+    const ahora = new Date();
+
+    return obtenerFechaLocalInput(
+      new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1),
+    );
+  }, []);
+
+  const fechaFinMesAnterior = useMemo(() => {
+    const ahora = new Date();
+
+    return obtenerFechaLocalInput(
+      new Date(ahora.getFullYear(), ahora.getMonth(), 0),
+    );
+  }, []);
+
+  const aplicarRango = (desde: string, hasta: string) => {
+    setFechaDesde(desde);
+    setFechaHasta(hasta);
+    setFechaDesdeTexto(formatearFecha(desde));
+    setFechaHastaTexto(formatearFecha(hasta));
+    setMostrarRangoPersonalizado(false);
+  };
+
   const aplicarPeriodo = (dias: number) => {
     const hasta = new Date();
     const desde = sumarDias(hasta, -(dias - 1));
 
-    setFechaDesde(obtenerFechaLocalInput(desde));
-    setFechaHasta(obtenerFechaLocalInput(hasta));
+    aplicarRango(obtenerFechaLocalInput(desde), obtenerFechaLocalInput(hasta));
   };
 
   const aplicarMesActual = () => {
-    const ahora = new Date();
-
-    const desde = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
-
-    const hasta = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0);
-
-    setFechaDesde(obtenerFechaLocalInput(desde));
-    setFechaHasta(obtenerFechaLocalInput(hasta));
+    aplicarRango(fechaInicioMesActual, fechaFinMesActual);
   };
 
   const aplicarMesAnterior = () => {
-    const ahora = new Date();
+    aplicarRango(fechaInicioMesAnterior, fechaFinMesAnterior);
+  };
 
-    const desde = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+  const abrirRangoPersonalizado = () => {
+    setFechaDesdeTexto(formatearFecha(fechaDesde));
+    setFechaHastaTexto(formatearFecha(fechaHasta));
+    setMostrarRangoPersonalizado((valorActual) => !valorActual);
+  };
 
-    const hasta = new Date(ahora.getFullYear(), ahora.getMonth(), 0);
+  const aplicarRangoPersonalizado = async () => {
+    const desde = convertirFechaTextoAInput(fechaDesdeTexto);
+    const hasta = convertirFechaTextoAInput(fechaHastaTexto);
 
-    setFechaDesde(obtenerFechaLocalInput(desde));
-    setFechaHasta(obtenerFechaLocalInput(hasta));
+    if (!desde || !hasta) {
+      await Swal.fire({
+        title: "Fecha inválida",
+        text: "Usá el formato día/mes/año. Ejemplo: 20/05/2026.",
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+      });
+
+      return;
+    }
+
+    const desdeDate = new Date(`${desde}T00:00:00`);
+    const hastaDate = new Date(`${hasta}T00:00:00`);
+
+    if (desdeDate > hastaDate) {
+      await Swal.fire({
+        title: "Rango inválido",
+        text: "La fecha desde no puede ser mayor que la fecha hasta.",
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+      });
+
+      return;
+    }
+
+    aplicarRango(desde, hasta);
   };
 
   const periodoActualDias = useMemo(() => {
@@ -1409,26 +1523,6 @@ export default function DashboardComercial() {
   return (
     <main className="min-h-screen bg-[#1e1f23] px-3 py-4 text-white sm:px-4 sm:py-6 md:px-8 print:bg-white print:text-black">
       <section className="mx-auto max-w-[1600px]">
-        <style>
-          {`
-            .dashboard-date-input::-webkit-calendar-picker-indicator {
-              cursor: pointer;
-              opacity: 1;
-              filter: invert(82%) sepia(89%) saturate(828%) hue-rotate(357deg) brightness(102%) contrast(98%);
-            }
-
-            .dashboard-date-input::-webkit-calendar-picker-indicator:hover {
-              filter: invert(90%) sepia(95%) saturate(991%) hue-rotate(357deg) brightness(105%) contrast(102%);
-            }
-
-            @media print {
-              .dashboard-date-input::-webkit-calendar-picker-indicator {
-                display: none;
-              }
-            }
-          `}
-        </style>
-
         <header className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <button
@@ -1482,8 +1576,8 @@ export default function DashboardComercial() {
           </div>
         </header>
 
-        <section className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-3 shadow-xl print:border-gray-200 print:bg-white">
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
+        <section className="relative z-10 mt-5 overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 shadow-xl print:border-gray-200 print:bg-white">
+          <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-yellow-400">
                 <CalendarDays size={16} />
@@ -1496,88 +1590,105 @@ export default function DashboardComercial() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3 xl:flex-row xl:items-end">
-              <div className="flex flex-wrap gap-2 print:hidden">
-                <BotonPeriodo
-                  activo={periodoActualDias === 7}
-                  texto="7 días"
-                  onClick={() => aplicarPeriodo(7)}
-                />
+            <div className="grid w-full grid-cols-2 gap-2 print:hidden sm:grid-cols-3 lg:flex lg:w-auto lg:max-w-[760px] lg:flex-wrap lg:items-center lg:justify-end">
+              <BotonPeriodo
+                activo={periodoActualDias === 7}
+                texto="7 días"
+                onClick={() => aplicarPeriodo(7)}
+              />
 
-                <BotonPeriodo
-                  activo={periodoActualDias === 28}
-                  texto="28 días"
-                  onClick={() => aplicarPeriodo(28)}
-                />
+              <BotonPeriodo
+                activo={periodoActualDias === 28}
+                texto="28 días"
+                onClick={() => aplicarPeriodo(28)}
+              />
 
-                <BotonPeriodo
-                  activo={periodoActualDias === 90}
-                  texto="90 días"
-                  onClick={() => aplicarPeriodo(90)}
-                />
+              <BotonPeriodo
+                activo={periodoActualDias === 90}
+                texto="90 días"
+                onClick={() => aplicarPeriodo(90)}
+              />
 
-                <BotonPeriodo
-                  activo={false}
-                  texto="Mes actual"
-                  onClick={aplicarMesActual}
-                />
+              <BotonPeriodo
+                activo={
+                  fechaDesde === fechaInicioMesActual &&
+                  fechaHasta === fechaFinMesActual
+                }
+                texto="Mes actual"
+                onClick={aplicarMesActual}
+              />
 
-                <BotonPeriodo
-                  activo={false}
-                  texto="Mes anterior"
-                  onClick={aplicarMesAnterior}
-                />
-              </div>
+              <BotonPeriodo
+                activo={
+                  fechaDesde === fechaInicioMesAnterior &&
+                  fechaHasta === fechaFinMesAnterior
+                }
+                texto="Mes anterior"
+                onClick={aplicarMesAnterior}
+              />
 
-              <div className="grid grid-cols-2 gap-2 print:hidden sm:min-w-[360px]">
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
-                    Desde
-                  </span>
+              <BotonPeriodo
+                activo={mostrarRangoPersonalizado}
+                texto="Rango personalizado"
+                onClick={abrirRangoPersonalizado}
+              />
 
-                  <div className="relative">
-                    <CalendarDays
-                      size={14}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-yellow-400"
-                    />
-
-                    <input
-                      type="date"
-                      value={fechaDesde}
-                      onClick={abrirSelectorFecha}
-                      onChange={(event) => setFechaDesde(event.target.value)}
-                      className="dashboard-date-input w-full cursor-pointer rounded-xl border border-white/10 bg-black/30 py-2 pl-9 pr-3 text-xs font-black text-white outline-none transition focus:border-yellow-400"
-                    />
-                  </div>
-                </label>
-
-                <label className="block">
-                  <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
-                    Hasta
-                  </span>
-
-                  <div className="relative">
-                    <CalendarDays
-                      size={14}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-yellow-400"
-                    />
+              {mostrarRangoPersonalizado && (
+                <div className="col-span-2 grid w-full grid-cols-1 gap-3 rounded-2xl border border-yellow-400/20 bg-black/20 p-3 sm:col-span-3 sm:grid-cols-3 lg:min-w-[560px]">
+                  <label className="block">
+                    <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Desde
+                    </span>
 
                     <input
-                      type="date"
-                      value={fechaHasta}
-                      onClick={abrirSelectorFecha}
-                      onChange={(event) => setFechaHasta(event.target.value)}
-                      className="dashboard-date-input w-full cursor-pointer rounded-xl border border-white/10 bg-black/30 py-2 pl-9 pr-3 text-xs font-black text-white outline-none transition focus:border-yellow-400"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="dd/mm/aaaa"
+                      value={fechaDesdeTexto}
+                      onChange={(event) =>
+                        setFechaDesdeTexto(
+                          aplicarMascaraFecha(event.target.value),
+                        )
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
                     />
-                  </div>
-                </label>
-              </div>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-1 block text-[10px] font-black uppercase tracking-wider text-gray-400">
+                      Hasta
+                    </span>
+
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="dd/mm/aaaa"
+                      value={fechaHastaTexto}
+                      onChange={(event) =>
+                        setFechaHastaTexto(
+                          aplicarMascaraFecha(event.target.value),
+                        )
+                      }
+                      className="w-full rounded-xl border border-white/10 bg-black/40 px-3 py-2.5 text-sm font-black text-white outline-none transition placeholder:text-gray-600 focus:border-yellow-400"
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={() => void aplicarRangoPersonalizado()}
+                    className="inline-flex min-h-[42px] w-full items-center justify-center gap-2 self-end rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black transition hover:bg-yellow-300"
+                  >
+                    <RefreshCcw size={18} />
+                    Aplicar rango
+                  </button>
+                </div>
+              )}
 
               <button
                 type="button"
                 onClick={() => void cargarDashboard()}
                 disabled={cargando}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2 text-sm font-black text-black transition hover:bg-yellow-300 disabled:opacity-60 print:hidden"
+                className="col-span-2 inline-flex min-h-[42px] w-full items-center justify-center gap-2 rounded-xl bg-yellow-400 px-4 py-2.5 text-sm font-black text-black transition hover:bg-yellow-300 disabled:opacity-60 sm:col-span-1 lg:w-auto"
               >
                 <RefreshCcw
                   size={18}
@@ -1656,9 +1767,9 @@ export default function DashboardComercial() {
               />
 
               <TarjetaResumen
-                titulo="Solicitudes"
+                titulo="Solicitudes internas"
                 valor={formatearNumero(resumen.solicitudesVisita)}
-                ayuda="Solicitudes registradas desde publicaciones."
+                ayuda="Consultas enviadas desde formularios internos."
                 icono={<Sparkles size={20} />}
               />
 

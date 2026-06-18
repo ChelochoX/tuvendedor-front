@@ -13,6 +13,8 @@ import { useUsuario } from "../context/UsuarioContext";
 import Swal from "sweetalert2";
 import { enviarSugerencia as enviarSugerenciaService } from "../api/publicacionesService";
 import SugerenciaModal from "./SugerenciaModal";
+import { ADMIN_WHATSAPP } from "../config/comercialConfig";
+import { construirLinkWhatsapp } from "../utils/whatsapp";
 
 interface Props {
   categorias: Categoria[];
@@ -35,6 +37,12 @@ const CategoriasPanel: React.FC<Props> = ({
     useUsuario();
 
   const [abrirSugerencia, setAbrirSugerencia] = useState(false);
+
+  const mensajeConsultaEspacios =
+    "Hola, quiero consultar por espacios publicitarios en TuVendedor";
+
+  const whatsappConsultaEspaciosUrl =
+    construirLinkWhatsapp(ADMIN_WHATSAPP, mensajeConsultaEspacios) || "#";
 
   const enviarSugerencia = async (comentario: string) => {
     try {
@@ -282,7 +290,7 @@ const CategoriasPanel: React.FC<Props> = ({
         <button
           onClick={() => {
             window.open(
-              "https://wa.me/595982456111?text=Hola,%20quiero%20consultar%20por%20espacios%20publicitarios%20en%20TuVendedor",
+              whatsappConsultaEspaciosUrl,
               "_blank",
               "noopener,noreferrer",
             );

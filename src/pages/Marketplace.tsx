@@ -343,6 +343,7 @@ const Marketplace: React.FC = () => {
               <BannerPublicidadCarousel
                 banners={homeTop}
                 ubicacion="HOME_TOP"
+                intervaloMs={5000}
               />
             )}
 
@@ -414,6 +415,7 @@ const Marketplace: React.FC = () => {
                               <BannerPublicidadCarousel
                                 banners={homeInline}
                                 ubicacion="HOME_INLINE"
+                                intervaloMs={4000}
                               />
                             </div>
                           )}
@@ -432,6 +434,7 @@ const Marketplace: React.FC = () => {
                           <BannerPublicidadCarousel
                             banners={homeInline}
                             ubicacion="HOME_INLINE"
+                            intervaloMs={4000}
                           />
                         </div>
                       )}

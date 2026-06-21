@@ -56,7 +56,8 @@ export interface PerfilPublicoVendedor {
   esPremium: boolean;
 
   mostrarTelefono: boolean;
-  mostrarCorreo: boolean;
+  mostrarEmail?: boolean;
+  mostrarCorreo?: boolean;
 
   cantidadPublicaciones: number;
   publicaciones: PublicacionPerfilVendedor[];

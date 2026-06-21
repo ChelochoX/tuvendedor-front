@@ -110,13 +110,13 @@ const MiPerfilVendedor: React.FC = () => {
         ciudadVisible: data.ciudadVisible || "",
         telefono: data.telefono || "",
         whatsapp: data.whatsapp || "",
-        email: data.email || "",
+        email: data.correoContacto || data.email || "",
         instagramUrl: data.instagramUrl || "",
         facebookUrl: data.facebookUrl || "",
         esPerfilPublico: data.esPerfilPublico ?? true,
         esPremium: data.esPremium ?? false,
         mostrarTelefono: data.mostrarTelefono ?? true,
-        mostrarCorreo: data.mostrarCorreo ?? true,
+        mostrarCorreo: data.mostrarEmail ?? data.mostrarCorreo ?? true,
       });
     } catch (error: any) {
       console.error("Error al cargar perfil vendedor:", error);
@@ -218,12 +218,12 @@ const MiPerfilVendedor: React.FC = () => {
       formData.append("CiudadVisible", form.ciudadVisible);
       formData.append("Descripcion", form.descripcion);
       formData.append("Whatsapp", form.whatsapp);
-      formData.append("Email", form.email);
+      formData.append("CorreoContacto", form.email);
       formData.append("InstagramUrl", form.instagramUrl);
       formData.append("FacebookUrl", form.facebookUrl);
       formData.append("EsPerfilPublico", String(form.esPerfilPublico));
       formData.append("MostrarTelefono", String(form.mostrarTelefono));
-      formData.append("MostrarCorreo", String(form.mostrarCorreo));
+      formData.append("MostrarEmail", String(form.mostrarCorreo));
 
       if (fotoPerfilArchivo) {
         formData.append("FotoPerfil", fotoPerfilArchivo);

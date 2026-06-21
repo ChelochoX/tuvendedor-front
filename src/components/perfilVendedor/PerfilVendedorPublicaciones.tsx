@@ -1,5 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Eye, MapPin, Search, SlidersHorizontal, Star } from "lucide-react";
+import {
+  Eye,
+  Filter,
+  MapPin,
+  PackageCheck,
+  Search,
+  ShieldCheck,
+  SlidersHorizontal,
+  Sparkles,
+  Star,
+  Store,
+} from "lucide-react";
 
 import { PublicacionPerfilVendedor } from "../../types/perfilVendedor.types";
 import { Producto } from "../../types/producto";
@@ -120,6 +131,42 @@ const adaptarProductoFavorito = (item: PublicacionPerfilVendedor): Producto => {
   } as Producto;
 };
 
+const obtenerEtiquetaRubro = (item: PublicacionPerfilVendedor): string => {
+  const texto = normalizarTexto(`${item.categoria || ""} ${item.titulo || ""}`);
+
+  if (
+    ["moto", "vehiculo", "auto", "camioneta"].some((p) => texto.includes(p))
+  ) {
+    return "Ficha vehicular";
+  }
+
+  if (
+    ["inmueble", "casa", "terreno", "departamento", "duplex", "dúplex"].some(
+      (p) => texto.includes(p),
+    )
+  ) {
+    return "Ficha inmobiliaria";
+  }
+
+  if (
+    ["pan", "torta", "comida", "bebida", "minimercado", "despensa"].some((p) =>
+      texto.includes(p),
+    )
+  ) {
+    return "Pedido rápido";
+  }
+
+  if (
+    ["software", "servicio", "desarrollo", "sistema", "diseño", "diseno"].some(
+      (p) => texto.includes(p),
+    )
+  ) {
+    return "Cotización";
+  }
+
+  return "Producto premium";
+};
+
 const PerfilVendedorPublicaciones: React.FC<Props> = ({
   publicaciones = [],
   onVerDetalle,
@@ -196,6 +243,8 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
     });
   }, [busqueda, categoriaActiva, publicaciones]);
 
+  const totalDestacadas = publicaciones.filter((p) => p.esDestacada).length;
+
   if (!publicaciones.length) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -212,40 +261,87 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
-      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-yellow-300 ring-1 ring-yellow-400/20">
-            <SlidersHorizontal size={14} />
-            Catálogo
-          </p>
+    <section className="relative mx-auto max-w-7xl px-4 pb-16 pt-10 sm:px-6 lg:px-8">
+      <div className="absolute inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_top,rgba(250,204,21,0.07),transparent_55%)]" />
 
-          <h2 className="mt-3 text-3xl font-black text-white">
-            Publicaciones disponibles
-          </h2>
+      <div className="mb-6 rounded-[28px] border border-white/10 bg-[#0b111c]/80 p-4 shadow-2xl shadow-black/25 backdrop-blur md:p-5">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-1.5 text-xs font-black uppercase tracking-wide text-yellow-300 ring-1 ring-yellow-400/20">
+              <SlidersHorizontal size={14} />
+              Catálogo premium
+            </p>
 
-          <p className="mt-1 text-sm text-gray-400">
-            Explorá esta vitrina o buscá por nombre, categoría o ubicación.
-          </p>
+            <h2 className="mt-3 text-3xl font-black text-white md:text-4xl">
+              Publicaciones disponibles
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
+              Explorá esta vitrina por categoría, buscá rápido y abrí cada ficha
+              con una presentación adaptada al rubro del producto.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-2 text-center lg:min-w-[420px]">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <PackageCheck className="mx-auto text-yellow-300" size={18} />
+              <p className="mt-1 text-lg font-black text-white">
+                {publicaciones.length}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                Publicaciones
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <Star className="mx-auto text-yellow-300" size={18} />
+              <p className="mt-1 text-lg font-black text-white">
+                {totalDestacadas}
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                Destacadas
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+              <ShieldCheck className="mx-auto text-green-300" size={18} />
+              <p className="mt-1 text-lg font-black text-white">Directo</p>
+              <p className="text-[10px] font-bold uppercase tracking-wide text-gray-500">
+                Contacto
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="relative w-full lg:max-w-sm">
-          <Search
-            size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-          />
+        <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_180px]">
+          <div className="relative">
+            <Search
+              size={18}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+            />
 
-          <input
-            value={busqueda}
-            onChange={(event) => setBusqueda(event.target.value)}
-            placeholder="Buscar publicación..."
-            className="w-full rounded-2xl border border-yellow-400/40 bg-white/[0.06] py-3 pl-11 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400 focus:bg-white/[0.09]"
-          />
+            <input
+              value={busqueda}
+              onChange={(event) => setBusqueda(event.target.value)}
+              placeholder="Buscar por nombre, categoría o ubicación..."
+              className="w-full rounded-2xl border border-yellow-400/25 bg-black/25 py-3 pl-11 pr-4 text-sm font-semibold text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400 focus:bg-black/35"
+            />
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm font-bold text-gray-300">
+            <Filter size={17} className="text-yellow-300" />
+            {categoriaActiva}
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm font-bold text-gray-300">
+            <Sparkles size={17} className="text-yellow-300" />
+            Más recientes
+          </div>
         </div>
       </div>
 
       {mostrarFiltroCategorias && (
-        <div className="mb-7 flex flex-wrap gap-2">
+        <div className="tv-scroll mb-7 flex gap-2 overflow-x-auto pb-1">
           {categorias.map((categoria) => {
             const activo = categoriaActiva === categoria.nombre;
 
@@ -255,7 +351,7 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                 type="button"
                 onClick={() => setCategoriaActiva(categoria.nombre)}
                 className={[
-                  "inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition",
+                  "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition",
                   activo
                     ? "bg-yellow-400 text-black shadow-lg shadow-yellow-400/20"
                     : "border border-white/10 bg-white/[0.05] text-gray-300 hover:bg-white/[0.09] hover:text-white",
@@ -289,12 +385,13 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
           {publicacionesFiltradas.map((item) => {
             const mediaPrincipal = obtenerMediaPrincipal(item);
             const productoFavorito = adaptarProductoFavorito(item);
+            const etiquetaRubro = obtenerEtiquetaRubro(item);
 
             return (
               <article
                 key={item.id}
                 onClick={() => onVerDetalle?.(item)}
-                className="group cursor-pointer overflow-hidden rounded-3xl border border-white/10 bg-[#101722] shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-yellow-400/40 hover:shadow-yellow-400/10"
+                className="group cursor-pointer overflow-hidden rounded-[26px] border border-white/10 bg-[#101722] shadow-xl shadow-black/20 transition duration-300 hover:-translate-y-1 hover:border-yellow-400/40 hover:shadow-yellow-400/10"
               >
                 <div className="relative aspect-[16/10] overflow-hidden bg-black">
                   <VitrinaMedia
@@ -307,15 +404,19 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                     showPlayIcon
                   />
 
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/5 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
                   <div className="absolute left-3 top-3 flex flex-wrap gap-2">
                     {item.esDestacada && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-yellow-400 px-3 py-1 text-[11px] font-black text-black">
                         <Star size={12} fill="currentColor" />
-                        Destacado
+                        Promo
                       </span>
                     )}
+
+                    <span className="rounded-full border border-white/10 bg-black/70 px-3 py-1 text-[11px] font-black text-white backdrop-blur">
+                      {etiquetaRubro}
+                    </span>
                   </div>
 
                   {item.categoria && (
@@ -331,29 +432,38 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                   />
                 </div>
 
-                <div className="flex min-h-[210px] flex-col p-4">
-                  <h3 className="line-clamp-2 text-lg font-black leading-tight text-white">
-                    {item.titulo}
-                  </h3>
+                <div className="flex min-h-[218px] flex-col p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="line-clamp-2 text-[17px] font-black leading-tight text-white">
+                      {item.titulo}
+                    </h3>
+                  </div>
 
                   <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-400">
                     {item.descripcion ||
                       "Publicación disponible en esta vitrina."}
                   </p>
 
-                  {item.ubicacion && (
-                    <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-gray-400">
-                      <MapPin size={14} className="text-yellow-300" />
-                      {item.ubicacion}
-                    </p>
-                  )}
+                  <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-bold text-gray-400">
+                    {item.ubicacion && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2.5 py-1 ring-1 ring-white/10">
+                        <MapPin size={13} className="text-yellow-300" />
+                        {item.ubicacion}
+                      </span>
+                    )}
+
+                    <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.04] px-2.5 py-1 ring-1 ring-white/10">
+                      <Store size={13} className="text-green-300" />
+                      Contacto directo
+                    </span>
+                  </div>
 
                   <div className="mt-auto flex items-end justify-between gap-3 pt-5">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-yellow-300">
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-yellow-300">
                         Precio
                       </p>
-                      <p className="mt-1 text-xl font-black text-yellow-300">
+                      <p className="mt-1 text-[21px] font-black leading-none text-yellow-300">
                         {formatearPrecio(item.precio, item.moneda)}
                       </p>
                     </div>
@@ -367,7 +477,7 @@ const PerfilVendedorPublicaciones: React.FC<Props> = ({
                       className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-xs font-black text-white transition hover:bg-yellow-400 hover:text-black"
                     >
                       <Eye size={15} />
-                      Ver más
+                      Ver ficha
                     </button>
                   </div>
                 </div>

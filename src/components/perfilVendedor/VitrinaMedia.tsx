@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
 
 export const obtenerUrlMediaVitrina = (media: any): string => {
   if (!media) return "";
@@ -6,11 +7,14 @@ export const obtenerUrlMediaVitrina = (media: any): string => {
 
   return (
     media.mainUrl ||
+    media.MainUrl ||
     media.url ||
     media.Url ||
     media.secure_url ||
     media.thumbUrl ||
+    media.ThumbUrl ||
     media.thumbnailUrl ||
+    media.ThumbnailUrl ||
     ""
   );
 };
@@ -21,8 +25,11 @@ export const obtenerThumbMediaVitrina = (media: any): string => {
 
   return (
     media.thumbUrl ||
+    media.ThumbUrl ||
     media.thumbnailUrl ||
+    media.ThumbnailUrl ||
     media.mainUrl ||
+    media.MainUrl ||
     media.url ||
     media.Url ||
     media.secure_url ||
@@ -66,7 +73,7 @@ export const obtenerPosterVideoVitrina = (media: any): string => {
     return urlSinQuery
       .replace(
         "/video/upload/",
-        "/video/upload/so_0,w_900,h_650,c_fill,q_auto,f_jpg/",
+        "/video/upload/so_0,w_1200,h_800,c_fill,q_auto,f_jpg/",
       )
       .replace(/\.(mp4|mov|webm|avi|mkv)$/i, ".jpg");
   }
@@ -85,6 +92,7 @@ interface VitrinaMediaProps {
   loop?: boolean;
   showVideoBadge?: boolean;
   showPlayIcon?: boolean;
+  showAudioControl?: boolean;
 }
 
 const VitrinaMedia: React.FC<VitrinaMediaProps> = ({
@@ -98,11 +106,39 @@ const VitrinaMedia: React.FC<VitrinaMediaProps> = ({
   loop = false,
   showVideoBadge = true,
   showPlayIcon = true,
+  showAudioControl = false,
 }) => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [videoMuted, setVideoMuted] = useState(muted);
+
   const url = obtenerUrlMediaVitrina(media);
   const thumb = obtenerThumbMediaVitrina(media);
   const esVideo = esVideoMediaVitrina(media);
   const poster = obtenerPosterVideoVitrina(media);
+
+  useEffect(() => {
+    setVideoMuted(muted);
+  }, [media, muted]);
+
+  const activarSonido = () => {
+    setVideoMuted(false);
+
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1;
+      videoRef.current.play().catch(() => {
+        // El navegador puede impedir play automático; igual dejamos el video sin mute.
+      });
+    }
+  };
+
+  const silenciar = () => {
+    setVideoMuted(true);
+
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+    }
+  };
 
   if (!url && !thumb) {
     return (
@@ -130,10 +166,11 @@ const VitrinaMedia: React.FC<VitrinaMediaProps> = ({
           />
         ) : (
           <video
+            ref={videoRef}
             src={videoSrc}
             poster={poster || undefined}
             controls={controls}
-            muted={muted}
+            muted={videoMuted}
             autoPlay={autoPlay}
             loop={loop}
             playsInline
@@ -144,17 +181,28 @@ const VitrinaMedia: React.FC<VitrinaMediaProps> = ({
         )}
 
         {showVideoBadge && (
-          <span className="absolute left-2 top-2 rounded-full border border-yellow-400/70 bg-black/75 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-yellow-300 shadow-lg backdrop-blur">
+          <span className="absolute left-3 top-3 rounded-full border border-yellow-400/70 bg-black/75 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-yellow-300 shadow-lg backdrop-blur">
             ▶ Video
           </span>
         )}
 
         {showPlayIcon && !controls && (
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/10">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full border border-yellow-400/80 bg-black/70 pl-0.5 text-sm font-black text-yellow-300 shadow-xl">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full border border-yellow-400/80 bg-black/70 pl-0.5 text-base font-black text-yellow-300 shadow-xl">
               ▶
             </span>
           </div>
+        )}
+
+        {showAudioControl && controls && (
+          <button
+            type="button"
+            onClick={videoMuted ? activarSonido : silenciar}
+            className="absolute bottom-16 left-4 z-20 inline-flex items-center gap-2 rounded-2xl border border-yellow-400/50 bg-black/75 px-4 py-2 text-xs font-black text-yellow-300 shadow-xl backdrop-blur-md transition hover:bg-yellow-400 hover:text-black"
+          >
+            {videoMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
+            {videoMuted ? "Activar sonido" : "Sonido activo"}
+          </button>
         )}
       </div>
     );

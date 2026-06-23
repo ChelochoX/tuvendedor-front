@@ -96,6 +96,8 @@ const mapearProducto = (p: any): Producto => {
     mostrarBotonesCompra:
       p.mostrarBotonesCompra ?? p.MostrarBotonesCompra ?? false,
 
+    permiteDelivery: p.permiteDelivery ?? p.PermiteDelivery ?? false,
+
     esFavorito: p.esFavorito ?? p.EsFavorito ?? false,
     cantidadFavoritos: Number(
       p.cantidadFavoritos ?? p.CantidadFavoritos ?? 0,

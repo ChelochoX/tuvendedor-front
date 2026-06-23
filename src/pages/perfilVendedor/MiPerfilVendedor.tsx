@@ -39,6 +39,10 @@ interface MiPerfilVendedorForm {
   esPremium: boolean;
   mostrarTelefono: boolean;
   mostrarCorreo: boolean;
+  ofreceDelivery: boolean;
+  zonaDelivery: string;
+  costoDelivery: string;
+  tiempoEstimadoDelivery: string;
 }
 
 const estadoInicial: MiPerfilVendedorForm = {
@@ -59,6 +63,10 @@ const estadoInicial: MiPerfilVendedorForm = {
   esPremium: false,
   mostrarTelefono: true,
   mostrarCorreo: true,
+  ofreceDelivery: false,
+  zonaDelivery: "",
+  costoDelivery: "",
+  tiempoEstimadoDelivery: "",
 };
 
 const MiPerfilVendedor: React.FC = () => {
@@ -117,6 +125,11 @@ const MiPerfilVendedor: React.FC = () => {
         esPremium: data.esPremium ?? false,
         mostrarTelefono: data.mostrarTelefono ?? true,
         mostrarCorreo: data.mostrarEmail ?? data.mostrarCorreo ?? true,
+        ofreceDelivery: Boolean(data.ofreceDelivery ?? data.OfreceDelivery),
+        zonaDelivery: data.zonaDelivery ?? data.ZonaDelivery ?? "",
+        costoDelivery: data.costoDelivery ?? data.CostoDelivery ?? "",
+        tiempoEstimadoDelivery:
+          data.tiempoEstimadoDelivery ?? data.TiempoEstimadoDelivery ?? "",
       });
     } catch (error: any) {
       console.error("Error al cargar perfil vendedor:", error);
@@ -224,6 +237,13 @@ const MiPerfilVendedor: React.FC = () => {
       formData.append("EsPerfilPublico", String(form.esPerfilPublico));
       formData.append("MostrarTelefono", String(form.mostrarTelefono));
       formData.append("MostrarEmail", String(form.mostrarCorreo));
+      formData.append("OfreceDelivery", String(form.ofreceDelivery));
+      formData.append("ZonaDelivery", form.zonaDelivery || "");
+      formData.append("CostoDelivery", form.costoDelivery || "");
+      formData.append(
+        "TiempoEstimadoDelivery",
+        form.tiempoEstimadoDelivery || "",
+      );
 
       if (fotoPerfilArchivo) {
         formData.append("FotoPerfil", fotoPerfilArchivo);
@@ -323,6 +343,7 @@ const MiPerfilVendedor: React.FC = () => {
             ) : (
               <PortadaPredeterminada />
             )}
+
             <div
               className={[
                 "absolute inset-0 bg-gradient-to-b",
@@ -401,6 +422,12 @@ const MiPerfilVendedor: React.FC = () => {
                         Correo visible
                       </span>
                     )}
+
+                    {form.ofreceDelivery && (
+                      <span className="rounded-full bg-green-500/25 px-3 py-1 text-[11px] font-black text-green-200 sm:px-4 sm:text-xs">
+                        🛵 Delivery activo
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -416,12 +443,17 @@ const MiPerfilVendedor: React.FC = () => {
                   nombreNegocio={form.nombreNegocio}
                   descripcion={form.descripcion}
                   ciudadVisible={form.ciudadVisible}
+                  ofreceDelivery={form.ofreceDelivery}
                   onPublicacionCreada={() => {
+                    window.dispatchEvent(new Event("actualizar-publicaciones"));
+
                     Swal.fire({
                       title: "Producto agregado",
                       text: "Ya podés verlo en tu vitrina pública.",
                       icon: "success",
                       confirmButtonColor: "#facc15",
+                      background: "#111827",
+                      color: "#ffffff",
                     });
                   }}
                 />
@@ -572,6 +604,100 @@ const MiPerfilVendedor: React.FC = () => {
                     </div>
                   </div>
                 </section>
+
+                <section className="rounded-[24px] border border-white/10 bg-white/[0.03] p-4 sm:rounded-3xl sm:p-5">
+                  <div className="mb-4">
+                    <p className="text-[11px] font-black uppercase tracking-[0.18em] text-green-300">
+                      Delivery del negocio
+                    </p>
+                    <h3 className="mt-1 text-lg font-black text-yellow-300 sm:text-xl">
+                      Servicio de entrega
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-gray-400 sm:text-sm">
+                      Activá esta opción si tu negocio puede enviar productos a
+                      domicilio. Luego cada publicación podrá marcarse como
+                      disponible para delivery.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nuevoValor = !form.ofreceDelivery;
+
+                      setForm((actual) => ({
+                        ...actual,
+                        ofreceDelivery: nuevoValor,
+                        zonaDelivery: nuevoValor ? actual.zonaDelivery : "",
+                        costoDelivery: nuevoValor ? actual.costoDelivery : "",
+                        tiempoEstimadoDelivery: nuevoValor
+                          ? actual.tiempoEstimadoDelivery
+                          : "",
+                      }));
+                    }}
+                    className={`flex w-full items-start gap-3 rounded-2xl border p-4 text-left transition ${
+                      form.ofreceDelivery
+                        ? "border-green-400/40 bg-green-500/15"
+                        : "border-white/10 bg-[#070b13] hover:border-green-400/30 hover:bg-green-500/10"
+                    }`}
+                  >
+                    <span
+                      className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border text-xs font-black ${
+                        form.ofreceDelivery
+                          ? "border-green-300 bg-green-400 text-black"
+                          : "border-white/25 bg-black/20 text-transparent"
+                      }`}
+                    >
+                      ✓
+                    </span>
+
+                    <span>
+                      <span className="block text-sm font-black text-white">
+                        🛵 Mi negocio ofrece delivery
+                      </span>
+                      <span className="mt-1 block text-xs leading-5 text-gray-400">
+                        En tu vitrina pública se mostrará “Delivery disponible”.
+                        Los productos marcados para delivery podrán agregarse al
+                        pedido y el cliente podrá enviar su ubicación por
+                        WhatsApp.
+                      </span>
+                    </span>
+                  </button>
+
+                  {form.ofreceDelivery && (
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <input
+                        value={form.zonaDelivery}
+                        onChange={(e) =>
+                          actualizarCampo("zonaDelivery", e.target.value)
+                        }
+                        className="rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-yellow-400"
+                        placeholder="Zona de delivery"
+                      />
+
+                      <input
+                        value={form.costoDelivery}
+                        onChange={(e) =>
+                          actualizarCampo("costoDelivery", e.target.value)
+                        }
+                        className="rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-yellow-400"
+                        placeholder="Costo: A coordinar"
+                      />
+
+                      <input
+                        value={form.tiempoEstimadoDelivery}
+                        onChange={(e) =>
+                          actualizarCampo(
+                            "tiempoEstimadoDelivery",
+                            e.target.value,
+                          )
+                        }
+                        className="rounded-2xl border border-white/10 bg-[#070b13] px-4 py-3 text-sm text-white outline-none placeholder:text-gray-500 focus:border-yellow-400"
+                        placeholder="Tiempo estimado"
+                      />
+                    </div>
+                  )}
+                </section>
               </div>
 
               <aside className="space-y-5 sm:space-y-6">
@@ -711,7 +837,11 @@ const MiPerfilVendedor: React.FC = () => {
         </section>
 
         <div className="pb-32 sm:pb-10">
-          <GestionPublicacionesVitrina slug={form.slug} />
+          <GestionPublicacionesVitrina
+            slug={form.slug}
+            rubro={form.rubro}
+            ofreceDelivery={form.ofreceDelivery}
+          />
         </div>
       </div>
     </div>

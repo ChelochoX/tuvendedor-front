@@ -8,6 +8,7 @@ interface Props {
   form: CrearPublicacionForm;
   categorias: CategoriaPublicacionOption[];
   esInmobiliario: boolean;
+  vendedorOfreceDelivery?: boolean;
   onCampo: <K extends keyof CrearPublicacionForm>(
     campo: K,
     valor: CrearPublicacionForm[K],
@@ -15,10 +16,109 @@ interface Props {
   onPrecio: (valor: string) => void;
 }
 
+const normalizarTexto = (valor?: string | null): string => {
+  return (valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+};
+
+const esCategoriaVehiculoOInmueble = (valor?: string | null): boolean => {
+  const texto = normalizarTexto(valor);
+
+  return [
+    "moto",
+    "motos",
+    "vehiculo",
+    "vehículos",
+    "vehiculos",
+    "auto",
+    "autos",
+    "camioneta",
+    "inmueble",
+    "inmuebles",
+    "casa",
+    "casas",
+    "terreno",
+    "terrenos",
+    "departamento",
+    "departamentos",
+    "duplex",
+    "dúplex",
+    "propiedad",
+    "propiedades",
+    "alquiler",
+  ].some((palabra) => texto.includes(palabra));
+};
+
+const categoriaPuedeTenerDelivery = (valor?: string | null): boolean => {
+  const texto = normalizarTexto(valor);
+
+  if (!texto) return false;
+  if (esCategoriaVehiculoOInmueble(texto)) return false;
+
+  return [
+  "bebida",
+  "bebidas",
+  "despensa",
+  "almacen",
+  "almacén",
+  "minimercado",
+  "supermercado",
+  "bodega",
+  "panaderia",
+  "panadería",
+  "confiteria",
+  "confitería",
+  "rotiseria",
+  "rotisería",
+  "comida",
+  "comidas",
+  "alimento",
+  "alimentos",
+  "heladeria",
+  "heladería",
+  "farmacia",
+  "ferreteria",
+  "ferretería",
+  "herramienta",
+  "herramientas",
+  "ropa",
+  "calzado",
+  "calzados",
+  "moda",
+  "accesorio",
+  "accesorios",
+  "electronica",
+  "electrónica",
+  "celular",
+  "celulares",
+  "informatica",
+  "informática",
+  "hogar",
+  "mueble",
+  "muebles",
+  "mascota",
+  "mascotas",
+  "libreria",
+  "librería",
+  "oficina",
+  "artesania",
+  "artesanía",
+  "artesanias",
+  "artesanías",
+  "emprendedores",
+  "producto",
+  "productos",
+].some((palabra) => texto.includes(palabra));
+};
+
 const PublicacionDatosBasicos: React.FC<Props> = ({
   form,
   categorias,
   esInmobiliario,
+  vendedorOfreceDelivery = false,
   onCampo,
   onPrecio,
 }) => {
@@ -29,6 +129,16 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
     () => categorias.find((categoria) => categoria.nombre === form.categoria),
     [categorias, form.categoria],
   );
+
+  const categoriaSoportaDelivery = categoriaPuedeTenerDelivery(form.categoria);
+  const puedeMostrarDelivery =
+    vendedorOfreceDelivery && categoriaSoportaDelivery;
+
+  useEffect(() => {
+    if (!puedeMostrarDelivery && form.permiteDelivery) {
+      onCampo("permiteDelivery", false);
+    }
+  }, [puedeMostrarDelivery, form.permiteDelivery, onCampo]);
 
   useEffect(() => {
     if (!categoriaAbierta) return;
@@ -61,6 +171,11 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
 
   const seleccionarCategoria = (nombre: string) => {
     onCampo("categoria", nombre);
+
+    if (!categoriaPuedeTenerDelivery(nombre)) {
+      onCampo("permiteDelivery", false);
+    }
+
     setCategoriaAbierta(false);
   };
 
@@ -207,6 +322,54 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
             esInmobiliario ? "Ciudad, barrio o zona" : "Ubicación visible"
           }
         />
+
+        {puedeMostrarDelivery && (
+          <button
+            type="button"
+            onClick={() => onCampo("permiteDelivery", !form.permiteDelivery)}
+            className={`flex items-start gap-3 rounded-2xl border p-4 text-left transition ${
+              form.permiteDelivery
+                ? "border-green-400/40 bg-green-500/15"
+                : "border-white/10 bg-white/[0.04] hover:border-green-400/30 hover:bg-green-500/10"
+            }`}
+          >
+            <span
+              className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+                form.permiteDelivery
+                  ? "border-green-300 bg-green-400 text-black"
+                  : "border-white/25 bg-black/20"
+              }`}
+            >
+              {form.permiteDelivery ? "✓" : ""}
+            </span>
+
+            <span>
+              <span className="block text-sm font-black text-white">
+                🛵 Este producto se puede enviar por delivery
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-gray-400">
+                En la vitrina aparecerá como “Enviar por delivery”. El cliente
+                podrá compartir su ubicación o escribir su dirección por
+                WhatsApp.
+              </span>
+            </span>
+          </button>
+        )}
+
+        {!vendedorOfreceDelivery && form.categoria && (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-5 text-gray-500">
+            Para ofrecer delivery en productos, primero activá “Mi negocio
+            ofrece delivery” desde el perfil de tu vitrina.
+          </div>
+        )}
+
+        {vendedorOfreceDelivery &&
+          !categoriaSoportaDelivery &&
+          form.categoria && (
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-5 text-gray-500">
+              Para esta categoría no se habilita delivery desde Tu Vendedor.
+            </div>
+          )}
       </div>
     </section>
   );

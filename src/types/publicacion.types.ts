@@ -21,10 +21,10 @@ export interface CrearPublicacionForm {
   descripcion: string;
   precio: string;
   moneda: "PYG" | "USD" | string;
-
   categoria: string;
   ubicacion: string;
   mostrarBotonesCompra: boolean;
+  permiteDelivery: boolean;
   planCredito: PlanCreditoForm[];
   archivos: File[];
   camposInmuebles: CamposInmobiliariosForm;
@@ -50,6 +50,7 @@ export interface PublicacionEditable {
   categoria?: string;
   ubicacion?: string;
   mostrarBotonesCompra?: boolean;
+  permiteDelivery?: boolean;
   planCredito?: Array<{
     cuotas?: number;
     valorCuota?: number;

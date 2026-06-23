@@ -265,6 +265,9 @@ const obtenerContextoFicha = (
       "minimercado",
       "supermercado",
       "despensa",
+      "almacen",
+      "almacén",
+      "bodega",
     ].some((palabra) => texto.includes(palabra))
   ) {
     return {
@@ -401,8 +404,8 @@ const obtenerAtributos = (
   if (contexto.tipo === "gastronomia") {
     return [
       ...base,
-      { label: "Pedido", value: "Por WhatsApp", icon: MessageCircle },
-      { label: "Entrega", value: "Retiro / delivery", icon: Store },
+      { label: "Pedido", value: "WhatsApp", icon: MessageCircle },
+      { label: "Entrega", value: "Consultar delivery", icon: Store },
     ];
   }
 
@@ -455,7 +458,7 @@ const obtenerDetallesLista = (
     return [
       `Rubro: ${perfil.rubro || categoria}`,
       "Stock y disponibilidad a confirmar",
-      "Pedido directo por WhatsApp",
+      "Consulta de delivery por WhatsApp",
       "Retiro o entrega según disponibilidad",
       "Atención personalizada",
     ];
@@ -487,6 +490,8 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
 }) => {
   const [indiceActual, setIndiceActual] = useState(0);
   const [mostrarModalVisita, setMostrarModalVisita] = useState(false);
+  const [mostrarModalConsulta, setMostrarModalConsulta] = useState(false);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
   const [tabActivo, setTabActivo] = useState<
     "descripcion" | "detalles" | "ubicacion" | "vendedor"
   >("descripcion");
@@ -528,6 +533,8 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
   useEffect(() => {
     setIndiceActual(0);
     setTabActivo("descripcion");
+    setMostrarModalConsulta(false);
+    setMostrarModalVisita(false);
 
     if (!publicacion?.id) return;
 
@@ -546,6 +553,11 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
 
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (mostrarModalConsulta) {
+          setMostrarModalConsulta(false);
+          return;
+        }
+
         onClose();
       }
     };
@@ -556,7 +568,7 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
       document.body.style.overflow = "";
       window.removeEventListener("keydown", handleEscape);
     };
-  }, [onClose]);
+  }, [onClose, mostrarModalConsulta]);
 
   const mediaActiva =
     imagenes[indiceActual] ||
@@ -579,7 +591,17 @@ const PerfilPublicacionDetalleModal: React.FC<Props> = ({
   const contexto = obtenerContextoFicha(publicacion, perfil);
   const atributos = obtenerAtributos(contexto, publicacion, perfil);
   const detallesLista = obtenerDetallesLista(contexto, publicacion, perfil);
+
   const puedeAgendarVisita = ["vehiculo", "inmueble"].includes(contexto.tipo);
+
+  const publicacionPermiteDelivery = Boolean(
+    (publicacion as any).permiteDelivery ??
+    (publicacion as any).PermiteDelivery,
+  );
+
+  const puedeConsultarDelivery =
+    publicacionPermiteDelivery &&
+    !["vehiculo", "inmueble"].includes(contexto.tipo);
 
   const mensajeConsulta = `Hola,
 
@@ -593,15 +615,53 @@ ${publicacion.ubicacion ? `📍 ${publicacion.ubicacion}` : ""}
 Ver publicación:
 ${urlPublicacion}`;
 
-  const mensajeAccionSecundaria = `Hola,
+  const mensajeRetiro = `Hola,
 
-Vi esta publicación en la vitrina de ${vendedor} y quiero consultar disponibilidad.
+Vi esta publicación en la vitrina de ${vendedor} y quiero coordinar retiro o entrega.
 
 🏷️ ${publicacion.titulo}
+${publicacion.categoria ? `📌 ${publicacion.categoria}` : ""}
 💰 ${precio}
 
 Ver publicación:
 ${urlPublicacion}`;
+
+  const mensajeDeliveryManual = `Hola,
+
+Vi esta publicación en la vitrina de ${vendedor} y quiero consultar si pueden enviarme por delivery.
+
+🏷️ ${publicacion.titulo}
+${publicacion.categoria ? `📌 ${publicacion.categoria}` : ""}
+💰 ${precio}
+
+📍 Ubicación del cliente:
+Voy a enviar mi ubicación o dirección por este chat.
+
+Ver publicación:
+${urlPublicacion}`;
+
+  const construirMensajeDeliveryConUbicacion = (
+    latitud: number,
+    longitud: number,
+  ) => {
+    const linkMapaCliente = `https://www.google.com/maps?q=${latitud},${longitud}`;
+
+    return `Hola,
+
+Vi esta publicación en la vitrina de ${vendedor} y quiero consultar si pueden enviarme por delivery.
+
+🏷️ ${publicacion.titulo}
+${publicacion.categoria ? `📌 ${publicacion.categoria}` : ""}
+💰 ${precio}
+
+🚚 Modalidad: Enviar por delivery
+
+📍 Ubicación del cliente:
+${linkMapaCliente}
+
+Ver publicación:
+${urlPublicacion}`;
+  };
 
   const irAnterior = () => {
     if (imagenes.length <= 1) return;
@@ -617,14 +677,15 @@ ${urlPublicacion}`;
 
   const cerrarModal = () => {
     setMostrarModalVisita(false);
+    setMostrarModalConsulta(false);
     onClose();
   };
 
-  const handleAbrirWhatsapp = () => {
+  const enviarWhatsappConMensaje = (mensaje: string) => {
     const numero = limpiarTelefonoWhatsapp(perfil.whatsapp);
 
     if (!numero) {
-      abrirWhatsapp(perfil.whatsapp, mensajeConsulta);
+      abrirWhatsapp(perfil.whatsapp, mensaje);
       return;
     }
 
@@ -637,7 +698,84 @@ ${urlPublicacion}`;
 
     registrarMetaAngelaContactoWhatsapp(publicacion);
 
-    abrirWhatsapp(perfil.whatsapp, mensajeConsulta);
+    abrirWhatsapp(perfil.whatsapp, mensaje);
+  };
+
+  const handleAbrirWhatsapp = () => {
+    if (puedeConsultarDelivery) {
+      setMostrarModalConsulta(true);
+      return;
+    }
+
+    enviarWhatsappConMensaje(mensajeConsulta);
+  };
+
+  const handleConsultaNormal = () => {
+    setMostrarModalConsulta(false);
+    enviarWhatsappConMensaje(mensajeConsulta);
+  };
+
+  const handleConsultaRetiro = () => {
+    setMostrarModalConsulta(false);
+    enviarWhatsappConMensaje(mensajeRetiro);
+  };
+
+  const handleConsultaDeliveryManual = () => {
+    setMostrarModalConsulta(false);
+    enviarWhatsappConMensaje(mensajeDeliveryManual);
+  };
+
+  const handleConsultaDeliveryConUbicacion = () => {
+    if (!navigator.geolocation) {
+      Swal.fire({
+        icon: "info",
+        title: "Ubicación no disponible",
+        text: "Tu navegador no permite obtener ubicación. Abriremos WhatsApp para que puedas enviar tu dirección manualmente.",
+        confirmButtonColor: "#facc15",
+        background: "#111827",
+        color: "#ffffff",
+      }).then(() => {
+        handleConsultaDeliveryManual();
+      });
+
+      return;
+    }
+
+    setObteniendoUbicacion(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setObteniendoUbicacion(false);
+        setMostrarModalConsulta(false);
+
+        const { latitude, longitude } = position.coords;
+        const mensaje = construirMensajeDeliveryConUbicacion(
+          latitude,
+          longitude,
+        );
+
+        enviarWhatsappConMensaje(mensaje);
+      },
+      () => {
+        setObteniendoUbicacion(false);
+
+        Swal.fire({
+          icon: "info",
+          title: "No pudimos obtener tu ubicación",
+          text: "Puede ser que hayas rechazado el permiso. Igual podés consultar por WhatsApp y enviar tu dirección manualmente.",
+          confirmButtonColor: "#facc15",
+          background: "#111827",
+          color: "#ffffff",
+        }).then(() => {
+          handleConsultaDeliveryManual();
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000,
+      },
+    );
   };
 
   const abrirModalVisita = () => {
@@ -651,7 +789,12 @@ ${urlPublicacion}`;
       return;
     }
 
-    abrirWhatsapp(perfil.whatsapp, mensajeAccionSecundaria);
+    if (puedeConsultarDelivery) {
+      setMostrarModalConsulta(true);
+      return;
+    }
+
+    enviarWhatsappConMensaje(mensajeConsulta);
   };
 
   const compartirPublicacion = async () => {
@@ -692,6 +835,13 @@ ${urlPublicacion}`;
             <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-[10px] font-bold text-gray-300">
               <MapPin size={11} />
               {publicacion.ubicacion}
+            </span>
+          )}
+
+          {puedeConsultarDelivery && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-green-400/30 bg-green-400/10 px-3 py-1 text-[10px] font-black text-green-200">
+              <Store size={11} />
+              Delivery a consultar
             </span>
           )}
         </div>
@@ -895,51 +1045,7 @@ ${urlPublicacion}`;
       );
     }
 
-    return (
-      <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-5">
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-black ring-1 ring-white/10">
-            {perfil.fotoPerfil ? (
-              <img
-                src={perfil.fotoPerfil}
-                alt={vendedor}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center text-lg font-black text-yellow-300">
-                TV
-              </div>
-            )}
-          </div>
-
-          <div className="min-w-0">
-            <p className="text-xl font-black text-white">{vendedor}</p>
-
-            <p className="mt-1 text-sm text-gray-400">
-              {perfil.rubro || "Vendedor"}
-              {perfil.ciudadVisible ? ` · ${perfil.ciudadVisible}` : ""}
-            </p>
-
-            <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-green-400/10 px-3 py-1 text-xs font-bold text-green-200 ring-1 ring-green-400/20">
-              <ShieldCheck size={14} />
-              Atención personalizada
-            </p>
-          </div>
-        </div>
-
-        <p className="mt-5 text-sm leading-6 text-gray-400">
-          Este vendedor cuenta con una vitrina pública donde podés ver sus demás
-          publicaciones disponibles.
-        </p>
-
-        <a
-          href={urlVitrina}
-          className="mt-5 inline-flex items-center justify-center rounded-2xl border border-yellow-400/30 bg-yellow-400/10 px-5 py-3 text-sm font-black text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
-        >
-          Ver vitrina del vendedor
-        </a>
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -1161,6 +1267,118 @@ ${urlPublicacion}`;
           </div>
         </div>
       </div>
+
+      {mostrarModalConsulta && (
+        <div className="fixed inset-0 z-[10000] flex items-end justify-center bg-black/70 p-3 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-md overflow-hidden rounded-[26px] border border-white/10 bg-[#101722] shadow-2xl shadow-black/50">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-yellow-300">
+                  Consulta rápida
+                </p>
+                <h3 className="mt-1 text-lg font-black text-white">
+                  ¿Cómo querés consultar?
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarModalConsulta(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-yellow-300 transition hover:bg-yellow-400 hover:text-black"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="space-y-3 p-5">
+              <button
+                type="button"
+                onClick={handleConsultaNormal}
+                className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition hover:border-yellow-400/40 hover:bg-white/[0.08]"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500/15 text-green-300">
+                  <MessageCircle size={20} />
+                </span>
+
+                <span>
+                  <span className="block text-sm font-black text-white">
+                    Consulta normal
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-gray-400">
+                    Enviar mensaje al vendedor para pedir más información.
+                  </span>
+                </span>
+              </button>
+
+              {puedeConsultarDelivery && (
+                <button
+                  type="button"
+                  onClick={handleConsultaDeliveryConUbicacion}
+                  disabled={obteniendoUbicacion}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-green-400/25 bg-green-500/10 p-4 text-left transition hover:border-green-400/50 hover:bg-green-500/15 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-500 text-white">
+                    <Navigation size={20} />
+                  </span>
+
+                  <span>
+                    <span className="block text-sm font-black text-white">
+                      {obteniendoUbicacion
+                        ? "Obteniendo ubicación..."
+                        : "Enviar por delivery usando mi ubicación"}
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-400">
+                      El cliente autoriza su ubicación y se envía un link de
+                      Google Maps por WhatsApp.
+                    </span>
+                  </span>
+                </button>
+              )}
+
+              {puedeConsultarDelivery && (
+                <button
+                  type="button"
+                  onClick={handleConsultaDeliveryManual}
+                  className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition hover:border-yellow-400/40 hover:bg-white/[0.08]"
+                >
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-yellow-400/15 text-yellow-300">
+                    <MapPin size={20} />
+                  </span>
+
+                  <span>
+                    <span className="block text-sm font-black text-white">
+                      Enviar por delivery escribiendo mi dirección
+                    </span>
+                    <span className="mt-1 block text-xs leading-5 text-gray-400">
+                      Abrir WhatsApp y escribir la dirección manualmente.
+                    </span>
+                  </span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleConsultaRetiro}
+                className="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] p-4 text-left transition hover:border-yellow-400/40 hover:bg-white/[0.08]"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-yellow-400/15 text-yellow-300">
+                  <Store size={20} />
+                </span>
+
+                <span>
+                  <span className="block text-sm font-black text-white">
+                    Coordinar retiro o entrega
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-gray-400">
+                    Ideal para confirmar disponibilidad, horario o forma de
+                    entrega.
+                  </span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <SolicitarVisitaModal
         abierto={mostrarModalVisita}

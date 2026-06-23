@@ -18,6 +18,10 @@ export interface PublicacionPerfilVendedor {
   imagenPrincipal?: string;
   thumbUrl?: string;
   esDestacada?: boolean;
+
+  permiteDelivery?: boolean;
+  PermiteDelivery?: boolean;
+
   googleMapsUrl?: string | null;
   latitud?: number | string | null;
   longitud?: number | string | null;
@@ -59,6 +63,15 @@ export interface PerfilPublicoVendedor {
   mostrarEmail?: boolean;
   mostrarCorreo?: boolean;
 
+  ofreceDelivery?: boolean;
+  OfreceDelivery?: boolean;
+  zonaDelivery?: string;
+  ZonaDelivery?: string;
+  costoDelivery?: string;
+  CostoDelivery?: string;
+  tiempoEstimadoDelivery?: string;
+  TiempoEstimadoDelivery?: string;
+
   cantidadPublicaciones: number;
   publicaciones: PublicacionPerfilVendedor[];
 }
@@ -82,6 +95,11 @@ export interface ActualizarMiPerfilVendedorRequest {
 
   esPerfilPublico: boolean;
   mostrarTelefono: boolean;
+
+  ofreceDelivery?: boolean;
+  zonaDelivery?: string;
+  costoDelivery?: string;
+  tiempoEstimadoDelivery?: string;
 
   fotoPerfil?: File | null;
   banner?: File | null;

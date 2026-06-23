@@ -30,7 +30,15 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
 
   const telefonoComercial = perfil.whatsapp || perfil.telefono || "";
   const telefonoComercialLimpio = limpiarTelefonoWhatsapp(telefonoComercial);
-  const correoVisible = perfil.email || perfil.correoContacto || "";
+
+  const ofreceDelivery = Boolean(
+    perfil.ofreceDelivery ?? perfil.OfreceDelivery,
+  );
+
+  const zonaDelivery = perfil.zonaDelivery ?? perfil.ZonaDelivery ?? "";
+  const costoDelivery = perfil.costoDelivery ?? perfil.CostoDelivery ?? "";
+  const tiempoDelivery =
+    perfil.tiempoEstimadoDelivery ?? perfil.TiempoEstimadoDelivery ?? "";
 
   const esVideoBanner =
     tieneBanner &&
@@ -143,7 +151,31 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
               <span className="rounded-full bg-black/45 px-4 py-2 backdrop-blur-md">
                 Respuesta rápida
               </span>
+
+              {ofreceDelivery && (
+                <span className="rounded-full border border-green-400/30 bg-green-500/20 px-4 py-2 font-black text-green-100 backdrop-blur-md">
+                  <span className="mr-1 text-sm leading-none">🛵</span>
+                  Delivery disponible
+                  {zonaDelivery ? ` · ${zonaDelivery}` : ""}
+                </span>
+              )}
             </div>
+
+            {ofreceDelivery && (costoDelivery || tiempoDelivery) && (
+              <div className="mx-auto mt-3 flex max-w-3xl flex-wrap justify-center gap-2 text-xs font-semibold lg:mx-0 lg:justify-start">
+                {costoDelivery && (
+                  <span className="rounded-full border border-green-400/20 bg-black/35 px-4 py-2 text-green-100 backdrop-blur-md">
+                    Costo: {costoDelivery}
+                  </span>
+                )}
+
+                {tiempoDelivery && (
+                  <span className="rounded-full border border-green-400/20 bg-black/35 px-4 py-2 text-green-100 backdrop-blur-md">
+                    Tiempo: {tiempoDelivery}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="mx-auto w-full max-w-md lg:mx-0 lg:max-w-none lg:pt-2">
@@ -188,10 +220,10 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                 </a>
               )}
 
-              {correoVisible && (
+              {perfil.email && (
                 <a
-                  href={`mailto:${correoVisible}`}
-                  title={correoVisible}
+                  href={`mailto:${perfil.email}`}
+                  title={perfil.email}
                   className="group col-span-2 flex min-h-[56px] w-full items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-bold text-white shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-yellow-400/60 hover:bg-yellow-400 hover:text-black lg:col-span-1 lg:min-h-[48px] lg:py-2.5"
                 >
                   <span className="flex shrink-0 items-center gap-2">
@@ -203,7 +235,7 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
                   </span>
 
                   <span className="min-w-0 flex-1 truncate text-right text-xs font-semibold opacity-90">
-                    {correoVisible}
+                    {perfil.email}
                   </span>
                 </a>
               )}
@@ -237,49 +269,13 @@ const PerfilVendedorHeader: React.FC<Props> = ({ perfil }) => {
 
               {!perfil.instagramUrl &&
                 !perfil.facebookUrl &&
-                !correoVisible &&
+                !perfil.email &&
                 !telefonoComercial && (
                   <div className="col-span-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm text-gray-300 backdrop-blur-md lg:col-span-1">
                     Sin redes configuradas.
                   </div>
                 )}
             </div>
-          </div>
-        </div>
-
-        <div className="mt-7 grid gap-3 rounded-[26px] border border-white/10 bg-black/30 p-3 backdrop-blur-md sm:grid-cols-2 lg:mt-6 lg:grid-cols-4">
-          <div className="rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
-              Publicaciones
-            </p>
-            <p className="mt-1 text-2xl font-black text-white">
-              {perfil.cantidadPublicaciones || 0}
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
-              Atención
-            </p>
-            <p className="mt-1 text-lg font-black text-green-200">
-              Respuesta rápida
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
-              Confianza
-            </p>
-            <p className="mt-1 text-lg font-black text-yellow-200">
-              Contacto directo
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-white/[0.05] px-4 py-3 ring-1 ring-white/10">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-gray-400">
-              Vitrina
-            </p>
-            <p className="mt-1 text-lg font-black text-white">Profesional</p>
           </div>
         </div>
       </div>

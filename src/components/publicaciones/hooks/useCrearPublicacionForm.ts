@@ -9,9 +9,11 @@ const estadoInicial: CrearPublicacionForm = {
   titulo: "",
   descripcion: "",
   precio: "",
+  moneda: "PYG",
   categoria: "",
   ubicacion: "",
   mostrarBotonesCompra: false,
+  permiteDelivery: false,
   planCredito: [],
   archivos: [],
   camposInmuebles: {
@@ -39,9 +41,11 @@ const mapearPublicacionAFormulario = (
     precio: publicacion.precio
       ? formatearPrecioVisual(String(publicacion.precio))
       : "",
+    moneda: publicacion.moneda ?? "PYG",
     categoria: publicacion.categoria ?? "",
     ubicacion: publicacion.ubicacion ?? "",
     mostrarBotonesCompra: Boolean(publicacion.mostrarBotonesCompra),
+    permiteDelivery: Boolean(publicacion.permiteDelivery),
     planCredito:
       publicacion.planCredito?.map((plan) => ({
         cuotas: plan.cuotas ? String(plan.cuotas) : "",

@@ -32,6 +32,7 @@ export interface Producto {
 
   imagenes: Imagen[];
   mostrarBotonesCompra?: boolean;
+  permiteDelivery?: boolean;
 
   // 🎉 TEMPORADA → AGREGAR ESTO
   esTemporada?: boolean;

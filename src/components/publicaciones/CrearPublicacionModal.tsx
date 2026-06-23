@@ -46,6 +46,7 @@ interface Props {
   onActualizada?: () => void;
   categorias?: CategoriaPublicacionOption[];
   rubroVendedor?: string;
+  vendedorOfreceDelivery?: boolean;
   modo?: "marketplace" | "perfil-vendedor";
   publicacionAEditar?: PublicacionEditable | null;
 }
@@ -111,6 +112,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
   onActualizada,
   categorias,
   rubroVendedor,
+  vendedorOfreceDelivery = false,
   modo = "marketplace",
   publicacionAEditar = null,
 }) => {
@@ -599,6 +601,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     form={form}
                     categorias={categoriasFinales}
                     esInmobiliario={Boolean(esInmobiliario)}
+                    vendedorOfreceDelivery={vendedorOfreceDelivery}
                     onCampo={actualizarCampo}
                     onPrecio={actualizarPrecio}
                   />

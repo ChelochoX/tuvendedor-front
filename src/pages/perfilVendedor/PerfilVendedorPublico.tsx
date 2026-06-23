@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   useLocation,
@@ -6,6 +6,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
+import Swal from "sweetalert2";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 import { obtenerPublicaciones } from "../../api/publicacionesService";
@@ -16,6 +17,64 @@ import {
 import PerfilVendedorHeader from "../../components/perfilVendedor/PerfilVendedorHeader";
 import PerfilVendedorPublicaciones from "../../components/perfilVendedor/PerfilVendedorPublicaciones";
 import PerfilPublicacionDetalleModal from "./PerfilPublicacionDetalleModal";
+import VitrinaCarritoWhatsapp, {
+  CarritoPedidoItem,
+} from "../../components/perfilVendedor/VitrinaCarritoWhatsapp";
+
+const normalizarTexto = (valor?: string | null): string => {
+  return (valor || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+};
+
+const esCategoriaSinCarrito = (publicacion: PublicacionPerfilVendedor) => {
+  const texto = normalizarTexto(
+    `${publicacion.categoria || ""} ${publicacion.titulo || ""}`,
+  );
+
+  return [
+    "moto",
+    "motos",
+    "vehiculo",
+    "vehículos",
+    "vehiculos",
+    "auto",
+    "autos",
+    "camioneta",
+    "inmueble",
+    "inmuebles",
+    "casa",
+    "casas",
+    "terreno",
+    "terrenos",
+    "departamento",
+    "duplex",
+    "dúplex",
+    "propiedad",
+    "propiedades",
+  ].some((palabra) => texto.includes(palabra));
+};
+
+const vendedorOfreceDelivery = (perfil?: PerfilPublicoVendedor | null) => {
+  return Boolean(perfil?.ofreceDelivery ?? perfil?.OfreceDelivery);
+};
+
+const productoPermitePedido = (
+  publicacion: PublicacionPerfilVendedor,
+  perfil?: PerfilPublicoVendedor | null,
+) => {
+  const productoTieneDelivery = Boolean(
+    publicacion.permiteDelivery ?? publicacion.PermiteDelivery,
+  );
+
+  return (
+    vendedorOfreceDelivery(perfil) &&
+    productoTieneDelivery &&
+    !esCategoriaSinCarrito(publicacion)
+  );
+};
 
 const PerfilVendedorPublico: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -25,8 +84,38 @@ const PerfilVendedorPublico: React.FC = () => {
   const [perfil, setPerfil] = useState<PerfilPublicoVendedor | null>(null);
   const [publicacionSeleccionada, setPublicacionSeleccionada] =
     useState<PublicacionPerfilVendedor | null>(null);
+  const [carrito, setCarrito] = useState<CarritoPedidoItem[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const storageKey = useMemo(
+    () => `tuvendedor-carrito-${slug || "default"}`,
+    [slug],
+  );
+
+  useEffect(() => {
+    try {
+      const guardado = localStorage.getItem(storageKey);
+
+      if (guardado) {
+        const datos = JSON.parse(guardado);
+
+        if (Array.isArray(datos)) {
+          setCarrito(datos);
+        }
+      }
+    } catch {
+      setCarrito([]);
+    }
+  }, [storageKey]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(carrito));
+    } catch {
+      // localStorage puede fallar en modo privado.
+    }
+  }, [carrito, storageKey]);
 
   useEffect(() => {
     const cargarPerfil = async () => {
@@ -51,19 +140,23 @@ const PerfilVendedorPublico: React.FC = () => {
 
         const publicacionesEnriquecidas = (perfilData.publicaciones || []).map(
           (pub: any) => {
-            const full = mapaMarketplace.get(pub.id);
+            const full = mapaMarketplace.get(pub.id) as any;
 
             if (!full) {
               return {
                 ...pub,
-                moneda: pub.moneda ?? "PYG",
+                moneda: pub.moneda ?? pub.Moneda ?? "PYG",
                 imagenes: pub.imagenes || [],
+                permiteDelivery:
+                  pub.permiteDelivery ?? pub.PermiteDelivery ?? false,
+                PermiteDelivery:
+                  pub.PermiteDelivery ?? pub.permiteDelivery ?? false,
               };
             }
 
             return {
               ...pub,
-              titulo: full.nombre || pub.titulo,
+              titulo: full.nombre || full.titulo || pub.titulo,
               descripcion: full.descripcion ?? pub.descripcion,
               precio: full.precio ?? pub.precio,
               moneda: full.moneda ?? pub.moneda ?? "PYG",
@@ -77,8 +170,19 @@ const PerfilVendedorPublico: React.FC = () => {
               latitud: full.latitud ?? pub.latitud ?? null,
               longitud: full.longitud ?? pub.longitud ?? null,
               googleMapsUrl: full.googleMapsUrl ?? pub.googleMapsUrl ?? null,
+              permiteDelivery:
+                full.permiteDelivery ??
+                full.PermiteDelivery ??
+                pub.permiteDelivery ??
+                pub.PermiteDelivery ??
+                false,
+              PermiteDelivery:
+                full.PermiteDelivery ??
+                full.permiteDelivery ??
+                pub.PermiteDelivery ??
+                pub.permiteDelivery ??
+                false,
               imagenes: Array.isArray(full.imagenes) ? full.imagenes : [],
-              // ❤️ Favoritos / interacciones
               esFavorito: full.esFavorito ?? pub.esFavorito ?? false,
               cantidadFavoritos:
                 full.cantidadFavoritos ?? pub.cantidadFavoritos ?? 0,
@@ -131,6 +235,91 @@ const PerfilVendedorPublico: React.FC = () => {
         replace: false,
       });
     }
+  };
+
+  const agregarAlPedido = (publicacion: PublicacionPerfilVendedor) => {
+    if (!productoPermitePedido(publicacion, perfil)) {
+      abrirDetalle(publicacion);
+      return;
+    }
+
+    let tituloToast = "Producto agregado al pedido";
+    let textoToast = publicacion.titulo;
+
+    setCarrito((actual) => {
+      const existente = actual.find(
+        (item) => Number(item.publicacion.id) === Number(publicacion.id),
+      );
+
+      if (existente) {
+        const nuevaCantidad = existente.cantidad + 1;
+
+        tituloToast = "Cantidad actualizada en el pedido";
+        textoToast = `${publicacion.titulo} x${nuevaCantidad}`;
+
+        return actual.map((item) =>
+          Number(item.publicacion.id) === Number(publicacion.id)
+            ? { ...item, cantidad: nuevaCantidad }
+            : item,
+        );
+      }
+
+      return [
+        ...actual,
+        {
+          publicacion,
+          cantidad: 1,
+        },
+      ];
+    });
+
+    setTimeout(() => {
+      Swal.fire({
+        toast: true,
+        position: "bottom",
+        icon: "success",
+        title: tituloToast,
+        text: textoToast,
+        showConfirmButton: false,
+        timer: 1800,
+        background: "#111827",
+        color: "#ffffff",
+      });
+    }, 0);
+  };
+
+  const incrementarItem = (idPublicacion: number) => {
+    setCarrito((actual) =>
+      actual.map((item) =>
+        Number(item.publicacion.id) === Number(idPublicacion)
+          ? { ...item, cantidad: item.cantidad + 1 }
+          : item,
+      ),
+    );
+  };
+
+  const disminuirItem = (idPublicacion: number) => {
+    setCarrito((actual) =>
+      actual
+        .map((item) =>
+          Number(item.publicacion.id) === Number(idPublicacion)
+            ? { ...item, cantidad: item.cantidad - 1 }
+            : item,
+        )
+        .filter((item) => item.cantidad > 0),
+    );
+  };
+
+  const eliminarItem = (idPublicacion: number) => {
+    setCarrito((actual) =>
+      actual.filter(
+        (item) => Number(item.publicacion.id) !== Number(idPublicacion),
+      ),
+    );
+  };
+
+  const vaciarCarrito = () => {
+    setCarrito([]);
   };
 
   const location = useLocation();
@@ -192,12 +381,25 @@ const PerfilVendedorPublico: React.FC = () => {
   }
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white antialiased">
+    <main className="min-h-screen bg-gray-950 pb-28 text-white antialiased">
       <PerfilVendedorHeader perfil={perfil} />
 
       <PerfilVendedorPublicaciones
         publicaciones={perfil.publicaciones || []}
         onVerDetalle={abrirDetalle}
+        onAgregarAlPedido={agregarAlPedido}
+        productoPermitePedido={(publicacion) =>
+          productoPermitePedido(publicacion, perfil)
+        }
+      />
+
+      <VitrinaCarritoWhatsapp
+        perfil={perfil}
+        items={carrito}
+        onIncrementar={incrementarItem}
+        onDisminuir={disminuirItem}
+        onEliminar={eliminarItem}
+        onVaciar={vaciarCarrito}
       />
 
       {publicacionSeleccionada && (

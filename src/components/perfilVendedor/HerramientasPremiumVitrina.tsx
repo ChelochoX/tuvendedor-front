@@ -25,6 +25,7 @@ interface Props {
   nombreNegocio?: string;
   descripcion?: string;
   ciudadVisible?: string;
+  ofreceDelivery?: boolean;
   onPublicacionCreada?: () => void;
 }
 
@@ -50,6 +51,7 @@ const HerramientasPremiumVitrina: React.FC<Props> = ({
   nombreNegocio,
   descripcion,
   ciudadVisible,
+  ofreceDelivery = false,
   onPublicacionCreada,
 }) => {
   const [modalPublicacionAbierto, setModalPublicacionAbierto] = useState(false);
@@ -490,6 +492,7 @@ Quedo atento/a a cualquier consulta.`,
         }}
         modo="perfil-vendedor"
         rubroVendedor={rubro}
+        vendedorOfreceDelivery={ofreceDelivery}
       />
 
       {modalActivo === "campania" && (

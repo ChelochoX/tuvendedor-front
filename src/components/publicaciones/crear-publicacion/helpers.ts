@@ -155,6 +155,7 @@ export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
   formData.append("Categoria", form.categoria.trim());
   formData.append("Ubicacion", form.ubicacion?.trim() || "");
   formData.append("MostrarBotonesCompra", String(form.mostrarBotonesCompra));
+  formData.append("PermiteDelivery", String(form.permiteDelivery));
 
   form.archivos.forEach((archivo) => {
     formData.append("Imagenes", archivo);

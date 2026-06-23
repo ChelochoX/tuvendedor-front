@@ -67,6 +67,13 @@ const crearFormDataPerfilVendedor = (
 
   formData.append("EsPerfilPublico", String(request.esPerfilPublico ?? false));
   formData.append("MostrarTelefono", String(request.mostrarTelefono ?? false));
+  formData.append("OfreceDelivery", String(request.ofreceDelivery ?? false));
+  formData.append("ZonaDelivery", request.zonaDelivery ?? "");
+  formData.append("CostoDelivery", request.costoDelivery ?? "");
+  formData.append(
+    "TiempoEstimadoDelivery",
+    request.tiempoEstimadoDelivery ?? "",
+  );
 
   if (request.fotoPerfil) {
     formData.append("FotoPerfil", request.fotoPerfil);
@@ -127,12 +134,15 @@ const mapearDetallePublicacionPerfil = (p: any): PublicacionPerfilVendedor => {
     titulo: p?.titulo ?? p?.Titulo ?? p?.nombre ?? p?.Nombre ?? "",
     descripcion: p?.descripcion ?? p?.Descripcion ?? "",
     precio: p?.precio ?? p?.Precio ?? 0,
+    moneda: p?.moneda ?? p?.Moneda ?? "PYG",
     categoria: p?.categoria ?? p?.Categoria ?? "",
     ubicacion: p?.ubicacion ?? p?.Ubicacion ?? "",
     estado: p?.estado ?? p?.Estado ?? "Activo",
     imagenPrincipal,
     thumbUrl,
     esDestacada: p?.esDestacada ?? p?.EsDestacada ?? false,
+    permiteDelivery: p?.permiteDelivery ?? p?.PermiteDelivery ?? false,
+    PermiteDelivery: p?.PermiteDelivery ?? p?.permiteDelivery ?? false,
     googleMapsUrl: p?.googleMapsUrl ?? p?.GoogleMapsUrl ?? null,
     latitud: p?.latitud ?? p?.Latitud ?? null,
     longitud: p?.longitud ?? p?.Longitud ?? null,

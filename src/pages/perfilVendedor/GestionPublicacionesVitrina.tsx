@@ -9,6 +9,8 @@ import { PublicacionEditable } from "../../types/publicacion.types";
 
 interface Props {
   slug?: string | null;
+  rubro?: string;
+  ofreceDelivery?: boolean;
 }
 
 const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
@@ -40,6 +42,7 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
     categoria: producto.categoria,
     ubicacion: producto.ubicacion,
     mostrarBotonesCompra: producto.mostrarBotonesCompra,
+    permiteDelivery: Boolean(producto.permiteDelivery),
     planCredito: planCreditoNormalizado,
     latitud: (producto as any).latitud ?? null,
     longitud: (producto as any).longitud ?? null,
@@ -48,7 +51,11 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
   };
 };
 
-const GestionPublicacionesVitrina: React.FC<Props> = ({ slug }) => {
+const GestionPublicacionesVitrina: React.FC<Props> = ({
+  slug,
+  rubro,
+  ofreceDelivery = false,
+}) => {
   const navigate = useNavigate();
   const location = useLocation();
   const publicacionesRef = useRef<HTMLElement | null>(null);
@@ -198,6 +205,8 @@ const GestionPublicacionesVitrina: React.FC<Props> = ({ slug }) => {
         onCreado={handleGuardado}
         onActualizada={handleGuardado}
         modo="perfil-vendedor"
+        rubroVendedor={rubro}
+        vendedorOfreceDelivery={ofreceDelivery}
         publicacionAEditar={publicacionAEditar}
       />
     </>

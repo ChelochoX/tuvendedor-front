@@ -31,7 +31,6 @@ import PublicacionPreview from "./crear-publicacion/PublicacionPreview";
 
 import {
   categoriasGenerales,
-  categoriasInmuebles,
   crearFormDataPublicacion,
   esCategoriaInmobiliaria,
   limpiarPrecio,
@@ -178,7 +177,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
     esCategoriaInmobiliaria(rubroVendedor);
 
   useEffect(() => {
-    if (!modalAbierto || categorias?.length) return;
+    if (!modalAbierto) return;
 
     let cancelado = false;
 
@@ -189,12 +188,18 @@ const CrearPublicacionModal: React.FC<Props> = ({
         if (cancelado) return;
 
         const categoriasMapeadas = data
-          .filter((c) => c.nombre && c.nombre !== "Todos")
-          .map((c) => ({
-            id: c.id,
-            nombre: c.nombre,
-            icono: c.icono || obtenerIconoCategoria(c.nombre),
-          }));
+          .filter(
+            (c) => c.nombre && c.nombre.trim() !== "" && c.nombre !== "Todos",
+          )
+          .map((c) => {
+            const nombre = c.nombre.trim();
+
+            return {
+              id: c.id,
+              nombre,
+              icono: c.icono || obtenerIconoCategoria(nombre),
+            };
+          });
 
         setCategoriasRemotas(categoriasMapeadas);
       } catch (error) {
@@ -208,56 +213,48 @@ const CrearPublicacionModal: React.FC<Props> = ({
     return () => {
       cancelado = true;
     };
-  }, [modalAbierto, categorias?.length]);
+  }, [modalAbierto]);
 
   const categoriasFinales = useMemo<CategoriaPublicacionOption[]>(() => {
-    const fuente = categorias?.length ? categorias : categoriasRemotas;
+    const fuente =
+      categoriasRemotas && categoriasRemotas.length > 0
+        ? categoriasRemotas
+        : categorias && categorias.length > 0
+          ? categorias
+          : [];
 
     const categoriasLimpias = fuente
-      .filter((c) => c.nombre && c.nombre !== "Todos")
+      .filter((c) => c.nombre && c.nombre.trim() !== "" && c.nombre !== "Todos")
       .reduce<CategoriaPublicacionOption[]>((acc, categoria) => {
+        const nombre = categoria.nombre.trim();
+
         const yaExiste = acc.some(
-          (item) =>
-            item.nombre.trim().toLowerCase() ===
-            categoria.nombre.trim().toLowerCase(),
+          (item) => item.nombre.trim().toLowerCase() === nombre.toLowerCase(),
         );
 
         if (!yaExiste) {
           acc.push({
             ...categoria,
-            icono: categoria.icono || obtenerIconoCategoria(categoria.nombre),
+            nombre,
+            icono: categoria.icono || obtenerIconoCategoria(nombre),
           });
         }
 
         return acc;
-      }, []);
+      }, [])
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
 
     if (categoriasLimpias.length > 0) {
-      if (esCategoriaInmobiliaria(rubroVendedor)) {
-        const categoriasInmobiliarias = categoriasLimpias.filter((categoria) =>
-          esCategoriaInmobiliaria(categoria.nombre),
-        );
-
-        if (categoriasInmobiliarias.length > 0) {
-          return categoriasInmobiliarias;
-        }
-      }
-
       return categoriasLimpias;
     }
 
-    if (esCategoriaInmobiliaria(rubroVendedor)) {
-      return categoriasInmuebles.map((nombre) => ({
+    return categoriasGenerales
+      .map((nombre) => ({
         nombre,
         icono: obtenerIconoCategoria(nombre),
-      }));
-    }
-
-    return categoriasGenerales.map((nombre) => ({
-      nombre,
-      icono: obtenerIconoCategoria(nombre),
-    }));
-  }, [categorias, categoriasRemotas, rubroVendedor]);
+      }))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+  }, [categorias, categoriasRemotas]);
 
   const googleMapsUrlFinal = useMemo(() => {
     const urlPorCoordenadas = construirGoogleMapsUrl(

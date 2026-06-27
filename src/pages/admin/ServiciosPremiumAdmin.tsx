@@ -70,6 +70,91 @@ const filtrosIniciales: FiltrosServiciosPremium = {
   tamanioPagina: 10,
 };
 
+interface PlanActivacionPremiumAdmin {
+  clave: string;
+  dias?: number;
+  nombre: string;
+  precio: number;
+  descripcion: string;
+  recomendado?: boolean;
+  badgeTexto?: string;
+  badgeColor?: string;
+}
+
+const PLANES_DESTACADO_ADMIN: PlanActivacionPremiumAdmin[] = [
+  {
+    clave: "7",
+    dias: 7,
+    nombre: "Destacado 7 días",
+    precio: 10000,
+    descripcion: "Ideal para probar y darle impulso rápido.",
+  },
+  {
+    clave: "15",
+    dias: 15,
+    nombre: "Destacado 15 días",
+    precio: 18000,
+    descripcion: "Más visibilidad con mejor relación precio/días.",
+    recomendado: true,
+  },
+  {
+    clave: "30",
+    dias: 30,
+    nombre: "Destacado 30 días",
+    precio: 30000,
+    descripcion: "Mayor presencia durante todo el mes.",
+  },
+];
+
+const PLANES_ESPECIAL_DIAS_ADMIN: PlanActivacionPremiumAdmin[] = [
+  {
+    clave: "7",
+    dias: 7,
+    nombre: "Especial 7 días",
+    precio: 20000,
+    descripcion: "Para campañas cortas, ofertas o promociones rápidas.",
+    badgeTexto: "ESPECIAL",
+    badgeColor: "#D946EF",
+  },
+  {
+    clave: "15",
+    dias: 15,
+    nombre: "Especial 15 días",
+    precio: 35000,
+    descripcion: "Buen equilibrio para campañas de temporada.",
+    recomendado: true,
+    badgeTexto: "ESPECIAL",
+    badgeColor: "#A855F7",
+  },
+  {
+    clave: "30",
+    dias: 30,
+    nombre: "Especial 30 días",
+    precio: 55000,
+    descripcion: "Más impacto para campañas mensuales.",
+    badgeTexto: "ESPECIAL",
+    badgeColor: "#7C3AED",
+  },
+];
+
+const PLANES_ESPECIAL_TEMPORADA_ADMIN: PlanActivacionPremiumAdmin[] = [
+  {
+    clave: "TEMPORADA_BASE",
+    nombre: "Campaña de temporada",
+    precio: 30000,
+    descripcion: "Para aparecer dentro de una campaña comercial activa.",
+    recomendado: true,
+    badgeTexto: "TEMPORADA",
+    badgeColor: "#FFB703",
+  },
+];
+
+const formatearPrecioPlan = (precio: number) => {
+  return `Gs. ${Number(precio).toLocaleString("es-PY", {
+    maximumFractionDigits: 0,
+  })}`;
+};
+
 const obtenerRolesGuardados = (): string[] => {
   try {
     return JSON.parse(localStorage.getItem("roles") || "[]");
@@ -180,6 +265,200 @@ const configurarMascaraMonto = () => {
 
   input.addEventListener("input", aplicarFormato);
   input.addEventListener("blur", aplicarFormato);
+};
+
+const obtenerPlanPorClave = (
+  planes: PlanActivacionPremiumAdmin[],
+  clave: string,
+) => {
+  return planes.find((plan) => plan.clave === clave) || planes[0];
+};
+
+const renderOpcionesPlanes = (planes: PlanActivacionPremiumAdmin[]) => {
+  return planes
+    .map(
+      (plan) => `
+        <option value="${plan.clave}">
+          ${escaparHtml(plan.nombre)} — ${formatearPrecioPlan(plan.precio)}${
+            plan.recomendado ? " · Recomendado" : ""
+          }
+        </option>
+      `,
+    )
+    .join("");
+};
+
+const aplicarDatosPlanSeleccionado = ({
+  planes,
+  idSelect,
+  idMonto,
+  idObservacion,
+  idBadgeTexto,
+  idBadgeColor,
+  forzarObservacion = true,
+}: {
+  planes: PlanActivacionPremiumAdmin[];
+  idSelect: string;
+  idMonto: string;
+  idObservacion?: string;
+  idBadgeTexto?: string;
+  idBadgeColor?: string;
+  forzarObservacion?: boolean;
+}) => {
+  const selectPlan = document.getElementById(
+    idSelect,
+  ) as HTMLSelectElement | null;
+
+  const inputMonto = document.getElementById(
+    idMonto,
+  ) as HTMLInputElement | null;
+
+  const textareaObservacion = idObservacion
+    ? (document.getElementById(idObservacion) as HTMLTextAreaElement | null)
+    : null;
+
+  const inputBadgeTexto = idBadgeTexto
+    ? (document.getElementById(idBadgeTexto) as HTMLInputElement | null)
+    : null;
+
+  const inputBadgeColor = idBadgeColor
+    ? (document.getElementById(idBadgeColor) as HTMLInputElement | null)
+    : null;
+
+  if (!selectPlan || !inputMonto) {
+    return;
+  }
+
+  const plan = obtenerPlanPorClave(planes, selectPlan.value);
+
+  inputMonto.value = formatearMontoInput(String(plan.precio));
+
+  if (
+    textareaObservacion &&
+    (forzarObservacion || !textareaObservacion.value.trim())
+  ) {
+    textareaObservacion.value = `${plan.nombre} - ${plan.descripcion}`;
+  }
+
+  if (inputBadgeTexto) {
+    inputBadgeTexto.value = plan.badgeTexto || "ESPECIAL";
+  }
+
+  if (inputBadgeColor) {
+    inputBadgeColor.value = plan.badgeColor || "#A855F7";
+  }
+};
+
+const configurarPlanAutomatico = ({
+  planes,
+  idSelect,
+  idMonto,
+  idObservacion,
+  idBadgeTexto,
+  idBadgeColor,
+}: {
+  planes: PlanActivacionPremiumAdmin[];
+  idSelect: string;
+  idMonto: string;
+  idObservacion?: string;
+  idBadgeTexto?: string;
+  idBadgeColor?: string;
+}) => {
+  const selectPlan = document.getElementById(
+    idSelect,
+  ) as HTMLSelectElement | null;
+
+  if (!selectPlan) {
+    return;
+  }
+
+  const actualizar = () => {
+    aplicarDatosPlanSeleccionado({
+      planes,
+      idSelect,
+      idMonto,
+      idObservacion,
+      idBadgeTexto,
+      idBadgeColor,
+      forzarObservacion: true,
+    });
+  };
+
+  selectPlan.addEventListener("change", actualizar);
+
+  actualizar();
+};
+
+const configurarSelectorEspecial = (tieneTemporadas: boolean) => {
+  const modoSelect = document.getElementById(
+    "premium-modo-especial",
+  ) as HTMLSelectElement | null;
+
+  const wrapperDias = document.getElementById(
+    "premium-wrapper-dias",
+  ) as HTMLElement | null;
+
+  const wrapperTemporada = document.getElementById(
+    "premium-wrapper-temporada",
+  ) as HTMLElement | null;
+
+  if (!modoSelect || !wrapperDias || !wrapperTemporada) {
+    return;
+  }
+
+  const actualizarModo = () => {
+    const modo = modoSelect.value;
+
+    if (modo === "TEMPORADA") {
+      wrapperDias.style.display = "none";
+      wrapperTemporada.style.display = "block";
+
+      aplicarDatosPlanSeleccionado({
+        planes: PLANES_ESPECIAL_TEMPORADA_ADMIN,
+        idSelect: "premium-plan-temporada",
+        idMonto: "premium-monto",
+        idObservacion: "premium-observacion",
+        forzarObservacion: true,
+      });
+    } else {
+      wrapperDias.style.display = "block";
+      wrapperTemporada.style.display = "none";
+
+      aplicarDatosPlanSeleccionado({
+        planes: PLANES_ESPECIAL_DIAS_ADMIN,
+        idSelect: "premium-plan-especial-dias",
+        idMonto: "premium-monto",
+        idObservacion: "premium-observacion",
+        idBadgeTexto: "premium-badge-texto",
+        idBadgeColor: "premium-badge-color",
+        forzarObservacion: true,
+      });
+    }
+  };
+
+  modoSelect.addEventListener("change", actualizarModo);
+
+  if (!tieneTemporadas) {
+    modoSelect.value = "DIAS";
+  }
+
+  configurarPlanAutomatico({
+    planes: PLANES_ESPECIAL_DIAS_ADMIN,
+    idSelect: "premium-plan-especial-dias",
+    idMonto: "premium-monto",
+    idObservacion: "premium-observacion",
+    idBadgeTexto: "premium-badge-texto",
+    idBadgeColor: "premium-badge-color",
+  });
+
+  configurarPlanAutomatico({
+    planes: PLANES_ESPECIAL_TEMPORADA_ADMIN,
+    idSelect: "premium-plan-temporada",
+    idMonto: "premium-monto",
+    idObservacion: "premium-observacion",
+  });
+
+  actualizarModo();
 };
 
 const configurarCalendarioVigencia = () => {
@@ -652,44 +931,124 @@ const ServiciosPremiumAdmin: React.FC = () => {
           nombre: String(temporada.nombre ?? temporada.Nombre ?? "Temporada"),
         }));
 
-        if (temporadas.length === 0) {
-          await Swal.fire({
-            icon: "info",
-            title: "No hay temporadas disponibles",
-            text: "Creá o habilitá una temporada antes de activar este servicio.",
-            background: "#16181f",
-            color: "#fff",
-            confirmButtonColor: "#facc15",
-            customClass: SWAL_DARK_CLASSES,
-          });
-          return;
-        }
+        const tieneTemporadas = temporadas.length > 0;
 
-        const opciones = temporadas
-          .map(
-            (temporada: any) => `
-              <option value="${temporada.id}">
-                ${escaparHtml(temporada.nombre)}
+        const opcionesTemporadas = tieneTemporadas
+          ? temporadas
+              .map(
+                (temporada: any) => `
+                  <option value="${temporada.id}">
+                    ${escaparHtml(temporada.nombre)}
+                  </option>
+                `,
+              )
+              .join("")
+          : `
+              <option value="">
+                No hay temporadas activas disponibles
               </option>
-            `,
-          )
-          .join("");
+            `;
 
         const resultadoModal = await Swal.fire({
           title: "🎉 Confirmar pago y activar especial",
-          width: 560,
+          width: 620,
           html: `
             <div style="${baseModalWrapperStyle}">
               ${renderInfoRow("Negocio", servicio.nombreNegocio)}
-          ${renderInfoRow("Publicación", obtenerTextoPublicacion(servicio))}
+              ${renderInfoRow("Publicación", obtenerTextoPublicacion(servicio))}
 
-              ${renderFieldLabel("Temporada")}
+              ${renderFieldLabel("Modo de activación")}
               <select
-                id="premium-temporada"
+                id="premium-modo-especial"
                 style="${inputStyle}"
               >
-                ${opciones}
+                <option value="DIAS">
+                  Plan por días
+                </option>
+
+                <option value="TEMPORADA" ${tieneTemporadas ? "" : "disabled"}>
+                  Temporada comercial${tieneTemporadas ? "" : " — sin temporadas activas"}
+                </option>
               </select>
+
+              <div
+                id="premium-wrapper-dias"
+                style="margin-top: 12px;"
+              >
+                ${renderFieldLabel("Plan especial por días")}
+                <select
+                  id="premium-plan-especial-dias"
+                  style="${inputStyle}"
+                >
+                  ${renderOpcionesPlanes(PLANES_ESPECIAL_DIAS_ADMIN)}
+                </select>
+
+                <input
+                  id="premium-badge-texto"
+                  type="hidden"
+                  value="ESPECIAL"
+                />
+
+                <input
+                  id="premium-badge-color"
+                  type="hidden"
+                  value="#A855F7"
+                />
+
+                <div style="
+                  margin-top:8px;
+                  padding:10px 12px;
+                  border-radius:14px;
+                  background:rgba(168,85,247,.10);
+                  border:1px solid rgba(168,85,247,.28);
+                  color:#e9d5ff;
+                  font-size:12px;
+                  line-height:1.45;
+                  font-weight:650;
+                ">
+                  Este modo activa la publicación como especial por 7, 15 o 30 días.
+                  No depende de una temporada comercial.
+                </div>
+              </div>
+
+              <div
+                id="premium-wrapper-temporada"
+                style="display:none; margin-top: 12px;"
+              >
+                ${renderFieldLabel("Temporada comercial")}
+                <select
+                  id="premium-temporada"
+                  style="${inputStyle}"
+                  ${tieneTemporadas ? "" : "disabled"}
+                >
+                  ${opcionesTemporadas}
+                </select>
+
+                ${renderFieldLabel("Plan de campaña")}
+                <select
+                  id="premium-plan-temporada"
+                  style="${inputStyle}"
+                  ${tieneTemporadas ? "" : "disabled"}
+                >
+                  ${renderOpcionesPlanes(PLANES_ESPECIAL_TEMPORADA_ADMIN)}
+                </select>
+
+                <div style="
+                  margin-top:8px;
+                  padding:10px 12px;
+                  border-radius:14px;
+                  background:rgba(250,204,21,.08);
+                  border:1px solid rgba(250,204,21,.22);
+                  color:#fde68a;
+                  font-size:12px;
+                  line-height:1.45;
+                  font-weight:650;
+                ">
+                  Este modo usa las fechas de la temporada seleccionada.
+                  Ideal para Navidad, Black Friday, Día de la Madre, Día del Padre,
+                  Verano y otras campañas reales.
+                </div>
+              </div>
 
               ${camposPagoHtml}
             </div>
@@ -704,22 +1063,153 @@ const ServiciosPremiumAdmin: React.FC = () => {
           customClass: SWAL_DARK_CLASSES,
           didOpen: () => {
             configurarMascaraMonto();
+            configurarSelectorEspecial(tieneTemporadas);
           },
           focusConfirm: false,
           preConfirm: () => {
-            const idTemporada = Number(obtenerValorInput("premium-temporada"));
+            const modo = obtenerValorInput("premium-modo-especial") as
+              | "DIAS"
+              | "TEMPORADA";
 
-            if (!idTemporada) {
-              Swal.showValidationMessage("Seleccioná una temporada.");
+            const datosPago = obtenerDatosPago();
+
+            if (!datosPago) {
+              return false;
+            }
+
+            if (modo === "TEMPORADA") {
+              const idTemporada = Number(
+                obtenerValorInput("premium-temporada"),
+              );
+
+              if (!idTemporada) {
+                Swal.showValidationMessage(
+                  "Seleccioná una temporada comercial.",
+                );
+
+                return false;
+              }
+
+              return {
+                modoActivacionEspecial: "TEMPORADA",
+                idTemporada,
+                ...datosPago,
+              };
+            }
+
+            const clavePlan = obtenerValorInput("premium-plan-especial-dias");
+
+            const plan = obtenerPlanPorClave(
+              PLANES_ESPECIAL_DIAS_ADMIN,
+              clavePlan,
+            );
+
+            if (!plan?.dias) {
+              Swal.showValidationMessage(
+                "Seleccioná un plan especial por días.",
+              );
+
+              return false;
+            }
+
+            return {
+              modoActivacionEspecial: "DIAS",
+              duracionDias: plan.dias,
+              badgeTexto: plan.badgeTexto || "ESPECIAL",
+              badgeColor: plan.badgeColor || "#A855F7",
+              ...datosPago,
+            };
+          },
+        });
+
+        if (!resultadoModal.isConfirmed || !resultadoModal.value) return;
+
+        await activarServicioPremiumAdmin(servicio.id, resultadoModal.value);
+      } else if (
+        servicio.tipoServicio === TIPOS_SERVICIO_PREMIUM.PUBLICACION_DESTACADA
+      ) {
+        const resultadoModal = await Swal.fire({
+          title: "⭐ Confirmar pago y activar destacado",
+          width: 560,
+          html: `
+            <div style="${baseModalWrapperStyle}">
+              ${renderInfoRow("Negocio", servicio.nombreNegocio)}
+              ${renderInfoRow("Servicio", obtenerNombreTipo(servicio.tipoServicio))}
+              ${
+                servicio.idPublicacion
+                  ? renderInfoRow(
+                      "Publicación",
+                      obtenerTextoPublicacion(servicio),
+                    )
+                  : ""
+              }
+
+              ${renderFieldLabel("Plan destacado")}
+              <select
+                id="premium-plan-destacado"
+                style="${inputStyle}"
+              >
+                ${renderOpcionesPlanes(PLANES_DESTACADO_ADMIN)}
+              </select>
+
+              <div style="
+                margin-top:8px;
+                padding:10px 12px;
+                border-radius:14px;
+                background:rgba(250,204,21,.08);
+                border:1px solid rgba(250,204,21,.22);
+                color:#fde68a;
+                font-size:12px;
+                line-height:1.45;
+                font-weight:650;
+              ">
+                El sistema activará la publicación como destacada por la cantidad
+                de días seleccionada.
+              </div>
+
+              ${camposPagoHtml}
+            </div>
+          `,
+          showCancelButton: true,
+          confirmButtonText: "Confirmar pago y activar",
+          cancelButtonText: "Cancelar",
+          background: "#16181f",
+          color: "#fff",
+          confirmButtonColor: "#facc15",
+          cancelButtonColor: "#6b7280",
+          customClass: SWAL_DARK_CLASSES,
+          didOpen: () => {
+            configurarMascaraMonto();
+
+            configurarPlanAutomatico({
+              planes: PLANES_DESTACADO_ADMIN,
+              idSelect: "premium-plan-destacado",
+              idMonto: "premium-monto",
+              idObservacion: "premium-observacion",
+            });
+          },
+          focusConfirm: false,
+          preConfirm: () => {
+            const clavePlan = obtenerValorInput("premium-plan-destacado");
+
+            const plan = obtenerPlanPorClave(PLANES_DESTACADO_ADMIN, clavePlan);
+
+            if (!plan?.dias) {
+              Swal.showValidationMessage(
+                "Seleccioná un plan destacado válido.",
+              );
+
               return false;
             }
 
             const datosPago = obtenerDatosPago();
 
-            if (!datosPago) return false;
+            if (!datosPago) {
+              return false;
+            }
 
             return {
-              idTemporada,
+              duracionDias: plan.dias,
               ...datosPago,
             };
           },
@@ -731,92 +1221,77 @@ const ServiciosPremiumAdmin: React.FC = () => {
       } else {
         const hoy = new Date();
 
-        const diasDefault =
-          servicio.tipoServicio === TIPOS_SERVICIO_PREMIUM.PUBLICACION_DESTACADA
-            ? 7
-            : 30;
+        const diasDefault = 30;
 
         const resultadoModal = await Swal.fire({
           title: "👑 Confirmar pago y activar servicio",
           width: 560,
-
           html: `
-    <div style="${baseModalWrapperStyle}">
-      ${renderInfoRow("Negocio", servicio.nombreNegocio)}
+            <div style="${baseModalWrapperStyle}">
+              ${renderInfoRow("Negocio", servicio.nombreNegocio)}
+              ${renderInfoRow("Servicio", obtenerNombreTipo(servicio.tipoServicio))}
+              ${
+                servicio.idPublicacion
+                  ? renderInfoRow(
+                      "Publicación",
+                      obtenerTextoPublicacion(servicio),
+                    )
+                  : ""
+              }
 
-      ${renderInfoRow("Servicio", obtenerNombreTipo(servicio.tipoServicio))}
+              <label class="premium-date-label">
+                Vigencia del servicio
+              </label>
 
-      ${
-        servicio.idPublicacion
-          ? renderInfoRow("Publicación", obtenerTextoPublicacion(servicio))
-          : ""
-      }
+              <input
+                id="premium-inicio"
+                type="hidden"
+                value="${fechaParaInput(hoy)}"
+              />
 
-      <label class="premium-date-label">
-        Vigencia del servicio
-      </label>
+              <input
+                id="premium-fin"
+                type="hidden"
+                value="${fechaParaInput(sumarDias(hoy, diasDefault))}"
+              />
 
-      <input
-        id="premium-inicio"
-        type="hidden"
-        value="${fechaParaInput(hoy)}"
-      />
+              <input
+                id="premium-rango"
+                class="premium-date-input"
+                type="text"
+                autocomplete="off"
+                readonly
+                placeholder="Seleccioná inicio y vencimiento"
+              />
 
-      <input
-        id="premium-fin"
-        type="hidden"
-        value="${fechaParaInput(sumarDias(hoy, diasDefault))}"
-      />
+              <div class="premium-date-help">
+                <span class="premium-date-help-icon">
+                  💡
+                </span>
 
-      <input
-        id="premium-rango"
-        class="premium-date-input"
-        type="text"
-        autocomplete="off"
-        readonly
-        placeholder="Seleccioná inicio y vencimiento"
-      />
+                <span>
+                  Elegí primero la fecha de inicio y luego la fecha de vencimiento.
+                </span>
+              </div>
 
-      <div class="premium-date-help">
-        <span class="premium-date-help-icon">
-          💡
-        </span>
-
-        <span>
-          Elegí primero la fecha de inicio y luego la fecha de vencimiento.
-        </span>
-      </div>
-
-      ${camposPagoHtml}
-    </div>
-  `,
-
+              ${camposPagoHtml}
+            </div>
+          `,
           showCancelButton: true,
-
           confirmButtonText: "Confirmar pago y activar",
-
           cancelButtonText: "Cancelar",
-
           background: "#16181f",
-
           color: "#fff",
-
           confirmButtonColor: "#facc15",
-
           cancelButtonColor: "#6b7280",
-
           customClass: SWAL_DARK_CLASSES,
-
           didOpen: () => {
             configurarMascaraMonto();
             configurarCalendarioVigencia();
           },
-
           focusConfirm: false,
-
           preConfirm: () => {
             const fechaInicio = obtenerValorInput("premium-inicio");
-
             const fechaFin = obtenerValorInput("premium-fin");
 
             if (!fechaInicio || !fechaFin) {
@@ -843,9 +1318,7 @@ const ServiciosPremiumAdmin: React.FC = () => {
 
             return {
               fechaInicio: `${fechaInicio}T00:00:00`,
-
               fechaFin: `${fechaFin}T23:59:59`,
-
               ...datosPago,
             };
           },

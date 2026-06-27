@@ -29,6 +29,61 @@ import { intentarRegistrarSolicitudPremium } from "../api/serviciosPremiumServic
 
 import { TIPOS_SERVICIO_PREMIUM } from "../types/servicioPremium.types";
 
+interface PlanPremium {
+  nombre: string;
+  precio: string;
+  descripcion: string;
+  recomendado?: boolean;
+}
+
+const PLANES_DESTACADO: PlanPremium[] = [
+  {
+    nombre: "7 días",
+    precio: "Gs. 10.000",
+    descripcion: "Ideal para probar y darle impulso rápido.",
+  },
+  {
+    nombre: "15 días",
+    precio: "Gs. 18.000",
+    descripcion: "Más visibilidad con mejor relación precio/días.",
+    recomendado: true,
+  },
+  {
+    nombre: "30 días",
+    precio: "Gs. 30.000",
+    descripcion: "Mayor presencia durante todo el mes.",
+  },
+];
+
+const PLANES_ESPECIAL: PlanPremium[] = [
+  {
+    nombre: "7 días",
+    precio: "Gs. 20.000",
+    descripcion: "Para campañas cortas, ofertas o promociones rápidas.",
+  },
+  {
+    nombre: "15 días",
+    precio: "Gs. 35.000",
+    descripcion: "Buen equilibrio para campañas de temporada.",
+    recomendado: true,
+  },
+  {
+    nombre: "30 días",
+    precio: "Gs. 55.000",
+    descripcion: "Más impacto para campañas mensuales.",
+  },
+];
+
+const PLANES_ESPECIAL_TEMPORADA: PlanPremium[] = [
+  {
+    nombre: "Campaña de temporada",
+    precio: "Desde Gs. 30.000",
+    descripcion:
+      "Aparecé en campañas reales como Navidad, Black Friday, Día de la Madre, Día del Padre o Verano.",
+    recomendado: true,
+  },
+];
+
 interface Props {
   producto: Producto;
   onEliminado?: (id: number) => void;
@@ -83,17 +138,27 @@ const ProductoCard: React.FC<Props> = ({
     titulo,
     descripcion,
     beneficios,
+    planes = [],
     notaTitulo,
     notaDescripcion,
+    confirmButtonText = "Consultar por WhatsApp",
   }: {
     variante?: "gold" | "purple";
     badge: string;
     titulo: string;
     descripcion: string;
     beneficios: string[];
+    planes?: PlanPremium[];
     notaTitulo: string;
     notaDescripcion: string;
+    confirmButtonText?: string;
   }) => {
+    const colorPrincipal = variante === "purple" ? "#e879f9" : "#facc15";
+    const colorFondo =
+      variante === "purple" ? "rgba(217,70,239,.10)" : "rgba(250,204,21,.10)";
+    const colorBorde =
+      variante === "purple" ? "rgba(217,70,239,.28)" : "rgba(250,204,21,.28)";
+
     const htmlBeneficios = beneficios
       .map(
         (beneficio) => `
@@ -104,6 +169,58 @@ const ProductoCard: React.FC<Props> = ({
       `,
       )
       .join("");
+
+    const htmlPlanes = planes.length
+      ? `
+        <div style="margin-top:14px; display:grid; gap:8px;">
+          <p style="margin:0 0 2px; color:${colorPrincipal}; font-size:12px; font-weight:950; text-transform:uppercase; letter-spacing:.12em;">
+            Planes disponibles
+          </p>
+
+          ${planes
+            .map(
+              (plan) => `
+              <div style="
+                display:grid;
+                grid-template-columns: 1fr auto;
+                gap:10px;
+                align-items:center;
+                padding:12px;
+                border-radius:16px;
+                background:${
+                  plan.recomendado ? colorFondo : "rgba(255,255,255,.045)"
+                };
+                border:1px solid ${
+                  plan.recomendado ? colorBorde : "rgba(255,255,255,.08)"
+                };
+              ">
+                <div>
+                  <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap;">
+                    <span style="color:#fff; font-size:13px; font-weight:950;">${
+                      plan.nombre
+                    }</span>
+                    ${
+                      plan.recomendado
+                        ? `<span style="border-radius:999px; padding:3px 7px; background:${colorPrincipal}; color:#020617; font-size:9px; font-weight:950; text-transform:uppercase; letter-spacing:.06em;">Recomendado</span>`
+                        : ""
+                    }
+                  </div>
+
+                  <p style="margin:5px 0 0; color:rgba(255,255,255,.62); font-size:11px; line-height:1.35;">
+                    ${plan.descripcion}
+                  </p>
+                </div>
+
+                <div style="text-align:right; color:${colorPrincipal}; font-size:18px; font-weight:950; white-space:nowrap;">
+                  ${plan.precio}
+                </div>
+              </div>
+            `,
+            )
+            .join("")}
+        </div>
+      `
+      : "";
 
     return Swal.fire({
       html: `
@@ -124,13 +241,15 @@ const ProductoCard: React.FC<Props> = ({
           </p>
         </div>
 
+        ${htmlPlanes}
+
         <div class="tv-premium-modal__benefits">
           ${htmlBeneficios}
         </div>
 
         <div class="tv-premium-modal__notice">
           <p class="tv-premium-modal__notice-title">
-            Activación posterior al pago
+            ${notaTitulo}
           </p>
 
           <p class="tv-premium-modal__notice-text">
@@ -140,12 +259,12 @@ const ProductoCard: React.FC<Props> = ({
       </div>
     `,
       showCancelButton: true,
-      confirmButtonText: "Consultar por WhatsApp",
+      confirmButtonText,
       cancelButtonText: "Ahora no",
       buttonsStyling: false,
       background: "#0b111c",
       color: "#fff",
-      width: 440,
+      width: 480,
       padding: 0,
       customClass: {
         popup: "tv-premium-swal-popup",
@@ -314,16 +433,18 @@ const ProductoCard: React.FC<Props> = ({
       badge: "🎉 Campaña especial",
       titulo: "Sumá tu publicación a una campaña destacada",
       descripcion:
-        "Tu producto puede aparecer dentro de carruseles temáticos, promociones de temporada y espacios con mayor impacto visual.",
+        "Elegí entre una publicación especial por días o una campaña de temporada para fechas comerciales reales.",
       beneficios: [
         "Presencia dentro del carrusel principal",
         "Badge especial de temporada o campaña",
         "Mayor exposición visual en fechas comerciales",
         "Ideal para promociones, ofertas y lanzamientos",
       ],
-      notaTitulo: "Servicio Premium con activación posterior al pago",
+      planes: [...PLANES_ESPECIAL, ...PLANES_ESPECIAL_TEMPORADA],
+      notaTitulo: "Opciones disponibles",
       notaDescripcion:
-        "Solicitá tu participación por WhatsApp para conocer las campañas disponibles, el precio y las formas de pago. Una vez confirmado el pago, agregaremos tu publicación al carrusel especial.",
+        "Los planes por días se activan por 7, 15 o 30 días. Las campañas de temporada dependen de la fecha comercial activa y disponibilidad del espacio.",
+      confirmButtonText: "Solicitar especial",
     });
 
     if (!respuesta.isConfirmed) return;
@@ -331,7 +452,8 @@ const ProductoCard: React.FC<Props> = ({
     await intentarRegistrarSolicitudPremium({
       tipoServicio: TIPOS_SERVICIO_PREMIUM.PUBLICACION_ESPECIAL,
       idPublicacion: producto.id,
-      observacion: "Solicitud enviada desde el CTA de publicación especial.",
+      observacion:
+        "Solicitud enviada desde el CTA de publicación especial. El cliente vio opciones por días y campañas de temporada.",
     });
 
     const mensaje = `Hola 👋 Quiero incluir una publicación en una campaña especial de Tu Vendedor.
@@ -339,7 +461,17 @@ const ProductoCard: React.FC<Props> = ({
 Publicación: ${producto.nombre}
 Código: ${producto.id}
 
-Quisiera conocer las campañas disponibles y el costo de activación.`;
+Opciones vistas en la app:
+
+ESPECIAL POR DÍAS
+- 7 días: Gs. 20.000
+- 15 días: Gs. 35.000
+- 30 días: Gs. 55.000
+
+CAMPAÑAS DE TEMPORADA
+- Campaña de temporada: desde Gs. 30.000
+
+Quiero activar este servicio. Me confirmás la disponibilidad, forma de pago y cuál opción me conviene?`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
@@ -481,9 +613,11 @@ Quisiera conocer las campañas disponibles y el costo de activación.`;
         "Badge visual de publicación destacada",
         "Activación disponible por 7, 15 o 30 días",
       ],
-      notaTitulo: "Servicio Premium con activación posterior al pago",
+      planes: PLANES_DESTACADO,
+      notaTitulo: "Precio de lanzamiento",
       notaDescripcion:
-        "Solicitá la promoción por WhatsApp para recibir los planes disponibles y las formas de pago. Una vez confirmado el pago, activaremos el destacado en tu publicación.",
+        "Elegí el plan que más te convenga y escribinos por WhatsApp. Una vez confirmado el pago, activaremos el destacado en tu publicación.",
+      confirmButtonText: "Solicitar destacado",
     });
 
     if (!respuesta.isConfirmed) return;
@@ -499,7 +633,12 @@ Quisiera conocer las campañas disponibles y el costo de activación.`;
 Publicación: ${producto.nombre}
 Código: ${producto.id}
 
-Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 días.`;
+Planes visibles en la app:
+- 7 días: Gs. 10.000
+- 15 días: Gs. 18.000
+- 30 días: Gs. 30.000
+
+Quiero activar este servicio. Me confirmás la forma de pago y el plan disponible?`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
@@ -874,7 +1013,7 @@ Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 día
                   ? puedeQuitarDestacado
                     ? "⭐ Quitar destacado"
                     : "⭐ Destacado activo"
-                  : "⭐ Destacar"}
+                  : "⭐ Destacar desde Gs. 10.000"}
               </button>
 
               <button
@@ -898,7 +1037,7 @@ Quisiera conocer los precios disponibles para destacarla durante 7, 15 o 30 día
                   ? puedeQuitarEspecial
                     ? "🎉 Quitar especial"
                     : "🎉 Especial activo"
-                  : "🎉 Especial"}
+                  : "🎉 Especial desde Gs. 20.000"}
               </button>
             </div>
           )}

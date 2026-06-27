@@ -28,11 +28,15 @@ export interface CrearSolicitudServicioPremiumRequest {
 export interface ActivarServicioPremiumRequest {
   fechaInicio?: string;
   fechaFin?: string;
+  duracionDias?: number;
   idTemporada?: number;
+  modoActivacionEspecial?: "DIAS" | "TEMPORADA";
   monto?: number;
   medioPago?: string;
   referenciaPago?: string;
   observacion?: string;
+  badgeTexto?: string;
+  badgeColor?: string;
 }
 
 export interface CancelarServicioPremiumRequest {
@@ -87,15 +91,6 @@ export interface FiltrosServiciosPremium {
   tamanioPagina?: number;
 }
 
-/**
- * Representa el wrapper del backend:
- *
- * Datos<T>
- * {
- *   Items,
- *   TotalRegistros
- * }
- */
 export interface Datos<T> {
   items: T;
   totalRegistros: number;

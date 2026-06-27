@@ -26,9 +26,13 @@ interface Props {
   items: CarritoPedidoItem[];
   onIncrementar: (idPublicacion: number) => void;
   onDisminuir: (idPublicacion: number) => void;
+  onActualizarCantidad: (idPublicacion: number, cantidad: number) => void;
   onEliminar: (idPublicacion: number) => void;
   onVaciar: () => void;
 }
+
+const CANTIDADES_RAPIDAS = [0.25, 0.5, 0.75, 1];
+const CANTIDAD_MINIMA_PEDIDO = 0.25;
 
 const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
   if (!telefono) return "";
@@ -46,31 +50,96 @@ const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
   return numero;
 };
 
+const redondear2 = (valor: number): number => {
+  return Math.round((valor + Number.EPSILON) * 100) / 100;
+};
+
+const formatearNumeroConPuntos = (valor: number): string => {
+  const valorRedondeado = redondear2(valor);
+  const [parteEntera, parteDecimal] = valorRedondeado.toString().split(".");
+
+  const enteroConPuntos = parteEntera.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  if (!parteDecimal) {
+    return enteroConPuntos;
+  }
+
+  return `${enteroConPuntos}.${parteDecimal}`;
+};
+
 const formatearPrecio = (
   precio?: number | null,
   moneda?: string | null,
 ): string => {
-  if (!precio || precio <= 0) return "Consultar precio";
-
-  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
-
-  if (monedaNormalizada === "USD") {
-    return `USD ${Number(precio).toLocaleString("es-PY", {
-      maximumFractionDigits: 0,
-    })}`;
+  if (precio === null || precio === undefined || Number.isNaN(Number(precio))) {
+    return "Consultar precio";
   }
 
-  return `Gs. ${Number(precio).toLocaleString("es-PY", {
-    maximumFractionDigits: 0,
-  })}`;
+  const valor = Number(precio);
+
+  if (valor <= 0) {
+    return "Consultar precio";
+  }
+
+  const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+  const numeroFormateado = formatearNumeroConPuntos(valor);
+
+  if (monedaNormalizada === "USD") {
+    return `USD ${numeroFormateado}`;
+  }
+
+  return `Gs. ${numeroFormateado}`;
 };
 
 const obtenerPrecioNumerico = (precio?: number | null): number => {
-  if (!precio || precio <= 0) return 0;
-  return Number(precio);
+  if (precio === null || precio === undefined || Number.isNaN(Number(precio))) {
+    return 0;
+  }
+
+  const valor = Number(precio);
+
+  if (valor <= 0) {
+    return 0;
+  }
+
+  return valor;
 };
 
-const abrirWhatsapp = (telefono: string | undefined, mensaje: string) => {
+const normalizarCantidadPedido = (cantidad: number): number => {
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    return CANTIDAD_MINIMA_PEDIDO;
+  }
+
+  const cantidadRedondeada = Math.round(cantidad * 100) / 100;
+
+  return cantidadRedondeada < CANTIDAD_MINIMA_PEDIDO
+    ? CANTIDAD_MINIMA_PEDIDO
+    : cantidadRedondeada;
+};
+
+const formatearCantidad = (cantidad: number): string => {
+  const cantidadNormalizada = normalizarCantidadPedido(cantidad);
+
+  if (Number.isInteger(cantidadNormalizada)) {
+    return String(cantidadNormalizada);
+  }
+
+  return cantidadNormalizada.toLocaleString("es-PY", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const obtenerSubtotalItem = (item: CarritoPedidoItem): number => {
+  return redondear2(
+    obtenerPrecioNumerico(item.publicacion.precio) * item.cantidad,
+  );
+};
+
+const abrirWhatsapp = (
+  telefono: string | null | undefined,
+  mensaje: string,
+) => {
   const numero = limpiarTelefonoWhatsapp(telefono);
 
   if (!numero) {
@@ -94,6 +163,7 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
   items,
   onIncrementar,
   onDisminuir,
+  onActualizarCantidad,
   onEliminar,
   onVaciar,
 }) => {
@@ -110,17 +180,12 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
     }
   }, [items.length, abierto]);
 
-  const totalItems = useMemo(
-    () => items.reduce((acum, item) => acum + item.cantidad, 0),
-    [items],
-  );
+  const totalItems = items.length;
 
   const totalEstimado = useMemo(
     () =>
-      items.reduce(
-        (acum, item) =>
-          acum + obtenerPrecioNumerico(item.publicacion.precio) * item.cantidad,
-        0,
+      redondear2(
+        items.reduce((acum, item) => acum + obtenerSubtotalItem(item), 0),
       ),
     [items],
   );
@@ -147,10 +212,17 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
     const lineasProductos = items
       .map((item, index) => {
         const producto = item.publicacion;
+        const subtotal = obtenerSubtotalItem(item);
+
+        const subtotalTexto =
+          subtotal > 0
+            ? formatearPrecio(subtotal, producto.moneda)
+            : "A confirmar";
 
         return `${index + 1}. ${producto.titulo}
-   Cantidad: ${item.cantidad}
-   Precio unitario: ${formatearPrecio(producto.precio, producto.moneda)}`;
+   Cantidad solicitada: ${formatearCantidad(item.cantidad)}
+   Precio base: ${formatearPrecio(producto.precio, producto.moneda)}
+   Subtotal: ${subtotalTexto}`;
       })
       .join("\n\n");
 
@@ -178,7 +250,7 @@ ${textoDelivery}
 💳 Forma de pago: A coordinar
 ${ubicacionCliente ? `\n📍 Ubicación / dirección del cliente:\n${ubicacionCliente}` : ""}
 
-Por favor confirmame disponibilidad y el total final.`;
+Por favor confirmame disponibilidad, medida final y total final.`;
   };
 
   const enviarPedidoRetiro = () => {
@@ -252,6 +324,36 @@ Por favor confirmame disponibilidad y el total final.`;
 
   return (
     <>
+      <style>{`
+        .vitrina-carrito-scroll {
+          scrollbar-width: thin;
+          scrollbar-color: #facc15 #111827;
+        }
+
+        .vitrina-carrito-scroll::-webkit-scrollbar {
+          width: 9px;
+        }
+
+        .vitrina-carrito-scroll::-webkit-scrollbar-track {
+          background: #111827;
+          border-radius: 999px;
+        }
+
+        .vitrina-carrito-scroll::-webkit-scrollbar-thumb {
+          background: linear-gradient(180deg, #facc15 0%, #22c55e 100%);
+          border-radius: 999px;
+          border: 2px solid #111827;
+        }
+
+        .vitrina-carrito-scroll::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(180deg, #fde047 0%, #16a34a 100%);
+        }
+
+        .vitrina-carrito-scroll::-webkit-scrollbar-corner {
+          background: #111827;
+        }
+      `}</style>
+
       <button
         type="button"
         onClick={() => setAbierto(true)}
@@ -297,89 +399,158 @@ Por favor confirmame disponibilidad y el total final.`;
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto p-5">
-              <div className="space-y-3">
-                {items.map((item) => (
-                  <div
-                    key={item.publicacion.id}
-                    className="rounded-2xl border border-white/10 bg-white/[0.04] p-3"
-                  >
-                    <div className="flex gap-3">
-                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-black">
-                        {item.publicacion.thumbUrl ||
-                        item.publicacion.imagenPrincipal ? (
-                          <img
-                            src={
-                              item.publicacion.thumbUrl ||
-                              item.publicacion.imagenPrincipal
-                            }
-                            alt={item.publicacion.titulo}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
-                            Sin foto
-                          </div>
-                        )}
-                      </div>
+            <div className="vitrina-carrito-scroll max-h-[70vh] overflow-y-auto p-5 pr-3">
+              <div className="space-y-4">
+                {items.map((item) => {
+                  const subtotal = obtenerSubtotalItem(item);
 
-                      <div className="min-w-0 flex-1">
-                        <p className="line-clamp-2 text-sm font-black">
-                          {item.publicacion.titulo}
-                        </p>
+                  const subtotalTexto =
+                    subtotal > 0
+                      ? formatearPrecio(subtotal, item.publicacion.moneda)
+                      : "A confirmar";
 
-                        <p className="mt-1 text-xs font-bold text-yellow-300">
-                          {formatearPrecio(
-                            item.publicacion.precio,
-                            item.publicacion.moneda,
+                  return (
+                    <div
+                      key={item.publicacion.id}
+                      className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                    >
+                      <div className="flex gap-4">
+                        <div className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-black sm:h-24 sm:w-24">
+                          {item.publicacion.thumbUrl ||
+                          item.publicacion.imagenPrincipal ? (
+                            <img
+                              src={
+                                item.publicacion.thumbUrl ||
+                                item.publicacion.imagenPrincipal
+                              }
+                              alt={item.publicacion.titulo}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-xs text-gray-500">
+                              Sin foto
+                            </div>
                           )}
-                        </p>
+                        </div>
 
-                        <div className="mt-3 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="line-clamp-2 text-sm font-black sm:text-base">
+                                {item.publicacion.titulo}
+                              </p>
+
+                              <p className="mt-1 text-lg font-extrabold text-yellow-300 sm:text-xl">
+                                {formatearPrecio(
+                                  item.publicacion.precio,
+                                  item.publicacion.moneda,
+                                )}
+                              </p>
+
+                              <p className="mt-1 text-xs font-medium text-gray-400">
+                                Precio base x cantidad solicitada
+                              </p>
+                            </div>
+
                             <button
                               type="button"
-                              onClick={() => onDisminuir(item.publicacion.id)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-yellow-400 hover:text-black"
+                              onClick={() => onEliminar(item.publicacion.id)}
+                              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-500/10 text-red-300 transition hover:bg-red-500 hover:text-white"
                             >
-                              <Minus size={15} />
-                            </button>
-
-                            <span className="min-w-8 text-center text-sm font-black">
-                              {item.cantidad}
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() => onIncrementar(item.publicacion.id)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-yellow-400 hover:text-black"
-                            >
-                              <Plus size={15} />
+                              <Trash2 size={15} />
                             </button>
                           </div>
 
-                          <button
-                            type="button"
-                            onClick={() => onEliminar(item.publicacion.id)}
-                            className="flex h-8 w-8 items-center justify-center rounded-xl bg-red-500/10 text-red-300 transition hover:bg-red-500 hover:text-white"
-                          >
-                            <Trash2 size={15} />
-                          </button>
+                          <div className="mt-3 rounded-2xl border border-white/10 bg-black/20 p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[11px] font-black uppercase tracking-wide text-gray-400">
+                                Cantidad
+                              </span>
+
+                              <span className="text-sm font-extrabold text-yellow-300">
+                                Subtotal: {subtotalTexto}
+                              </span>
+                            </div>
+
+                            <div className="mt-2 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => onDisminuir(item.publicacion.id)}
+                                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-yellow-400 hover:text-black"
+                              >
+                                <Minus size={15} />
+                              </button>
+
+                              <input
+                                type="number"
+                                min={CANTIDAD_MINIMA_PEDIDO}
+                                step="0.25"
+                                value={item.cantidad}
+                                onChange={(event) => {
+                                  const valor = Number(event.target.value);
+
+                                  onActualizarCantidad(
+                                    item.publicacion.id,
+                                    valor,
+                                  );
+                                }}
+                                onBlur={(event) => {
+                                  const valor = Number(event.target.value);
+
+                                  onActualizarCantidad(
+                                    item.publicacion.id,
+                                    valor,
+                                  );
+                                }}
+                                className="h-10 min-w-0 flex-1 rounded-xl border border-white/10 bg-white/[0.06] px-3 text-center text-sm font-black text-white outline-none transition focus:border-yellow-400"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  onIncrementar(item.publicacion.id)
+                                }
+                                className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-white transition hover:bg-yellow-400 hover:text-black"
+                              >
+                                <Plus size={15} />
+                              </button>
+                            </div>
+
+                            <div className="mt-2 grid grid-cols-4 gap-1.5">
+                              {CANTIDADES_RAPIDAS.map((cantidad) => (
+                                <button
+                                  key={cantidad}
+                                  type="button"
+                                  onClick={() =>
+                                    onActualizarCantidad(
+                                      item.publicacion.id,
+                                      cantidad,
+                                    )
+                                  }
+                                  className={`rounded-xl px-2 py-2 text-[11px] font-black transition ${
+                                    item.cantidad === cantidad
+                                      ? "bg-yellow-400 text-black"
+                                      : "bg-white/[0.07] text-gray-300 hover:bg-white/[0.12] hover:text-white"
+                                  }`}
+                                >
+                                  {formatearCantidad(cantidad)}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-5 rounded-2xl border border-yellow-400/25 bg-yellow-400/[0.07] p-4">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-yellow-300">
                   Total estimado
                 </p>
-                <p className="mt-1 text-2xl font-black">{totalTexto}</p>
-                <p className="mt-2 text-xs leading-5 text-gray-400">
-                  El vendedor confirma disponibilidad, envío y horario.
-                </p>
+
+                <p className="mt-1 text-3xl font-black">{totalTexto}</p>
               </div>
 
               <div className="mt-5 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-2">

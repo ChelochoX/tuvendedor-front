@@ -57,6 +57,21 @@ const esCategoriaSinCarrito = (publicacion: PublicacionPerfilVendedor) => {
   ].some((palabra) => texto.includes(palabra));
 };
 
+const PASO_CANTIDAD_PEDIDO = 0.25;
+const CANTIDAD_MINIMA_PEDIDO = 0.25;
+
+const normalizarCantidadPedido = (cantidad: number): number => {
+  if (!Number.isFinite(cantidad) || cantidad <= 0) {
+    return CANTIDAD_MINIMA_PEDIDO;
+  }
+
+  const cantidadRedondeada = Math.round(cantidad * 100) / 100;
+
+  return cantidadRedondeada < CANTIDAD_MINIMA_PEDIDO
+    ? CANTIDAD_MINIMA_PEDIDO
+    : cantidadRedondeada;
+};
+
 const vendedorOfreceDelivery = (perfil?: PerfilPublicoVendedor | null) => {
   return Boolean(perfil?.ofreceDelivery ?? perfil?.OfreceDelivery);
 };
@@ -101,7 +116,14 @@ const PerfilVendedorPublico: React.FC = () => {
         const datos = JSON.parse(guardado);
 
         if (Array.isArray(datos)) {
-          setCarrito(datos);
+          setCarrito(
+            datos
+              .filter((item) => item?.publicacion?.id)
+              .map((item) => ({
+                ...item,
+                cantidad: normalizarCantidadPedido(Number(item.cantidad)),
+              })),
+          );
         }
       }
     } catch {
@@ -292,7 +314,12 @@ const PerfilVendedorPublico: React.FC = () => {
     setCarrito((actual) =>
       actual.map((item) =>
         Number(item.publicacion.id) === Number(idPublicacion)
-          ? { ...item, cantidad: item.cantidad + 1 }
+          ? {
+              ...item,
+              cantidad: normalizarCantidadPedido(
+                item.cantidad + PASO_CANTIDAD_PEDIDO,
+              ),
+            }
           : item,
       ),
     );
@@ -303,10 +330,31 @@ const PerfilVendedorPublico: React.FC = () => {
       actual
         .map((item) =>
           Number(item.publicacion.id) === Number(idPublicacion)
-            ? { ...item, cantidad: item.cantidad - 1 }
+            ? {
+                ...item,
+                cantidad:
+                  Math.round((item.cantidad - PASO_CANTIDAD_PEDIDO) * 100) /
+                  100,
+              }
             : item,
         )
-        .filter((item) => item.cantidad > 0),
+        .filter((item) => item.cantidad >= CANTIDAD_MINIMA_PEDIDO),
+    );
+  };
+
+  const actualizarCantidadItem = (
+    idPublicacion: number,
+    cantidadSolicitada: number,
+  ) => {
+    setCarrito((actual) =>
+      actual.map((item) =>
+        Number(item.publicacion.id) === Number(idPublicacion)
+          ? {
+              ...item,
+              cantidad: normalizarCantidadPedido(cantidadSolicitada),
+            }
+          : item,
+      ),
     );
   };
 
@@ -398,6 +446,7 @@ const PerfilVendedorPublico: React.FC = () => {
         items={carrito}
         onIncrementar={incrementarItem}
         onDisminuir={disminuirItem}
+        onActualizarCantidad={actualizarCantidadItem}
         onEliminar={eliminarItem}
         onVaciar={vaciarCarrito}
       />

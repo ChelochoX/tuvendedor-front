@@ -471,6 +471,11 @@ const ProductDetail: React.FC<Props> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+  const usarLayoutCompacto = useMediaQuery("(max-width:1180px)");
+
+  const anchoMaximoCompacto = isMobile ? 420 : 760;
+
   const navigate = useNavigate();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -1293,7 +1298,7 @@ const ProductDetail: React.FC<Props> = ({
     />
   );
 
-  if (isMobile) {
+  if (usarLayoutCompacto) {
     return (
       <Box
         sx={{
@@ -1307,7 +1312,7 @@ const ProductDetail: React.FC<Props> = ({
         <Box
           sx={{
             width: "100%",
-            maxWidth: 420,
+            maxWidth: anchoMaximoCompacto,
             mx: "auto",
             px: 1.4,
             py: 2,
@@ -1647,7 +1652,7 @@ const ProductDetail: React.FC<Props> = ({
           <Box
             sx={{
               width: "100%",
-              maxWidth: 420,
+              maxWidth: anchoMaximoCompacto,
               mx: "auto",
               borderRadius: "22px",
               border: "1px solid rgba(250,204,21,0.18)",

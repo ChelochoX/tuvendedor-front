@@ -35,16 +35,35 @@ const CANTIDADES_RAPIDAS = [0.25, 0.5, 0.75, 1];
 const CANTIDAD_MINIMA_PEDIDO = 0.25;
 
 const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
-  if (!telefono) return "";
-
-  let numero = telefono.replace(/\D/g, "");
-
-  if (numero.startsWith("0")) {
-    numero = `595${numero.slice(1)}`;
+  if (!telefono) {
+    return "";
   }
 
-  if (!numero.startsWith("595")) {
-    numero = `595${numero}`;
+  const numero = telefono.replace(/\D/g, "");
+
+  if (!numero) {
+    return "";
+  }
+
+  // Corrige casos cargados o generados como 5950982121269.
+  // El formato correcto para WhatsApp Paraguay es 595982121269.
+  if (numero.startsWith("5950")) {
+    return `595${numero.substring(4)}`;
+  }
+
+  // Si ya viene en formato internacional, lo dejamos igual.
+  if (numero.startsWith("595")) {
+    return numero;
+  }
+
+  // Si viene como 0982121269, quitamos el 0 inicial y agregamos 595.
+  if (numero.startsWith("0")) {
+    return `595${numero.substring(1)}`;
+  }
+
+  // Si viene como 982121269, agregamos 595.
+  if (numero.startsWith("9")) {
+    return `595${numero}`;
   }
 
   return numero;
@@ -215,13 +234,13 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
     modalidad: "Retiro / coordinar" | "Delivery",
     ubicacionCliente?: string,
   ) => {
-    const ICONO_PEDIDO = "\u{1F6D2}";
-    const ICONO_TOTAL = "\u{1F4B0}";
-    const ICONO_DELIVERY = "\u{1F6F5}";
-    const ICONO_RETIRO = "\u{1F3EC}";
-    const ICONO_PAGO = "\u{1F4B3}";
-    const ICONO_UBICACION = "\u{1F4CD}";
-    const ICONO_CHECK = "\u{2705}";
+    const ICONO_PEDIDO = String.fromCodePoint(0x1f6d2);
+    const ICONO_TOTAL = String.fromCodePoint(0x1f4b0);
+    const ICONO_DELIVERY = String.fromCodePoint(0x1f6f5);
+    const ICONO_RETIRO = String.fromCodePoint(0x1f3ec);
+    const ICONO_PAGO = String.fromCodePoint(0x1f4b3);
+    const ICONO_UBICACION = String.fromCodePoint(0x1f4cd);
+    const ICONO_CHECK = String.fromCodePoint(0x2705);
 
     const lineasProductos = items
       .map((item, index) => {

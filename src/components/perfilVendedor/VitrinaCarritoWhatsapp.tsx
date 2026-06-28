@@ -154,7 +154,13 @@ const abrirWhatsapp = (
     return;
   }
 
-  const url = `https://wa.me/${numero}?text=${encodeURIComponent(mensaje)}`;
+  const params = new URLSearchParams();
+
+  params.set("phone", numero);
+  params.set("text", mensaje);
+
+  const url = `https://api.whatsapp.com/send?${params.toString()}`;
+
   window.open(url, "_blank", "noopener,noreferrer");
 };
 
@@ -209,6 +215,14 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
     modalidad: "Retiro / coordinar" | "Delivery",
     ubicacionCliente?: string,
   ) => {
+    const ICONO_PEDIDO = "\u{1F6D2}";
+    const ICONO_TOTAL = "\u{1F4B0}";
+    const ICONO_DELIVERY = "\u{1F6F5}";
+    const ICONO_RETIRO = "\u{1F3EC}";
+    const ICONO_PAGO = "\u{1F4B3}";
+    const ICONO_UBICACION = "\u{1F4CD}";
+    const ICONO_CHECK = "\u{2705}";
+
     const lineasProductos = items
       .map((item, index) => {
         const producto = item.publicacion;
@@ -229,28 +243,38 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
     const textoDelivery =
       modalidad === "Delivery"
         ? `
-🚚 Datos de delivery:
-${zonaDelivery ? `Zona: ${zonaDelivery}` : "Zona: A coordinar"}
-${costoDelivery ? `Costo: ${costoDelivery}` : "Costo: A coordinar"}
-${tiempoDelivery ? `Tiempo estimado: ${tiempoDelivery}` : "Tiempo estimado: A coordinar"}`
+${ICONO_DELIVERY} Datos de delivery:
+Zona: ${zonaDelivery || "A coordinar"}
+Costo: ${costoDelivery || "A coordinar"}
+Tiempo estimado: ${tiempoDelivery || "A coordinar"}`
         : `
-🏬 Modalidad:
+${ICONO_RETIRO} Modalidad:
 Retiro / coordinar con el vendedor`;
+
+    const textoUbicacion =
+      ubicacionCliente && ubicacionCliente.trim()
+        ? `
+
+${ICONO_UBICACION} Ubicación / dirección del cliente:
+${ubicacionCliente.trim()}`
+        : "";
 
     return `Hola, quiero hacer este pedido desde la vitrina de ${nombreVendedor}.
 
-🛒 Pedido:
+${ICONO_PEDIDO} Pedido:
 ${lineasProductos}
 
-💰 Total productos: ${totalTexto}
-💵 Total a cobrar: ${totalTexto}${modalidad === "Delivery" && costoDelivery ? " + costo de delivery" : ""}
+${ICONO_TOTAL} Total productos: ${totalTexto}
+${ICONO_TOTAL} Total a cobrar: ${totalTexto}${
+      modalidad === "Delivery" && costoDelivery ? " + costo de delivery" : ""
+    }
 
 ${textoDelivery}
 
-💳 Forma de pago: A coordinar
-${ubicacionCliente ? `\n📍 Ubicación / dirección del cliente:\n${ubicacionCliente}` : ""}
+${ICONO_PAGO} Forma de pago:
+A coordinar${textoUbicacion}
 
-Por favor confirmame disponibilidad, medida final y total final.`;
+${ICONO_CHECK} Favor confirmar disponibilidad y total final. Gracias.`;
   };
 
   const enviarPedidoRetiro = () => {

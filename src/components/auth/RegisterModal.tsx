@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { register, verificarUsuarioLogin } from "../../api/authService";
 import Swal from "sweetalert2";
 import { obtenerCategorias } from "../../api/publicacionesService";
+import { prepararCategoriasMarketplace } from "../../utils/categorias";
 
 interface Props {
   open: boolean;
@@ -91,7 +92,12 @@ const RegisterModal: React.FC<Props> = ({ open, onClose, datosPrevios }) => {
     const fetchCategorias = async () => {
       try {
         const data = await obtenerCategorias();
-        setCategorias(data); // se espera { id, nombre, ... }
+
+        setCategorias(
+          prepararCategoriasMarketplace(data).filter(
+            (categoria) => categoria.nombre !== "Todos",
+          ),
+        );
       } catch (e) {
         console.error("Error al cargar categorías", e);
       }

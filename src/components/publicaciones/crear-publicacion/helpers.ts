@@ -50,6 +50,7 @@ export const categoriasGenerales = [
   "Educación",
   "Servicios",
   "Servicios profesionales",
+  "Desarrollo de Sistemas",
   "Plomería",
   "Electricidad",
   "Albañilería",

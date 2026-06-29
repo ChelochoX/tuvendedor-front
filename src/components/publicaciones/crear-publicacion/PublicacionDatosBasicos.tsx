@@ -59,59 +59,59 @@ const categoriaPuedeTenerDelivery = (valor?: string | null): boolean => {
   if (esCategoriaVehiculoOInmueble(texto)) return false;
 
   return [
-  "bebida",
-  "bebidas",
-  "despensa",
-  "almacen",
-  "almacén",
-  "minimercado",
-  "supermercado",
-  "bodega",
-  "panaderia",
-  "panadería",
-  "confiteria",
-  "confitería",
-  "rotiseria",
-  "rotisería",
-  "comida",
-  "comidas",
-  "alimento",
-  "alimentos",
-  "heladeria",
-  "heladería",
-  "farmacia",
-  "ferreteria",
-  "ferretería",
-  "herramienta",
-  "herramientas",
-  "ropa",
-  "calzado",
-  "calzados",
-  "moda",
-  "accesorio",
-  "accesorios",
-  "electronica",
-  "electrónica",
-  "celular",
-  "celulares",
-  "informatica",
-  "informática",
-  "hogar",
-  "mueble",
-  "muebles",
-  "mascota",
-  "mascotas",
-  "libreria",
-  "librería",
-  "oficina",
-  "artesania",
-  "artesanía",
-  "artesanias",
-  "artesanías",
-  "emprendedores",
-  "producto",
-  "productos",
-].some((palabra) => texto.includes(palabra));
+    "bebida",
+    "bebidas",
+    "despensa",
+    "almacen",
+    "almacén",
+    "minimercado",
+    "supermercado",
+    "bodega",
+    "panaderia",
+    "panadería",
+    "confiteria",
+    "confitería",
+    "rotiseria",
+    "rotisería",
+    "comida",
+    "comidas",
+    "alimento",
+    "alimentos",
+    "heladeria",
+    "heladería",
+    "farmacia",
+    "ferreteria",
+    "ferretería",
+    "herramienta",
+    "herramientas",
+    "ropa",
+    "calzado",
+    "calzados",
+    "moda",
+    "accesorio",
+    "accesorios",
+    "electronica",
+    "electrónica",
+    "celular",
+    "celulares",
+    "informatica",
+    "informática",
+    "hogar",
+    "mueble",
+    "muebles",
+    "mascota",
+    "mascotas",
+    "libreria",
+    "librería",
+    "oficina",
+    "artesania",
+    "artesanía",
+    "artesanias",
+    "artesanías",
+    "emprendedores",
+    "producto",
+    "productos",
+  ].some((palabra) => texto.includes(palabra));
 };
 
 const PublicacionDatosBasicos: React.FC<Props> = ({
@@ -123,12 +123,25 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
   onPrecio,
 }) => {
   const [categoriaAbierta, setCategoriaAbierta] = useState(false);
+  const [categoriaBusqueda, setCategoriaBusqueda] = useState("");
+
   const categoriaRef = useRef<HTMLDivElement | null>(null);
+  const categoriaBusquedaRef = useRef<HTMLInputElement | null>(null);
 
   const categoriaSeleccionada = useMemo(
     () => categorias.find((categoria) => categoria.nombre === form.categoria),
     [categorias, form.categoria],
   );
+
+  const categoriasFiltradas = useMemo(() => {
+    const busqueda = normalizarTexto(categoriaBusqueda);
+
+    if (!busqueda) return categorias;
+
+    return categorias.filter((categoria) => {
+      return normalizarTexto(categoria.nombre).includes(busqueda);
+    });
+  }, [categorias, categoriaBusqueda]);
 
   const categoriaSoportaDelivery = categoriaPuedeTenerDelivery(form.categoria);
   const puedeMostrarDelivery =
@@ -169,6 +182,21 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
     };
   }, [categoriaAbierta]);
 
+  useEffect(() => {
+    if (!categoriaAbierta) {
+      setCategoriaBusqueda("");
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      categoriaBusquedaRef.current?.focus();
+    }, 80);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [categoriaAbierta]);
+
   const seleccionarCategoria = (nombre: string) => {
     onCampo("categoria", nombre);
 
@@ -176,7 +204,12 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
       onCampo("permiteDelivery", false);
     }
 
+    setCategoriaBusqueda("");
     setCategoriaAbierta(false);
+  };
+
+  const abrirCerrarCategorias = () => {
+    setCategoriaAbierta((actual) => !actual);
   };
 
   return (
@@ -225,7 +258,7 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
           <div ref={categoriaRef} className="relative">
             <button
               type="button"
-              onClick={() => setCategoriaAbierta((actual) => !actual)}
+              onClick={abrirCerrarCategorias}
               aria-haspopup="listbox"
               aria-expanded={categoriaAbierta}
               className={`flex w-full items-center justify-between gap-3 rounded-2xl border bg-[#070b13] px-4 py-3 text-left text-white outline-none transition ${
@@ -264,6 +297,22 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
 
             {categoriaAbierta && (
               <div className="absolute left-0 right-0 top-full z-[90] mt-2 overflow-hidden rounded-2xl border border-yellow-400/30 bg-[#05070b] shadow-[0_18px_45px_rgba(0,0,0,0.55)]">
+                <div className="border-b border-white/10 p-2">
+                  <input
+                    ref={categoriaBusquedaRef}
+                    value={categoriaBusqueda}
+                    onChange={(e) => setCategoriaBusqueda(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && categoriasFiltradas.length > 0) {
+                        e.preventDefault();
+                        seleccionarCategoria(categoriasFiltradas[0].nombre);
+                      }
+                    }}
+                    className="w-full rounded-xl border border-white/10 bg-[#070b13] px-3 py-2 text-sm text-white outline-none transition placeholder:text-gray-500 focus:border-yellow-400/70 focus:bg-black"
+                    placeholder="Buscar categoría..."
+                  />
+                </div>
+
                 <div
                   role="listbox"
                   className="tv-categoria-scroll max-h-[260px] overflow-y-auto p-1.5"
@@ -283,31 +332,37 @@ const PublicacionDatosBasicos: React.FC<Props> = ({
                     <span className="truncate">Seleccioná una categoría</span>
                   </button>
 
-                  {categorias.map((categoria) => {
-                    const activa = categoria.nombre === form.categoria;
+                  {categoriasFiltradas.length > 0 ? (
+                    categoriasFiltradas.map((categoria) => {
+                      const activa = categoria.nombre === form.categoria;
 
-                    return (
-                      <button
-                        key={categoria.nombre}
-                        type="button"
-                        role="option"
-                        aria-selected={activa}
-                        onClick={() => seleccionarCategoria(categoria.nombre)}
-                        className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
-                          activa
-                            ? "bg-yellow-400 text-black font-bold"
-                            : "text-white hover:bg-yellow-400/10 hover:text-yellow-200"
-                        }`}
-                      >
-                        <span className="w-5 shrink-0 text-base">
-                          {categoria.icono || "📦"}
-                        </span>
-                        <span className="min-w-0 truncate">
-                          {categoria.nombre}
-                        </span>
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={categoria.nombre}
+                          type="button"
+                          role="option"
+                          aria-selected={activa}
+                          onClick={() => seleccionarCategoria(categoria.nombre)}
+                          className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm transition ${
+                            activa
+                              ? "bg-yellow-400 text-black font-bold"
+                              : "text-white hover:bg-yellow-400/10 hover:text-yellow-200"
+                          }`}
+                        >
+                          <span className="w-5 shrink-0 text-base">
+                            {categoria.icono || "📦"}
+                          </span>
+                          <span className="min-w-0 truncate">
+                            {categoria.nombre}
+                          </span>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <div className="px-3 py-4 text-center text-xs leading-5 text-gray-400">
+                      No encontramos categorías con ese texto.
+                    </div>
+                  )}
                 </div>
               </div>
             )}

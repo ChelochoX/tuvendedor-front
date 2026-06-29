@@ -20,7 +20,8 @@ import {
   CategoriaPublicacionOption,
   PublicacionEditable,
 } from "../../types/publicacion.types";
-import { obtenerIconoCategoria } from "../../utils/categoriaIconos";
+
+import { prepararCategoriasPublicacion } from "../../utils/categorias";
 
 import { useCrearPublicacionForm } from "./hooks/useCrearPublicacionForm";
 import PublicacionDatosBasicos from "./crear-publicacion/PublicacionDatosBasicos";
@@ -187,21 +188,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
         if (cancelado) return;
 
-        const categoriasMapeadas = data
-          .filter(
-            (c) => c.nombre && c.nombre.trim() !== "" && c.nombre !== "Todos",
-          )
-          .map((c) => {
-            const nombre = c.nombre.trim();
-
-            return {
-              id: c.id,
-              nombre,
-              icono: c.icono || obtenerIconoCategoria(nombre),
-            };
-          });
-
-        setCategoriasRemotas(categoriasMapeadas);
+        setCategoriasRemotas(prepararCategoriasPublicacion(data));
       } catch (error) {
         console.error("Error al cargar categorías para el modal:", error);
         setCategoriasRemotas([]);
@@ -223,37 +210,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
           ? categorias
           : [];
 
-    const categoriasLimpias = fuente
-      .filter((c) => c.nombre && c.nombre.trim() !== "" && c.nombre !== "Todos")
-      .reduce<CategoriaPublicacionOption[]>((acc, categoria) => {
-        const nombre = categoria.nombre.trim();
-
-        const yaExiste = acc.some(
-          (item) => item.nombre.trim().toLowerCase() === nombre.toLowerCase(),
-        );
-
-        if (!yaExiste) {
-          acc.push({
-            ...categoria,
-            nombre,
-            icono: categoria.icono || obtenerIconoCategoria(nombre),
-          });
-        }
-
-        return acc;
-      }, [])
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-
-    if (categoriasLimpias.length > 0) {
-      return categoriasLimpias;
-    }
-
-    return categoriasGenerales
-      .map((nombre) => ({
-        nombre,
-        icono: obtenerIconoCategoria(nombre),
-      }))
-      .sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
+    return prepararCategoriasPublicacion(fuente, categoriasGenerales);
   }, [categorias, categoriasRemotas]);
 
   const googleMapsUrlFinal = useMemo(() => {

@@ -22,7 +22,7 @@ import {
 
 import { useUsuario } from "../context/UsuarioContext";
 import { useBannersHome } from "../hooks/useBannersHome";
-import { obtenerIconoCategoria } from "../utils/categoriaIconos";
+import { prepararCategoriasMarketplace } from "../utils/categorias";
 
 type DatosPreviosRegistro = {
   email?: string;
@@ -151,15 +151,7 @@ const Marketplace: React.FC = () => {
       try {
         const data = await obtenerCategorias();
 
-        const categoriasConIconos = data.map((c) => ({
-          ...c,
-          icono: obtenerIconoCategoria(c.nombre),
-        }));
-
-        setCategorias([
-          { id: 0, nombre: "Todos", icono: "🌐" },
-          ...categoriasConIconos,
-        ]);
+        setCategorias(prepararCategoriasMarketplace(data));
       } catch (error) {
         console.error("Error al cargar categorías:", error);
         setCategorias([{ id: 0, nombre: "Todos", icono: "🌐" }]);

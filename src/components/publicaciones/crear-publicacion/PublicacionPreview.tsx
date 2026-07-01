@@ -1,6 +1,9 @@
 import React from "react";
 import { CreditCard } from "lucide-react";
-import { CrearPublicacionForm } from "../../../types/publicacion.types";
+import {
+  CrearPublicacionForm,
+  ImagenExistenteEditable,
+} from "../../../types/publicacion.types";
 
 interface PreviewArchivo {
   archivo: File;
@@ -11,6 +14,7 @@ interface PreviewArchivo {
 interface Props {
   form: CrearPublicacionForm;
   previews: PreviewArchivo[];
+  imagenesExistentes?: ImagenExistenteEditable[];
 }
 
 const formatearPrecioPreview = (
@@ -36,8 +40,19 @@ const formatearPrecioPreview = (
   return `Gs. ${textoPrecio}`;
 };
 
-const PublicacionPreview: React.FC<Props> = ({ form, previews }) => {
+const PublicacionPreview: React.FC<Props> = ({
+  form,
+  previews,
+  imagenesExistentes = [],
+}) => {
   const principal = previews[0];
+
+  const imagenExistentePrincipal = imagenesExistentes[0];
+
+  const imagenExistenteUrl =
+    imagenExistentePrincipal?.thumbUrl ||
+    imagenExistentePrincipal?.mainUrl ||
+    "";
 
   const monedaSeleccionada =
     form.moneda?.trim().toUpperCase() ||
@@ -64,6 +79,12 @@ const PublicacionPreview: React.FC<Props> = ({ form, previews }) => {
                 className="h-full w-full object-cover"
               />
             )
+          ) : imagenExistenteUrl ? (
+            <img
+              src={imagenExistenteUrl}
+              alt="Imagen actual"
+              className="h-full w-full object-cover"
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-gray-400">
               Previsualización del producto

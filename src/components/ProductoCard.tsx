@@ -116,6 +116,109 @@ const ProductoCard: React.FC<Props> = ({
     ? producto.imagenes
     : [];
 
+  const escaparHtml = (valor?: string | number | null) =>
+    String(valor ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  const obtenerImagenPrincipalParaPreview = () => {
+    const primeraImagen = imagenesProducto[0];
+
+    const thumbUrl = primeraImagen?.thumbUrl;
+    const mainUrl = primeraImagen?.mainUrl;
+
+    if (thumbUrl) return thumbUrl;
+
+    if (mainUrl && !mainUrl.toLowerCase().endsWith(".mp4")) {
+      return mainUrl;
+    }
+
+    return "https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=900";
+  };
+
+  const construirVistaCarruselEspecialHtml = () => {
+    const imagen = escaparHtml(obtenerImagenPrincipalParaPreview());
+    const titulo = escaparHtml(producto.nombre || "Tu publicación");
+    const precio = escaparHtml(
+      formatearPrecio(producto.precio, producto.moneda),
+    );
+    const ubicacion = escaparHtml(producto.ubicacion || "Tu ubicación");
+
+    return `
+    <div class="tv-premium-carousel-preview">
+      <div class="tv-premium-carousel-preview__header">
+        <div>
+          <p class="tv-premium-carousel-preview__eyebrow">
+            Vista previa
+          </p>
+          <h3 class="tv-premium-carousel-preview__title">
+            Así aparecería en el carrusel principal
+          </h3>
+        </div>
+
+        <span class="tv-premium-carousel-preview__tag">
+          🎉 Especial
+        </span>
+      </div>
+
+      <div class="tv-premium-carousel-preview__stage">
+        <div class="tv-premium-carousel-preview__section-title">
+          Especiales destacados
+        </div>
+
+        <div class="tv-premium-carousel-preview__cards">
+          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
+            <div class="tv-premium-carousel-preview__ghost-image"></div>
+            <div class="tv-premium-carousel-preview__ghost-line"></div>
+            <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
+          </div>
+
+          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--active">
+            <div class="tv-premium-carousel-preview__image-wrap">
+              <img
+                src="${imagen}"
+                alt="${titulo}"
+                class="tv-premium-carousel-preview__image"
+              />
+
+              <span class="tv-premium-carousel-preview__badge">
+                Campaña especial
+              </span>
+            </div>
+
+            <div class="tv-premium-carousel-preview__content">
+              <p class="tv-premium-carousel-preview__product-title">
+                ${titulo}
+              </p>
+
+              <p class="tv-premium-carousel-preview__price">
+                ${precio}
+              </p>
+
+              <p class="tv-premium-carousel-preview__location">
+                ${ubicacion}
+              </p>
+            </div>
+          </div>
+
+          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
+            <div class="tv-premium-carousel-preview__ghost-image"></div>
+            <div class="tv-premium-carousel-preview__ghost-line"></div>
+            <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="tv-premium-carousel-preview__help">
+        Tu publicación se muestra con más presencia visual dentro del carrusel de campañas especiales.
+      </p>
+    </div>
+  `;
+  };
+
   const puedeCrearDestacado =
     esAdmin ||
     (usuario?.permisos?.includes("CrearPublicacionDestacada") ?? false);
@@ -139,6 +242,7 @@ const ProductoCard: React.FC<Props> = ({
     descripcion,
     beneficios,
     planes = [],
+    vistaPreviaHtml = "",
     notaTitulo,
     notaDescripcion,
     confirmButtonText = "Consultar por WhatsApp",
@@ -149,6 +253,7 @@ const ProductoCard: React.FC<Props> = ({
     descripcion: string;
     beneficios: string[];
     planes?: PlanPremium[];
+    vistaPreviaHtml?: string;
     notaTitulo: string;
     notaDescripcion: string;
     confirmButtonText?: string;
@@ -241,11 +346,13 @@ const ProductoCard: React.FC<Props> = ({
           </p>
         </div>
 
-        ${htmlPlanes}
+      ${vistaPreviaHtml}
 
-        <div class="tv-premium-modal__benefits">
-          ${htmlBeneficios}
-        </div>
+      ${htmlPlanes}
+
+      <div class="tv-premium-modal__benefits">
+        ${htmlBeneficios}
+      </div>
 
         <div class="tv-premium-modal__notice">
           <p class="tv-premium-modal__notice-title">
@@ -433,14 +540,15 @@ const ProductoCard: React.FC<Props> = ({
       badge: "🎉 Campaña especial",
       titulo: "Sumá tu publicación a una campaña destacada",
       descripcion:
-        "Elegí entre una publicación especial por días o una campaña de temporada para fechas comerciales reales.",
+        "Tu publicación puede aparecer dentro del carrusel principal de campañas especiales, con mayor presencia visual y badge destacado.",
       beneficios: [
-        "Presencia dentro del carrusel principal",
-        "Badge especial de temporada o campaña",
-        "Mayor exposición visual en fechas comerciales",
+        "Aparece dentro del carrusel principal",
+        "Se muestra con badge especial de campaña",
+        "Mayor exposición visual frente a otros productos",
         "Ideal para promociones, ofertas y lanzamientos",
       ],
       planes: [...PLANES_ESPECIAL, ...PLANES_ESPECIAL_TEMPORADA],
+      vistaPreviaHtml: construirVistaCarruselEspecialHtml(),
       notaTitulo: "Opciones disponibles",
       notaDescripcion:
         "Los planes por días se activan por 7, 15 o 30 días. Las campañas de temporada dependen de la fecha comercial activa y disponibilidad del espacio.",

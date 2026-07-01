@@ -6,6 +6,7 @@ import {
   LocateFixed,
   MapPin,
   Store,
+  Trash2,
   Wand2,
   X,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import {
 } from "../../api/publicacionesService";
 import {
   CategoriaPublicacionOption,
+  ImagenExistenteEditable,
   PublicacionEditable,
 } from "../../types/publicacion.types";
 
@@ -129,6 +131,9 @@ const CrearPublicacionModal: React.FC<Props> = ({
     googleMapsUrl: "",
   });
 
+  const [imagenesExistentesEditables, setImagenesExistentesEditables] =
+    useState<ImagenExistenteEditable[]>([]);
+
   const {
     form,
     previews,
@@ -161,6 +166,13 @@ const CrearPublicacionModal: React.FC<Props> = ({
             : "",
         googleMapsUrl: publicacionAEditar.googleMapsUrl ?? "",
       });
+
+      setImagenesExistentesEditables(
+        (publicacionAEditar.imagenesExistentes ?? []).filter((img) =>
+          Boolean(img.mainUrl),
+        ),
+      );
+
       return;
     }
 
@@ -169,6 +181,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
       longitud: "",
       googleMapsUrl: "",
     });
+
+    setImagenesExistentesEditables([]);
   }, [publicacionAEditar, modalAbierto]);
 
   const esModoVitrina = modo === "perfil-vendedor";
@@ -224,7 +238,9 @@ const CrearPublicacionModal: React.FC<Props> = ({
     return ubicacionGps.googleMapsUrl.trim();
   }, [ubicacionGps.latitud, ubicacionGps.longitud, ubicacionGps.googleMapsUrl]);
 
-  const imagenesExistentes = publicacionAEditar?.imagenesExistentes ?? [];
+  const imagenesExistentes = imagenesExistentesEditables;
+  const cantidadTotalImagenes =
+    imagenesExistentes.length + form.archivos.length;
 
   if (!modalAbierto) return null;
 
@@ -235,6 +251,14 @@ const CrearPublicacionModal: React.FC<Props> = ({
     if (!form.categoria.trim()) return "Seleccioná una categoría.";
     if (!esEdicion && !form.archivos.length) {
       return "Seleccioná al menos una imagen o video.";
+    }
+
+    if (esEdicion && cantidadTotalImagenes === 0) {
+      return "La publicación debe conservar o cargar al menos una imagen o video.";
+    }
+
+    if (cantidadTotalImagenes > 10) {
+      return "Máximo 10 imágenes o videos por publicación.";
     }
 
     const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
@@ -262,6 +286,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
       longitud: "",
       googleMapsUrl: "",
     });
+  };
+
+  const eliminarImagenExistente = (index: number) => {
+    setImagenesExistentesEditables((actuales) =>
+      actuales.filter((_, i) => i !== index),
+    );
+  };
+
+  const eliminarTodasImagenesExistentes = () => {
+    setImagenesExistentesEditables([]);
   };
 
   const actualizarUbicacionGps = (
@@ -424,6 +458,16 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
       if (googleMapsUrlFinal) {
         formData.append("GoogleMapsUrl", googleMapsUrlFinal);
+      }
+
+      if (esEdicion) {
+        formData.append("GestionarImagenes", "true");
+
+        imagenesExistentes.forEach((img) => {
+          if (img.mainUrl) {
+            formData.append("ImagenesConservar", img.mainUrl);
+          }
+        });
       }
 
       if (esEdicion && publicacionAEditar?.id) {
@@ -670,40 +714,71 @@ const CrearPublicacionModal: React.FC<Props> = ({
                       </h3>
                       <p className="mt-1 text-[13px] font-normal leading-5 text-gray-400">
                         {esEdicion
-                          ? "Podés agregar nuevas fotos o videos. Si no cargás archivos nuevos, se conservan los actuales."
+                          ? "Podés quitar imágenes actuales y agregar nuevas. Se guardará exactamente lo que quede seleccionado."
                           : "Agregá varias fotos para que la galería de la publicación se vea completa y profesional."}
                       </p>
                     </div>
                   </div>
 
-                  {esEdicion && imagenesExistentes.length > 0 && (
+                  {esEdicion && (
                     <div className="mb-5 rounded-2xl border border-emerald-400/10 bg-emerald-500/[0.04] p-4">
-                      <div className="mb-3 flex items-center justify-between gap-3">
+                      <div className="mb-3 flex items-start justify-between gap-3">
                         <div>
                           <h4 className="text-sm font-semibold text-emerald-200">
                             Imágenes actuales
                           </h4>
+
                           <p className="mt-1 text-xs leading-5 text-emerald-100/70">
-                            Estas imágenes ya están guardadas. Si agregás
-                            nuevas, se sumarán a la publicación.
+                            Tocá el basurero para quitar una imagen. Si agregás
+                            nuevas, se guardará exactamente lo que quede
+                            seleccionado.
                           </p>
                         </div>
+
+                        {imagenesExistentes.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={eliminarTodasImagenesExistentes}
+                            disabled={guardando}
+                            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1.5 text-xs font-semibold text-red-200 transition hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <Trash2 size={13} />
+                            Quitar todas
+                          </button>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                        {imagenesExistentes.map((img, index) => (
-                          <div
-                            key={`${img.mainUrl}-${index}`}
-                            className="overflow-hidden rounded-2xl border border-white/10 bg-black/20"
-                          >
-                            <img
-                              src={img.thumbUrl || img.mainUrl}
-                              alt={`Imagen actual ${index + 1}`}
-                              className="h-28 w-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
+                      {imagenesExistentes.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-yellow-400/25 bg-black/20 px-4 py-4 text-xs leading-5 text-yellow-100/75">
+                          No queda ninguna imagen actual. Agregá una nueva antes
+                          de guardar para reemplazar la publicación.
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                          {imagenesExistentes.map((img, index) => (
+                            <div
+                              key={`${img.mainUrl}-${index}`}
+                              className="group relative overflow-hidden rounded-2xl border border-white/10 bg-black/20"
+                            >
+                              <img
+                                src={img.thumbUrl || img.mainUrl}
+                                alt={`Imagen actual ${index + 1}`}
+                                className="h-28 w-full object-cover"
+                              />
+
+                              <button
+                                type="button"
+                                onClick={() => eliminarImagenExistente(index)}
+                                disabled={guardando}
+                                title="Quitar imagen"
+                                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-red-300/30 bg-red-600/90 text-white shadow-lg transition hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -729,7 +804,11 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
               <aside className="flex flex-col gap-5">
                 <div className="sticky top-0 space-y-5">
-                  <PublicacionPreview form={form} previews={previews} />
+                  <PublicacionPreview
+                    form={form}
+                    previews={previews}
+                    imagenesExistentes={imagenesExistentes}
+                  />
 
                   {googleMapsUrlFinal && (
                     <button

@@ -1,4 +1,4 @@
-// src/components/LoginModal.tsx
+// src/components/auth/LoginModal.tsx
 import React, { useState } from "react";
 import { auth, googleProvider } from "../../firebase/firebase";
 import { signInWithPopup } from "firebase/auth";
@@ -13,6 +13,8 @@ interface Props {
   onSwitchToRegister: (datosPrevios?: any) => void;
 }
 
+const LOGO_TUVENDEDOR = "/logoTuVendedorDark.png";
+
 const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
   const [loginInput, setLoginInput] = useState("");
   const [password, setPassword] = useState("");
@@ -25,14 +27,12 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       let payload: LoginRequest;
 
       if (input.includes("@")) {
-        // 👉 Es un email
         payload = {
           email: input,
           clave: password,
           tipoLogin: "clasico",
         };
       } else {
-        // 👉 Es un usuario
         payload = {
           usuarioLogin: input,
           clave: password,
@@ -43,13 +43,9 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       const data: LoginResponseData = await login(payload);
 
       if (data?.esNuevo) {
-        // 🔹 Solo pasamos datosPrevios si vienen realmente del proveedor (Google)
         const tieneDatosPrevios =
           data.datosPrevios && data.datosPrevios.tipoLogin === "google";
-        console.log(
-          "Datos previos para registro:",
-          tieneDatosPrevios ? data.datosPrevios : null,
-        );
+
         onSwitchToRegister(tieneDatosPrevios ? data.datosPrevios : null);
         return;
       }
@@ -57,23 +53,24 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
       if (data?.parTokens?.bearerToken) {
         localStorage.setItem("token", data.parTokens.bearerToken);
         localStorage.setItem("usuario", data?.parUsuario?.nombreUsuario || "");
-        localStorage.setItem("fotoUrl", ""); // clásico no trae foto
+        localStorage.setItem("fotoUrl", "");
 
-        // ✅ Guardamos todos los roles, no solo el primero
         const roles = data?.parUsuario?.roles || ["Comprador"];
         const permisos = data?.parUsuario?.permisos || [];
+
         localStorage.setItem("roles", JSON.stringify(roles));
         localStorage.setItem("permisos", JSON.stringify(permisos));
       }
 
-      // 👇 Guardar en contexto
       setUsuario({
         nombreUsuario: data?.parUsuario?.nombreUsuario || "",
-        fotoUrl: undefined, // clásico no trae foto
-        roles: data?.parUsuario?.roles || ["Comprador"], // 👈
+        fotoUrl: undefined,
+        roles: data?.parUsuario?.roles || ["Comprador"],
         permisos: data?.parUsuario?.permisos || [],
       });
+
       window.dispatchEvent(new Event("usuario-actualizado"));
+      window.dispatchEvent(new Event("login-exitoso"));
 
       Swal.fire({
         icon: "success",
@@ -82,6 +79,7 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         timer: 2000,
         showConfirmButton: false,
       });
+
       onClose();
     } catch (error: any) {
       let msg = "Error al iniciar sesión";
@@ -90,11 +88,14 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         msg = "El usuario o la contraseña no son correctos.";
       } else if (error.response?.data?.Message) {
         msg = error.response.data.Message;
+      } else if (error.message) {
+        msg = error.message;
       }
+
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error.message || "Error al iniciar sesión",
+        text: msg,
       });
     }
   };
@@ -123,21 +124,21 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
         localStorage.setItem("usuario", nombre);
         localStorage.setItem("fotoUrl", fotoUrl);
 
-        // ✅ Guardamos todos los roles, no solo el primero
         const roles = data?.parUsuario?.roles || ["Comprador"];
         const permisos = data?.parUsuario?.permisos || [];
+
         localStorage.setItem("roles", JSON.stringify(roles));
         localStorage.setItem("permisos", JSON.stringify(permisos));
 
-        // 👇 Guardar en contexto
         setUsuario({
           nombreUsuario: nombre,
-          fotoUrl: fotoUrl,
+          fotoUrl,
           roles,
           permisos,
         });
 
         window.dispatchEvent(new Event("usuario-actualizado"));
+        window.dispatchEvent(new Event("login-exitoso"));
 
         Swal.fire({
           icon: "success",
@@ -145,6 +146,7 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
           timer: 3000,
           showConfirmButton: false,
         });
+
         onClose();
       }
     } catch (error: any) {
@@ -159,89 +161,120 @@ const LoginModal: React.FC<Props> = ({ open, onClose, onSwitchToRegister }) => {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-      <div className="bg-[#1a1a1a] p-6 rounded-lg w-[90%] max-w-md text-white relative">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 px-4 py-3 backdrop-blur-sm">
+      <div className="relative isolate w-[92%] max-w-md overflow-hidden rounded-[28px] border border-yellow-400/15 bg-[#15171d] px-6 pb-6 pt-7 text-white shadow-[0_22px_80px_rgba(0,0,0,0.65)]">
+        {/* Luz superior suave */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-yellow-400/10 via-yellow-400/[0.04] to-transparent" />
+
+        {/* Brillo detrás del logo */}
+        <div className="pointer-events-none absolute left-1/2 top-11 h-24 w-56 -translate-x-1/2 rounded-full bg-yellow-400/[0.08] blur-3xl" />
+
         <button
           onClick={onClose}
-          className="absolute top-2 right-3 text-white text-xl"
+          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-lg text-white transition hover:bg-white/20"
+          aria-label="Cerrar"
         >
           ×
         </button>
-        <h2 className="text-xl font-bold mb-4 text-yellow-400">
-          Iniciar Sesión
-        </h2>
 
-        <div className="flex flex-col gap-3">
+        <div className="relative mb-5 flex flex-col items-center text-center">
+          {/* Logo integrado al fondo */}
+          <div className="relative mb-2 flex h-[58px] w-full items-center justify-center overflow-visible sm:h-[74px]">
+            <img
+              src={LOGO_TUVENDEDOR}
+              alt="TuVendedor"
+              className="h-auto w-[158px] object-contain mix-blend-lighten drop-shadow-[0_8px_24px_rgba(0,0,0,0.55)] sm:w-[198px]"
+            />
+          </div>
+
+          <div className="mt-1 flex flex-col items-center gap-2">
+            <h2 className="text-[21px] font-black leading-none tracking-tight text-white sm:text-[24px]">
+              Iniciar sesión
+            </h2>
+
+            <span className="h-1 w-12 rounded-full bg-yellow-400/90" />
+          </div>
+        </div>
+
+        <div className="relative flex flex-col gap-3">
           <div>
-            <label className="text-sm text-white">Correo o usuario</label>
+            <label className="mb-1 block text-sm font-semibold text-white">
+              Correo o usuario
+            </label>
+
             <input
               type="text"
-              autoComplete="username" // 👈 permite que autocomplete funcione bien pero aislado
+              autoComplete="username"
               name="usuarioLogin"
               value={loginInput}
               onChange={(e) => setLoginInput(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white text-black"
+              className="w-full rounded-xl border border-white/10 bg-white px-4 py-2.5 text-black shadow-sm outline-none transition focus:ring-2 focus:ring-yellow-400"
             />
           </div>
+
           <div>
-            <label className="text-sm text-white">Contraseña</label>
+            <label className="mb-1 block text-sm font-semibold text-white">
+              Contraseña
+            </label>
+
             <input
               type="password"
-              autoComplete="current-password" // 👈 para campos de login
+              autoComplete="current-password"
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white text-black"
+              className="w-full rounded-xl border border-white/10 bg-white px-4 py-2.5 text-black shadow-sm outline-none transition focus:ring-2 focus:ring-yellow-400"
             />
           </div>
 
           <button
             onClick={handleLogin}
-            className="bg-yellow-400 text-black font-semibold py-2 rounded hover:bg-yellow-300"
+            className="mt-1 rounded-xl bg-yellow-400 py-2.5 font-black text-black shadow-lg shadow-yellow-400/10 transition hover:bg-yellow-300"
           >
             INICIAR SESIÓN
           </button>
 
-          <div className="flex items-center my-4">
-            <hr className="flex-grow border-t border-gray-600" />
-            <span className="mx-3 text-gray-400 text-sm">o ingresá con</span>
-            <hr className="flex-grow border-t border-gray-600" />
+          <div className="my-3 flex items-center">
+            <hr className="flex-grow border-t border-gray-700" />
+            <span className="mx-3 text-xs text-gray-400">o ingresá con</span>
+            <hr className="flex-grow border-t border-gray-700" />
           </div>
 
           <div className="flex justify-center gap-4">
             <button
               onClick={handleGoogleLogin}
-              className="bg-white text-black py-2 px-4 rounded-full hover:bg-gray-100 flex items-center justify-center"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-black shadow-md transition hover:scale-105 hover:bg-gray-100"
+              aria-label="Ingresar con Google"
             >
               <img
                 src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/google/google-original.svg"
                 alt="Google"
-                className="w-6 h-6"
+                className="h-6 w-6"
               />
             </button>
           </div>
 
-          <p className="text-sm text-center mt-2">
+          <p className="mt-2 text-center text-sm">
             ¿No tenés cuenta?{" "}
             <span
               onClick={() => {
-                onClose(); // 🔹 Cierra el modal de login
-                onSwitchToRegister(null); // 🔹 Abre el registro limpio
+                onClose();
+                onSwitchToRegister(null);
               }}
-              className="text-yellow-400 cursor-pointer font-medium"
+              className="cursor-pointer font-bold text-yellow-400 hover:underline"
             >
               Registrate
             </span>
           </p>
 
-          <p className="text-sm text-center mt-2">
+          <p className="text-center text-sm">
             ¿Olvidaste tu contraseña?{" "}
             <span
               onClick={() => {
-                onClose(); // cerrar login
-                window.dispatchEvent(new Event("abrir-recuperar")); // abrir modal recuperar
+                onClose();
+                window.dispatchEvent(new Event("abrir-recuperar"));
               }}
-              className="text-yellow-400 cursor-pointer font-medium"
+              className="cursor-pointer font-bold text-yellow-400 hover:underline"
             >
               Recuperar
             </span>

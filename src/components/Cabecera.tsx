@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useUsuario } from "../context/UsuarioContext";
 
 interface CabeceraProps {
@@ -8,8 +8,51 @@ interface CabeceraProps {
 
 const LOGO_TUVENDEDOR = "/logoTuVendedorDark.png";
 
+const obtenerNombreCorto = (nombre?: string | null) => {
+  const limpio = nombre?.trim();
+
+  if (!limpio) return "Usuario";
+
+  const partes = limpio.split(/\s+/).filter(Boolean);
+
+  return partes.slice(0, 2).join(" ");
+};
+
 const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
   const { usuario, cerrarSesion } = useUsuario();
+  const headerRef = useRef<HTMLElement | null>(null);
+
+  const nombreCortoUsuario = obtenerNombreCorto(usuario?.nombreUsuario);
+
+  useEffect(() => {
+    const actualizarAlturaCabecera = () => {
+      const altura = headerRef.current?.offsetHeight ?? 120;
+
+      document.documentElement.style.setProperty(
+        "--tv-header-height",
+        `${altura}px`,
+      );
+    };
+
+    actualizarAlturaCabecera();
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(actualizarAlturaCabecera)
+        : null;
+
+    if (headerRef.current && resizeObserver) {
+      resizeObserver.observe(headerRef.current);
+    }
+
+    window.addEventListener("resize", actualizarAlturaCabecera);
+
+    return () => {
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", actualizarAlturaCabecera);
+      document.documentElement.style.removeProperty("--tv-header-height");
+    };
+  }, []);
 
   const volverAlMarketplace = () => {
     window.dispatchEvent(new Event("cerrar-sidebar"));
@@ -17,7 +60,10 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
   };
 
   return (
-    <header className="sticky top-0 z-[60] w-full border-b-2 border-[#facc15] bg-[linear-gradient(180deg,#050506_0%,#0b0d12_100%)] text-white shadow-lg">
+    <header
+      ref={headerRef}
+      className="sticky top-0 z-[60] w-full border-b-2 border-[#facc15] bg-[linear-gradient(180deg,#050506_0%,#0b0d12_100%)] text-white shadow-lg"
+    >
       {/* ===========================================
           CABECERA ESCRITORIO
       ============================================ */}
@@ -99,7 +145,7 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
           CABECERA MOBILE
       ============================================ */}
       <div className="flex flex-col gap-2 px-4 py-3 md:hidden">
-        {/* Línea 1: menú + logo + usuario */}
+        {/* Línea 1: menú + logo + acciones */}
         <div className="relative flex min-h-[48px] items-center justify-between">
           {/* Botón hamburguesa */}
           <button
@@ -114,19 +160,19 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
           <button
             type="button"
             onClick={volverAlMarketplace}
-            className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-transparent"
+            className="absolute left-1/2 top-1/2 flex w-[160px] -translate-x-1/2 -translate-y-1/2 items-center justify-center bg-transparent"
             aria-label="Ir al inicio de TuVendedor"
           >
             <img
               src={LOGO_TUVENDEDOR}
               alt="TuVendedor"
-              className="h-auto w-[122px] object-contain drop-shadow-[0_5px_14px_rgba(0,0,0,0.6)]"
+              className="h-auto w-[122px] -translate-x-[8px] object-contain drop-shadow-[0_5px_14px_rgba(0,0,0,0.6)]"
             />
           </button>
 
-          {/* Usuario */}
+          {/* Acciones usuario */}
           {usuario ? (
-            <div className="z-10 flex items-center gap-2">
+            <div className="z-10 flex items-center gap-1.5">
               <img
                 src={
                   usuario.fotoUrl?.trim()
@@ -139,7 +185,7 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
 
               <button
                 onClick={cerrarSesion}
-                className="rounded-full bg-red-500 px-3 py-1 text-xs text-white transition hover:bg-red-400"
+                className="rounded-full bg-red-500 px-3 py-1.5 text-[11px] font-bold leading-none text-white transition hover:bg-red-400"
               >
                 Cerrar
               </button>
@@ -155,10 +201,15 @@ const Cabecera: React.FC<CabeceraProps> = ({ busqueda, setBusqueda }) => {
           )}
         </div>
 
-        {/* Nombre del usuario debajo */}
+        {/* Nombre mobile profesional */}
         {usuario && (
-          <div className="-mt-1 pr-3 text-right text-xs font-medium opacity-90">
-            {usuario.nombreUsuario}
+          <div className="flex justify-center">
+            <div className="max-w-[210px] rounded-full border border-yellow-400/20 bg-black/35 px-3 py-[3px] text-center text-[10px] font-semibold leading-none text-yellow-100/90 shadow-inner">
+              <span className="text-white/45">Hola, </span>
+              <span className="inline-block max-w-[150px] truncate align-bottom text-yellow-100">
+                {nombreCortoUsuario}
+              </span>
+            </div>
           </div>
         )}
 

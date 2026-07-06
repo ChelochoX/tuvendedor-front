@@ -100,12 +100,24 @@ const CategoriasPanel: React.FC<Props> = ({
     "w-full flex items-center justify-center gap-2 px-3 py-1.5 rounded-full font-semibold text-sm text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all";
 
   const botonMobileClass =
-    "flex items-center justify-center gap-2 px-3 py-1.5 rounded-full text-sm text-yellow-400 border border-yellow-400 hover:bg-yellow-400 hover:text-black transition-all";
-
+    "flex min-h-[32px] w-full items-center justify-center gap-1.5 rounded-full border border-yellow-400 px-3 py-1 text-[12px] font-semibold leading-none text-yellow-400 transition-all hover:bg-yellow-400 hover:text-black [&_svg]:!text-[16px]";
   return (
     <div className="flex h-full flex-col justify-start">
       {/* ENCABEZADO MOBILE */}
-      <div className="mb-2 flex flex-col gap-2 px-1 md:hidden">
+      <div className="mb-3 flex flex-col gap-2 px-1 pt-1 md:hidden">
+        {puedePublicar && (
+          <button
+            onClick={() => {
+              onCrearPublicacion();
+              onCerrarSidebar?.();
+            }}
+            className="flex min-h-[32px] w-full items-center justify-center gap-1.5 rounded-full bg-yellow-400 px-3 py-1 text-[12px] font-bold leading-none text-black shadow transition-all hover:bg-yellow-300 [&_svg]:!text-[16px]"
+          >
+            <AddIcon fontSize="small" />
+            Crear publicación
+          </button>
+        )}
+
         {!esVisitante && puedePublicar && (
           <>
             <button onClick={verMisPublicaciones} className={botonMobileClass}>

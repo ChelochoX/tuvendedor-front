@@ -296,8 +296,8 @@ const Marketplace: React.FC = () => {
 
       <div className="flex">
         <aside
-          className={`fixed top-[120px] z-50 h-[calc(100dvh-120px)] w-72 overflow-y-auto border-r-2 border-yellow-400 bg-[#1e1f23] p-4 text-white md:left-0 md:top-[64px] md:h-[calc(100vh-64px)]
-    ${sidebarAbierto ? "block" : "hidden md:block"}`}
+          className={`fixed left-0 top-[var(--tv-header-height)] z-50 h-[calc(100dvh-var(--tv-header-height))] w-72 max-w-[calc(100vw-24px)] overflow-y-auto border-r-2 border-yellow-400 bg-[#1e1f23] p-4 pt-3 text-white md:top-[64px] md:h-[calc(100vh-64px)] md:max-w-none md:pt-4
+           ${sidebarAbierto ? "block" : "hidden md:block"}`}
         >
           <div className="flex h-full flex-col">
             <CategoriasPanel

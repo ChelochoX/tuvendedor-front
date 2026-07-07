@@ -29,6 +29,7 @@ interface Props {
   onActualizarCantidad: (idPublicacion: number, cantidad: number) => void;
   onEliminar: (idPublicacion: number) => void;
   onVaciar: () => void;
+  feedbackAgregado?: string | null;
 }
 
 const CANTIDADES_RAPIDAS = [0.25, 0.5, 0.75, 1];
@@ -45,23 +46,18 @@ const limpiarTelefonoWhatsapp = (telefono?: string | null): string => {
     return "";
   }
 
-  // Corrige casos cargados o generados como 5950982121269.
-  // El formato correcto para WhatsApp Paraguay es 595982121269.
   if (numero.startsWith("5950")) {
     return `595${numero.substring(4)}`;
   }
 
-  // Si ya viene en formato internacional, lo dejamos igual.
   if (numero.startsWith("595")) {
     return numero;
   }
 
-  // Si viene como 0982121269, quitamos el 0 inicial y agregamos 595.
   if (numero.startsWith("0")) {
     return `595${numero.substring(1)}`;
   }
 
-  // Si viene como 982121269, agregamos 595.
   if (numero.startsWith("9")) {
     return `595${numero}`;
   }
@@ -191,6 +187,7 @@ const VitrinaCarritoWhatsapp: React.FC<Props> = ({
   onActualizarCantidad,
   onEliminar,
   onVaciar,
+  feedbackAgregado,
 }) => {
   const [abierto, setAbierto] = useState(false);
   const [modoEntrega, setModoEntrega] = useState<"retiro" | "delivery">(
@@ -400,26 +397,48 @@ ${ICONO_CHECK} Favor confirmar disponibilidad y total final. Gracias.`;
       <button
         type="button"
         onClick={() => setAbierto(true)}
-        className="fixed bottom-4 left-1/2 z-[9990] flex w-[calc(100%-24px)] max-w-md -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-yellow-400/40 bg-[#101722]/95 px-4 py-3 text-white shadow-2xl shadow-black/40 backdrop-blur-md transition hover:border-yellow-400 sm:bottom-6"
+        className="fixed bottom-3 left-1/2 z-[9990] flex w-[calc(100%-24px)] max-w-[820px] -translate-x-1/2 items-center justify-between gap-3 rounded-2xl border border-yellow-400/60 bg-[#0f1722]/95 px-3 py-2.5 text-white shadow-2xl shadow-black/50 backdrop-blur-md transition hover:border-yellow-300 sm:bottom-5 sm:px-4 sm:py-3"
       >
-        <span className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-400 text-black">
-            <ShoppingCart size={21} />
+        <span className="flex min-w-0 items-center gap-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-yellow-400 text-black shadow-lg shadow-yellow-500/20">
+            <svg
+              viewBox="0 0 24 24"
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="9" cy="21" r="1.4" />
+              <circle cx="20" cy="21" r="1.4" />
+              <path d="M1.5 2.5h3l2.7 12.7a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 1.9-1.4l1.6-6H6.3" />
+            </svg>
           </span>
 
-          <span className="text-left">
-            <span className="block text-sm font-black">
-              {totalItems} producto{totalItems === 1 ? "" : "s"} en pedido
+          <span className="min-w-0 text-left leading-tight">
+            <span className="block truncate text-sm font-black">
+              Pedido · {totalItems} producto{totalItems === 1 ? "" : "s"}
             </span>
+
             <span className="block text-xs font-bold text-yellow-300">
               {totalTexto}
             </span>
           </span>
         </span>
 
-        <span className="rounded-xl bg-green-500 px-3 py-2 text-xs font-black text-white">
-          Ver pedido
-        </span>
+        {feedbackAgregado ? (
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-green-400/40 bg-green-500/15 px-3 py-2 text-xs font-black text-green-300 shadow-lg shadow-green-950/30">
+            <span className="hidden sm:inline">{feedbackAgregado}</span>
+            <span className="sm:hidden">Agregado</span>
+            <span aria-hidden="true">✓</span>
+          </span>
+        ) : (
+          <span className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-green-500 px-3 py-2 text-xs font-black text-white shadow-lg shadow-green-950/30 transition hover:bg-green-400">
+            Ver pedido
+          </span>
+        )}
       </button>
 
       {abierto && (

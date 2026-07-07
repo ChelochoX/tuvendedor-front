@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
 import {
   useLocation,
@@ -6,7 +6,6 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import Swal from "sweetalert2";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
 import { obtenerPublicaciones } from "../../api/publicacionesService";
@@ -100,6 +99,8 @@ const PerfilVendedorPublico: React.FC = () => {
   const [publicacionSeleccionada, setPublicacionSeleccionada] =
     useState<PublicacionPerfilVendedor | null>(null);
   const [carrito, setCarrito] = useState<CarritoPedidoItem[]>([]);
+  const [feedbackCarrito, setFeedbackCarrito] = useState<string | null>(null);
+  const feedbackCarritoTimeoutRef = useRef<number | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,6 +108,14 @@ const PerfilVendedorPublico: React.FC = () => {
     () => `tuvendedor-carrito-${slug || "default"}`,
     [slug],
   );
+
+  useEffect(() => {
+    return () => {
+      if (feedbackCarritoTimeoutRef.current) {
+        window.clearTimeout(feedbackCarritoTimeoutRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -265,8 +274,7 @@ const PerfilVendedorPublico: React.FC = () => {
       return;
     }
 
-    let tituloToast = "Producto agregado al pedido";
-    let textoToast = publicacion.titulo;
+    let feedback = "Producto agregado";
 
     setCarrito((actual) => {
       const existente = actual.find(
@@ -276,8 +284,7 @@ const PerfilVendedorPublico: React.FC = () => {
       if (existente) {
         const nuevaCantidad = existente.cantidad + 1;
 
-        tituloToast = "Cantidad actualizada en el pedido";
-        textoToast = `${publicacion.titulo} x${nuevaCantidad}`;
+        feedback = "Cantidad actualizada";
 
         return actual.map((item) =>
           Number(item.publicacion.id) === Number(publicacion.id)
@@ -295,19 +302,16 @@ const PerfilVendedorPublico: React.FC = () => {
       ];
     });
 
-    setTimeout(() => {
-      Swal.fire({
-        toast: true,
-        position: "bottom",
-        icon: "success",
-        title: tituloToast,
-        text: textoToast,
-        showConfirmButton: false,
-        timer: 1800,
-        background: "#111827",
-        color: "#ffffff",
-      });
-    }, 0);
+    setFeedbackCarrito(feedback);
+
+    if (feedbackCarritoTimeoutRef.current) {
+      window.clearTimeout(feedbackCarritoTimeoutRef.current);
+    }
+
+    feedbackCarritoTimeoutRef.current = window.setTimeout(() => {
+      setFeedbackCarrito(null);
+      feedbackCarritoTimeoutRef.current = null;
+    }, 1800);
   };
 
   const incrementarItem = (idPublicacion: number) => {
@@ -449,6 +453,7 @@ const PerfilVendedorPublico: React.FC = () => {
         onActualizarCantidad={actualizarCantidadItem}
         onEliminar={eliminarItem}
         onVaciar={vaciarCarrito}
+        feedbackAgregado={feedbackCarrito}
       />
 
       {publicacionSeleccionada && (

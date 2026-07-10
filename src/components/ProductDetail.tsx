@@ -34,6 +34,8 @@ import {
   registrarMetaMarketplaceContactoWhatsapp,
   registrarMetaMarketplaceViewContent,
 } from "../utils/metaPixel";
+import { buildProductoShareUrl } from "../config/appConfig";
+import { generarMensajeConsultaWhatsapp } from "../utils/whatsappConsulta";
 
 interface Props {
   producto: Producto;
@@ -626,7 +628,14 @@ const ProductDetail: React.FC<Props> = ({
       numero = `595${numero}`;
     }
 
-    const mensaje = `¡Hola! Vi tu publicación *${tituloProducto}* en Tu Vendedor y quiero más información.`;
+    const mensaje = generarMensajeConsultaWhatsapp(
+      {
+        id: producto.id,
+        titulo: tituloProducto,
+        precioTexto: precioTexto,
+      },
+      slugVendedor,
+    );
 
     registrarClickWhatsapp(producto.id).catch((error) => {
       console.error("No se pudo registrar el click de WhatsApp", error);
@@ -642,7 +651,7 @@ const ProductDetail: React.FC<Props> = ({
   };
 
   const handleCompartir = async () => {
-    const url = window.location.href;
+    const url = buildProductoShareUrl(producto.id, slugVendedor);
 
     try {
       if (navigator.share) {

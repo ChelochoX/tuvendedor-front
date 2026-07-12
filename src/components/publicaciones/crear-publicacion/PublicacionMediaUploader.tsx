@@ -9,12 +9,20 @@ interface PreviewArchivo {
 
 interface Props {
   previews: PreviewArchivo[];
+
+  maxArchivos: number;
+
+  maxTamanoArchivoMb: number;
+
   onAgregarArchivos: (archivos: FileList | null) => void;
+
   onEliminarArchivo: (index: number) => void;
 }
 
 const PublicacionMediaUploader: React.FC<Props> = ({
   previews,
+  maxArchivos,
+  maxTamanoArchivoMb,
   onAgregarArchivos,
   onEliminarArchivo,
 }) => {
@@ -28,7 +36,8 @@ const PublicacionMediaUploader: React.FC<Props> = ({
           </h3>
 
           <p className="mt-1 text-xs text-gray-500">
-            Máximo 10 archivos, de hasta 15 MB cada uno.
+            Máximo {maxArchivos} archivos, de hasta {maxTamanoArchivoMb} MB cada
+            uno.
           </p>
         </div>
 
@@ -43,8 +52,11 @@ const PublicacionMediaUploader: React.FC<Props> = ({
             onChange={(event) => {
               onAgregarArchivos(event.target.files);
 
-              // Permite volver a seleccionar
-              // el mismo archivo.
+              /*
+               * Permite volver a seleccionar
+               * el mismo archivo después
+               * de haberlo quitado.
+               */
               event.target.value = "";
             }}
           />
@@ -75,6 +87,7 @@ const PublicacionMediaUploader: React.FC<Props> = ({
               <button
                 type="button"
                 onClick={() => onEliminarArchivo(index)}
+                title="Quitar archivo"
                 className="absolute right-1.5 top-1.5 rounded-full bg-black/70 p-1.5 text-white opacity-0 transition group-hover:opacity-100 hover:bg-red-500"
               >
                 <Trash2 size={13} />

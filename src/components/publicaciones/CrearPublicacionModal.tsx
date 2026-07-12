@@ -291,10 +291,22 @@ const CrearPublicacionModal: React.FC<Props> = ({
   if (!modalAbierto) return null;
 
   const validarFormulario = () => {
-    if (!form.titulo.trim()) return "Ingresá el título de la publicación.";
-    if (!form.descripcion.trim()) return "Ingresá la descripción.";
-    if (!limpiarPrecio(form.precio)) return "Ingresá un precio válido.";
-    if (!form.categoria.trim()) return "Seleccioná una categoría.";
+    if (!form.titulo.trim()) {
+      return "Ingresá el título de la publicación.";
+    }
+
+    if (!form.descripcion.trim()) {
+      return "Ingresá la descripción.";
+    }
+
+    if (!limpiarPrecio(form.precio)) {
+      return "Ingresá un precio válido.";
+    }
+
+    if (!form.categoria.trim()) {
+      return "Seleccioná una categoría.";
+    }
+
     if (!esEdicion && !form.archivos.length) {
       return "Seleccioná al menos una imagen o video.";
     }
@@ -303,62 +315,20 @@ const CrearPublicacionModal: React.FC<Props> = ({
       return "La publicación debe conservar o cargar al menos una imagen o video.";
     }
 
-    const validarFormulario = () => {
-      if (!form.titulo.trim()) {
-        return "Ingresá el título de la publicación.";
-      }
+    const archivoExcedido = form.archivos.find(
+      (archivo) => archivo.size > MAX_TAMANO_ARCHIVO_BYTES,
+    );
 
-      if (!form.descripcion.trim()) {
-        return "Ingresá la descripción.";
-      }
+    if (archivoExcedido) {
+      return `El archivo “${archivoExcedido.name}” supera el máximo de ${MAX_TAMANO_ARCHIVO_MB} MB.`;
+    }
 
-      if (!limpiarPrecio(form.precio)) {
-        return "Ingresá un precio válido.";
-      }
-
-      if (!form.categoria.trim()) {
-        return "Seleccioná una categoría.";
-      }
-
-      if (!esEdicion && !form.archivos.length) {
-        return "Seleccioná al menos una imagen o video.";
-      }
-
-      if (esEdicion && cantidadTotalImagenes === 0) {
-        return "La publicación debe conservar o cargar al menos una imagen o video.";
-      }
-
-      const archivoExcedido = form.archivos.find(
-        (archivo) => archivo.size > MAX_TAMANO_ARCHIVO_BYTES,
-      );
-
-      if (archivoExcedido) {
-        return `El archivo “${archivoExcedido.name}” supera el máximo de ${MAX_TAMANO_ARCHIVO_MB} MB.`;
-      }
-
-      if (cantidadTotalImagenes > MAX_ARCHIVOS_PUBLICACION) {
-        return `Máximo ${MAX_ARCHIVOS_PUBLICACION} imágenes o videos por publicación.`;
-      }
-
-      const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
-
-      const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
-
-      if (latitudBackend && !coordenadaEstaEnRango(latitudBackend, -90, 90)) {
-        return "La latitud debe estar entre -90 y 90. Ejemplo: -25.296120";
-      }
-
-      if (
-        longitudBackend &&
-        !coordenadaEstaEnRango(longitudBackend, -180, 180)
-      ) {
-        return "La longitud debe estar entre -180 y 180. Ejemplo: -57.590290";
-      }
-
-      return null;
-    };
+    if (cantidadTotalImagenes > MAX_ARCHIVOS_PUBLICACION) {
+      return `Máximo ${MAX_ARCHIVOS_PUBLICACION} imágenes o videos por publicación.`;
+    }
 
     const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
+
     const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
 
     if (latitudBackend && !coordenadaEstaEnRango(latitudBackend, -90, 90)) {
@@ -881,6 +851,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
                   <PublicacionMediaUploader
                     previews={previews}
+                    maxArchivos={MAX_ARCHIVOS_PUBLICACION}
+                    maxTamanoArchivoMb={MAX_TAMANO_ARCHIVO_MB}
                     onAgregarArchivos={agregarArchivosValidados}
                     onEliminarArchivo={eliminarArchivo}
                   />

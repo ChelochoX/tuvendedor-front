@@ -26,8 +26,9 @@ const PublicacionMediaUploader: React.FC<Props> = ({
             <ImagePlus size={19} />
             Fotos y videos
           </h3>
+
           <p className="mt-1 text-xs text-gray-500">
-            Agregá archivos para mostrar mejor tu publicación.
+            Máximo 10 archivos, de hasta 15 MB cada uno.
           </p>
         </div>
 
@@ -39,7 +40,13 @@ const PublicacionMediaUploader: React.FC<Props> = ({
             multiple
             accept="image/*,video/*"
             className="hidden"
-            onChange={(e) => onAgregarArchivos(e.target.files)}
+            onChange={(event) => {
+              onAgregarArchivos(event.target.files);
+
+              // Permite volver a seleccionar
+              // el mismo archivo.
+              event.target.value = "";
+            }}
           />
         </label>
       </div>

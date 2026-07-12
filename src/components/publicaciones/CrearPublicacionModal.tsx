@@ -59,6 +59,10 @@ type UbicacionGpsForm = {
   googleMapsUrl: string;
 };
 
+const MAX_ARCHIVOS_PUBLICACION = 10;
+const MAX_TAMANO_ARCHIVO_MB = 15;
+const MAX_TAMANO_ARCHIVO_BYTES = MAX_TAMANO_ARCHIVO_MB * 1024 * 1024;
+
 const normalizarCoordenada = (valor?: string | number | null): string => {
   if (valor === null || valor === undefined || valor === "") return "";
 
@@ -239,8 +243,50 @@ const CrearPublicacionModal: React.FC<Props> = ({
   }, [ubicacionGps.latitud, ubicacionGps.longitud, ubicacionGps.googleMapsUrl]);
 
   const imagenesExistentes = imagenesExistentesEditables;
+
   const cantidadTotalImagenes =
     imagenesExistentes.length + form.archivos.length;
+
+  const agregarArchivosValidados = (archivos: FileList | null) => {
+    if (!archivos?.length) return;
+
+    const nuevosArchivos = Array.from(archivos);
+
+    const archivoExcedido = nuevosArchivos.find(
+      (archivo) => archivo.size > MAX_TAMANO_ARCHIVO_BYTES,
+    );
+
+    if (archivoExcedido) {
+      Swal.fire({
+        title: "Archivo demasiado grande",
+        text: `“${archivoExcedido.name}” supera el máximo de ${MAX_TAMANO_ARCHIVO_MB} MB por archivo.`,
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+        background: "#111827",
+        color: "#fff",
+      });
+
+      return;
+    }
+
+    if (
+      cantidadTotalImagenes + nuevosArchivos.length >
+      MAX_ARCHIVOS_PUBLICACION
+    ) {
+      Swal.fire({
+        title: "Demasiados archivos",
+        text: `Podés cargar como máximo ${MAX_ARCHIVOS_PUBLICACION} imágenes o videos por publicación.`,
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+        background: "#111827",
+        color: "#fff",
+      });
+
+      return;
+    }
+
+    agregarArchivos(archivos);
+  };
 
   if (!modalAbierto) return null;
 
@@ -257,9 +303,60 @@ const CrearPublicacionModal: React.FC<Props> = ({
       return "La publicación debe conservar o cargar al menos una imagen o video.";
     }
 
-    if (cantidadTotalImagenes > 10) {
-      return "Máximo 10 imágenes o videos por publicación.";
-    }
+    const validarFormulario = () => {
+      if (!form.titulo.trim()) {
+        return "Ingresá el título de la publicación.";
+      }
+
+      if (!form.descripcion.trim()) {
+        return "Ingresá la descripción.";
+      }
+
+      if (!limpiarPrecio(form.precio)) {
+        return "Ingresá un precio válido.";
+      }
+
+      if (!form.categoria.trim()) {
+        return "Seleccioná una categoría.";
+      }
+
+      if (!esEdicion && !form.archivos.length) {
+        return "Seleccioná al menos una imagen o video.";
+      }
+
+      if (esEdicion && cantidadTotalImagenes === 0) {
+        return "La publicación debe conservar o cargar al menos una imagen o video.";
+      }
+
+      const archivoExcedido = form.archivos.find(
+        (archivo) => archivo.size > MAX_TAMANO_ARCHIVO_BYTES,
+      );
+
+      if (archivoExcedido) {
+        return `El archivo “${archivoExcedido.name}” supera el máximo de ${MAX_TAMANO_ARCHIVO_MB} MB.`;
+      }
+
+      if (cantidadTotalImagenes > MAX_ARCHIVOS_PUBLICACION) {
+        return `Máximo ${MAX_ARCHIVOS_PUBLICACION} imágenes o videos por publicación.`;
+      }
+
+      const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
+
+      const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
+
+      if (latitudBackend && !coordenadaEstaEnRango(latitudBackend, -90, 90)) {
+        return "La latitud debe estar entre -90 y 90. Ejemplo: -25.296120";
+      }
+
+      if (
+        longitudBackend &&
+        !coordenadaEstaEnRango(longitudBackend, -180, 180)
+      ) {
+        return "La longitud debe estar entre -180 y 180. Ejemplo: -57.590290";
+      }
+
+      return null;
+    };
 
     const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
     const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
@@ -784,7 +881,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
                   <PublicacionMediaUploader
                     previews={previews}
-                    onAgregarArchivos={agregarArchivos}
+                    onAgregarArchivos={agregarArchivosValidados}
                     onEliminarArchivo={eliminarArchivo}
                   />
                 </div>

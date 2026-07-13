@@ -1017,7 +1017,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           isCompact ? "text-[13px]" : "text-sm",
         ].join(" ")}
       >
-        {/* Imagen */}
         <div
           className={[
             "relative z-0 w-full overflow-hidden border-0 bg-black",
@@ -1123,10 +1122,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           )}
         </div>
 
-        {/*
-          -mt-px hace que el contenido blanco se superponga 1 píxel
-          sobre la imagen. Esto elimina la línea interna.
-        */}
         <div
           className={[
             "relative z-10 -mt-px border-0 bg-white",
@@ -1137,7 +1132,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             outline: "none",
           }}
         >
-          {/* Título */}
           <h3
             className={[
               "line-clamp-2 font-semibold leading-snug text-slate-800",
@@ -1148,7 +1142,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             }}
           />
 
-          {/* Categoría */}
           <div className="mt-1 flex min-w-0 items-center gap-1.5 text-slate-500">
             <TagIcon className="h-3 w-3 shrink-0 text-amber-500" />
 
@@ -1162,7 +1155,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </span>
           </div>
 
-          {/* Precio contado */}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <p
               className={[
@@ -1189,7 +1181,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             )}
           </div>
 
-          {/* Producto con cuotas */}
           {mostrarPrimeraCuota && primeraCuota && (
             <div
               className={[
@@ -1238,11 +1229,10 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {/* Inmueble sin cuotas */}
           {!mostrarPrimeraCuota && esInmueble && (
             <div
               className={[
-                "mt-2 flex items-center gap-2 rounded-xl",
+                "mt-2 flex min-h-[56px] items-center gap-2 rounded-xl",
                 "bg-gradient-to-r from-sky-50 via-white to-blue-50",
                 "px-2.5 py-2",
                 "ring-1 ring-inset ring-sky-200",
@@ -1270,26 +1260,25 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                     isCompact ? "text-[7px]" : "text-[8px] sm:text-[9px]",
                   ].join(" ")}
                 >
-                  Crédito bancario disponible
+                  Crédito bancario
                 </p>
 
                 <p
                   className={[
-                    "mt-0.5 truncate font-semibold leading-tight text-slate-600",
+                    "mt-0.5 font-semibold leading-tight text-slate-600",
                     isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
                   ].join(" ")}
                 >
-                  Te ayudamos con la gestión
+                  Te asesoramos
                 </p>
               </div>
             </div>
           )}
 
-          {/* Producto normal sin cuotas */}
           {!mostrarPrimeraCuota && !esInmueble && (
             <div
               className={[
-                "mt-2 flex items-center gap-2 rounded-xl",
+                "mt-2 flex min-h-[56px] items-center gap-2 rounded-xl",
                 "bg-gradient-to-r from-amber-50 via-white to-yellow-50",
                 "px-2.5 py-2",
                 "ring-1 ring-inset ring-amber-200",
@@ -1322,17 +1311,16 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
 
                 <p
                   className={[
-                    "mt-0.5 truncate font-semibold leading-tight text-slate-600",
+                    "mt-0.5 font-semibold leading-tight text-slate-600",
                     isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
                   ].join(" ")}
                 >
-                  Consultá disponibilidad
+                  Consultá ahora
                 </p>
               </div>
             </div>
           )}
 
-          {/* Crédito bancario adicional cuando un inmueble ya tiene cuotas */}
           {mostrarPrimeraCuota && esInmueble && (
             <div className="mt-1.5 flex">
               <span
@@ -1346,12 +1334,11 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
               >
                 <BuildingLibraryIcon className="h-3 w-3 shrink-0" />
 
-                <span className="truncate">Crédito bancario disponible</span>
+                <span>Crédito bancario</span>
               </span>
             </div>
           )}
 
-          {/* Ubicación */}
           <div
             className={[
               "mt-2 flex min-w-0 items-center gap-2 rounded-lg",
@@ -1385,7 +1372,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           </div>
 
-          {/* Métricas */}
           {mostrarAcciones && (
             <PublicacionMetricas
               cantidadFavoritos={producto.cantidadFavoritos}
@@ -1394,7 +1380,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             />
           )}
 
-          {/* Vendedor */}
           {mostrarAcciones && producto.vendedor && (
             <div className="mb-1 mt-2 flex items-center justify-between">
               <div className="mr-1 flex items-center gap-1">
@@ -1413,7 +1398,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {/* Acciones de publicación */}
           {mostrarAcciones && (
             <div className="mb-1 mt-1 flex items-center justify-end gap-2 pr-1">
               <Tippy content="Editar publicación" theme="light">
@@ -1471,7 +1455,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {/* Botones premium */}
           {mostrarAcciones && (
             <div className="mt-3 space-y-2 pb-6">
               <button

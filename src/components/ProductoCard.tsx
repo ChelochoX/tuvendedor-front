@@ -5,6 +5,12 @@ import {
   PencilSquareIcon,
   TrashIcon,
   CheckBadgeIcon,
+  CreditCardIcon,
+  BanknotesIcon,
+  BuildingLibraryIcon,
+  MapPinIcon,
+  PhotoIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import {
@@ -26,7 +32,6 @@ import Tippy from "@tippyjs/react";
 import { ADMIN_WHATSAPP } from "../config/comercialConfig";
 import { abrirWhatsapp } from "../utils/whatsapp";
 import { intentarRegistrarSolicitudPremium } from "../api/serviciosPremiumService";
-
 import { TIPOS_SERVICIO_PREMIUM } from "../types/servicioPremium.types";
 
 interface PlanPremium {
@@ -124,6 +129,25 @@ const ProductoCard: React.FC<Props> = ({
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+  const formatearPrecio = (
+    precio?: number | null,
+    moneda?: string | null,
+  ): string => {
+    if (!precio || precio <= 0) return "Consultar precio";
+
+    const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+
+    if (monedaNormalizada === "USD") {
+      return `USD ${Number(precio).toLocaleString("es-PY", {
+        maximumFractionDigits: 0,
+      })}`;
+    }
+
+    return `Gs. ${Number(precio).toLocaleString("es-PY", {
+      maximumFractionDigits: 0,
+    })}`;
+  };
+
   const obtenerImagenPrincipalParaPreview = () => {
     const primeraImagen = imagenesProducto[0];
 
@@ -148,75 +172,76 @@ const ProductoCard: React.FC<Props> = ({
     const ubicacion = escaparHtml(producto.ubicacion || "Tu ubicación");
 
     return `
-    <div class="tv-premium-carousel-preview">
-      <div class="tv-premium-carousel-preview__header">
-        <div>
-          <p class="tv-premium-carousel-preview__eyebrow">
-            Vista previa
-          </p>
-          <h3 class="tv-premium-carousel-preview__title">
-            Así aparecería en el carrusel principal
-          </h3>
-        </div>
+      <div class="tv-premium-carousel-preview">
+        <div class="tv-premium-carousel-preview__header">
+          <div>
+            <p class="tv-premium-carousel-preview__eyebrow">
+              Vista previa
+            </p>
 
-        <span class="tv-premium-carousel-preview__tag">
-          🎉 Especial
-        </span>
-      </div>
-
-      <div class="tv-premium-carousel-preview__stage">
-        <div class="tv-premium-carousel-preview__section-title">
-          Especiales destacados
-        </div>
-
-        <div class="tv-premium-carousel-preview__cards">
-          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
-            <div class="tv-premium-carousel-preview__ghost-image"></div>
-            <div class="tv-premium-carousel-preview__ghost-line"></div>
-            <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
+            <h3 class="tv-premium-carousel-preview__title">
+              Así aparecería en el carrusel principal
+            </h3>
           </div>
 
-          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--active">
-            <div class="tv-premium-carousel-preview__image-wrap">
-              <img
-                src="${imagen}"
-                alt="${titulo}"
-                class="tv-premium-carousel-preview__image"
-              />
+          <span class="tv-premium-carousel-preview__tag">
+            🎉 Especial
+          </span>
+        </div>
 
-              <span class="tv-premium-carousel-preview__badge">
-                Campaña especial
-              </span>
+        <div class="tv-premium-carousel-preview__stage">
+          <div class="tv-premium-carousel-preview__section-title">
+            Especiales destacados
+          </div>
+
+          <div class="tv-premium-carousel-preview__cards">
+            <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
+              <div class="tv-premium-carousel-preview__ghost-image"></div>
+              <div class="tv-premium-carousel-preview__ghost-line"></div>
+              <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
             </div>
 
-            <div class="tv-premium-carousel-preview__content">
-              <p class="tv-premium-carousel-preview__product-title">
-                ${titulo}
-              </p>
+            <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--active">
+              <div class="tv-premium-carousel-preview__image-wrap">
+                <img
+                  src="${imagen}"
+                  alt="${titulo}"
+                  class="tv-premium-carousel-preview__image"
+                />
 
-              <p class="tv-premium-carousel-preview__price">
-                ${precio}
-              </p>
+                <span class="tv-premium-carousel-preview__badge">
+                  Campaña especial
+                </span>
+              </div>
 
-              <p class="tv-premium-carousel-preview__location">
-                ${ubicacion}
-              </p>
+              <div class="tv-premium-carousel-preview__content">
+                <p class="tv-premium-carousel-preview__product-title">
+                  ${titulo}
+                </p>
+
+                <p class="tv-premium-carousel-preview__price">
+                  ${precio}
+                </p>
+
+                <p class="tv-premium-carousel-preview__location">
+                  ${ubicacion}
+                </p>
+              </div>
+            </div>
+
+            <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
+              <div class="tv-premium-carousel-preview__ghost-image"></div>
+              <div class="tv-premium-carousel-preview__ghost-line"></div>
+              <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
             </div>
           </div>
-
-          <div class="tv-premium-carousel-preview__card tv-premium-carousel-preview__card--ghost">
-            <div class="tv-premium-carousel-preview__ghost-image"></div>
-            <div class="tv-premium-carousel-preview__ghost-line"></div>
-            <div class="tv-premium-carousel-preview__ghost-line tv-premium-carousel-preview__ghost-line--short"></div>
-          </div>
         </div>
-      </div>
 
-      <p class="tv-premium-carousel-preview__help">
-        Tu publicación se muestra con más presencia visual dentro del carrusel de campañas especiales.
-      </p>
-    </div>
-  `;
+        <p class="tv-premium-carousel-preview__help">
+          Tu publicación se muestra con más presencia visual dentro del carrusel de campañas especiales.
+        </p>
+      </div>
+    `;
   };
 
   const puedeCrearDestacado =
@@ -259,19 +284,21 @@ const ProductoCard: React.FC<Props> = ({
     confirmButtonText?: string;
   }) => {
     const colorPrincipal = variante === "purple" ? "#e879f9" : "#facc15";
+
     const colorFondo =
       variante === "purple" ? "rgba(217,70,239,.10)" : "rgba(250,204,21,.10)";
+
     const colorBorde =
       variante === "purple" ? "rgba(217,70,239,.28)" : "rgba(250,204,21,.28)";
 
     const htmlBeneficios = beneficios
       .map(
         (beneficio) => `
-        <div class="tv-premium-modal__benefit">
-          <span class="tv-premium-modal__check">✓</span>
-          <span class="tv-premium-modal__benefit-text">${beneficio}</span>
-        </div>
-      `,
+          <div class="tv-premium-modal__benefit">
+            <span class="tv-premium-modal__check">✓</span>
+            <span class="tv-premium-modal__benefit-text">${beneficio}</span>
+          </div>
+        `,
       )
       .join("");
 
@@ -285,42 +312,56 @@ const ProductoCard: React.FC<Props> = ({
           ${planes
             .map(
               (plan) => `
-              <div style="
-                display:grid;
-                grid-template-columns: 1fr auto;
-                gap:10px;
-                align-items:center;
-                padding:12px;
-                border-radius:16px;
-                background:${
-                  plan.recomendado ? colorFondo : "rgba(255,255,255,.045)"
-                };
-                border:1px solid ${
-                  plan.recomendado ? colorBorde : "rgba(255,255,255,.08)"
-                };
-              ">
-                <div>
-                  <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap;">
-                    <span style="color:#fff; font-size:13px; font-weight:950;">${
-                      plan.nombre
-                    }</span>
-                    ${
-                      plan.recomendado
-                        ? `<span style="border-radius:999px; padding:3px 7px; background:${colorPrincipal}; color:#020617; font-size:9px; font-weight:950; text-transform:uppercase; letter-spacing:.06em;">Recomendado</span>`
-                        : ""
-                    }
+                <div style="
+                  display:grid;
+                  grid-template-columns:1fr auto;
+                  gap:10px;
+                  align-items:center;
+                  padding:12px;
+                  border-radius:16px;
+                  background:${
+                    plan.recomendado ? colorFondo : "rgba(255,255,255,.045)"
+                  };
+                  border:1px solid ${
+                    plan.recomendado ? colorBorde : "rgba(255,255,255,.08)"
+                  };
+                ">
+                  <div>
+                    <div style="display:flex; align-items:center; gap:7px; flex-wrap:wrap;">
+                      <span style="color:#fff; font-size:13px; font-weight:950;">
+                        ${plan.nombre}
+                      </span>
+
+                      ${
+                        plan.recomendado
+                          ? `
+                            <span style="
+                              border-radius:999px;
+                              padding:3px 7px;
+                              background:${colorPrincipal};
+                              color:#020617;
+                              font-size:9px;
+                              font-weight:950;
+                              text-transform:uppercase;
+                              letter-spacing:.06em;
+                            ">
+                              Recomendado
+                            </span>
+                          `
+                          : ""
+                      }
+                    </div>
+
+                    <p style="margin:5px 0 0; color:rgba(255,255,255,.62); font-size:11px; line-height:1.35;">
+                      ${plan.descripcion}
+                    </p>
                   </div>
 
-                  <p style="margin:5px 0 0; color:rgba(255,255,255,.62); font-size:11px; line-height:1.35;">
-                    ${plan.descripcion}
-                  </p>
+                  <div style="text-align:right; color:${colorPrincipal}; font-size:18px; font-weight:950; white-space:nowrap;">
+                    ${plan.precio}
+                  </div>
                 </div>
-
-                <div style="text-align:right; color:${colorPrincipal}; font-size:18px; font-weight:950; white-space:nowrap;">
-                  ${plan.precio}
-                </div>
-              </div>
-            `,
+              `,
             )
             .join("")}
         </div>
@@ -329,42 +370,42 @@ const ProductoCard: React.FC<Props> = ({
 
     return Swal.fire({
       html: `
-      <div class="tv-premium-modal ${
-        variante === "purple" ? "tv-premium-modal--purple" : ""
-      }">
-        <div class="tv-premium-modal__hero">
-          <span class="tv-premium-modal__badge">
-            ${badge}
-          </span>
+        <div class="tv-premium-modal ${
+          variante === "purple" ? "tv-premium-modal--purple" : ""
+        }">
+          <div class="tv-premium-modal__hero">
+            <span class="tv-premium-modal__badge">
+              ${badge}
+            </span>
 
-          <h2 class="tv-premium-modal__title">
-            ${titulo}
-          </h2>
+            <h2 class="tv-premium-modal__title">
+              ${titulo}
+            </h2>
 
-          <p class="tv-premium-modal__text">
-            ${descripcion}
-          </p>
+            <p class="tv-premium-modal__text">
+              ${descripcion}
+            </p>
+          </div>
+
+          ${vistaPreviaHtml}
+
+          ${htmlPlanes}
+
+          <div class="tv-premium-modal__benefits">
+            ${htmlBeneficios}
+          </div>
+
+          <div class="tv-premium-modal__notice">
+            <p class="tv-premium-modal__notice-title">
+              ${notaTitulo}
+            </p>
+
+            <p class="tv-premium-modal__notice-text">
+              ${notaDescripcion}
+            </p>
+          </div>
         </div>
-
-      ${vistaPreviaHtml}
-
-      ${htmlPlanes}
-
-      <div class="tv-premium-modal__benefits">
-        ${htmlBeneficios}
-      </div>
-
-        <div class="tv-premium-modal__notice">
-          <p class="tv-premium-modal__notice-title">
-            ${notaTitulo}
-          </p>
-
-          <p class="tv-premium-modal__notice-text">
-            ${notaDescripcion}
-          </p>
-        </div>
-      </div>
-    `,
+      `,
       showCancelButton: true,
       confirmButtonText,
       cancelButtonText: "Ahora no",
@@ -468,11 +509,13 @@ const ProductoCard: React.FC<Props> = ({
       title: "⭐ Destacar publicación",
       html: `
         <p style="color:#ddd">Elegí cuántos días querés destacar.</p>
+
         <select id="dias" class="swal2-input" style="color:black;">
           <option value="7">7 días</option>
           <option value="15">15 días</option>
           <option value="30">30 días</option>
-        </select>`,
+        </select>
+      `,
       showCancelButton: true,
       confirmButtonText: "Destacar",
       background: "#1e1f23",
@@ -485,9 +528,7 @@ const ProductoCard: React.FC<Props> = ({
   };
 
   const quitarDestacadoFlow = async () => {
-    if (!puedeQuitarDestacado) {
-      return;
-    }
+    if (!puedeQuitarDestacado) return;
 
     const confirm = await Swal.fire({
       title: "¿Quitar publicación destacada?",
@@ -505,6 +546,7 @@ const ProductoCard: React.FC<Props> = ({
 
     try {
       setOperandoDestacado(true);
+
       await quitarDestacadoPublicacion(producto.id);
 
       Swal.fire({
@@ -586,9 +628,7 @@ Quiero activar este servicio. Me confirmás la disponibilidad, forma de pago y c
 
   const activarEspecialFlow = async () => {
     if (especialActivo) {
-      if (!puedeQuitarEspecial) {
-        return;
-      }
+      if (!puedeQuitarEspecial) return;
 
       const confirm = await Swal.fire({
         title: "¿Quitar de publicación especial?",
@@ -605,6 +645,7 @@ Quiero activar este servicio. Me confirmás la disponibilidad, forma de pago y c
 
       try {
         setOperandoEspecial(true);
+
         await desactivarTemporada(producto.id);
 
         Swal.fire({
@@ -652,20 +693,25 @@ Quiero activar este servicio. Me confirmás la disponibilidad, forma de pago y c
           background: "#1e1f23",
           color: "#fff",
         });
+
         return;
       }
 
       const opciones = temporadas
-        .map((t) => `<option value="${t.id}">${t.nombre}</option>`)
+        .map((temporada) => {
+          return `<option value="${temporada.id}">${temporada.nombre}</option>`;
+        })
         .join("");
 
       const res = await Swal.fire({
         title: "🎉 Publicación especial",
         html: `
           <p style="color:#ccc;">Seleccioná la temporada:</p>
+
           <select id="temporada" class="swal2-input" style="color:black;">
             ${opciones}
-          </select>`,
+          </select>
+        `,
         showCancelButton: true,
         background: "#1e1f23",
         color: "#fff",
@@ -679,6 +725,7 @@ Quiero activar este servicio. Me confirmás la disponibilidad, forma de pago y c
       if (!res.isConfirmed) return;
 
       setOperandoEspecial(true);
+
       await activarTemporada(producto.id, res.value);
 
       Swal.fire({
@@ -758,10 +805,12 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
     }
 
     const dias = await pedirDiasDestacado();
+
     if (dias == null) return;
 
     try {
       setOperandoDestacado(true);
+
       await destacarPublicacion(producto.id, dias);
 
       Swal.fire({
@@ -816,18 +865,22 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
       resultado = resultado.replace(
         regex,
         `
-      <span class="promo-glow" style="
-        padding: 2px 6px;
-        border-radius: 6px;
-        background: linear-gradient(90deg, #facc15, #f59e0b);
-        color: #000;
-        font-weight: 900;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-      ">
-        <span style="text-transform: uppercase;">$1</span> </span>
-      `,
+          <span
+            class="promo-glow"
+            style="
+              padding:2px 6px;
+              border-radius:6px;
+              background:linear-gradient(90deg,#facc15,#f59e0b);
+              color:#000;
+              font-weight:900;
+              display:inline-flex;
+              align-items:center;
+              gap:4px;
+            "
+          >
+            <span style="text-transform:uppercase;">$1</span>
+          </span>
+        `,
       );
     });
 
@@ -878,50 +931,112 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
     }
   };
 
-  const formatearPrecio = (
-    precio?: number | null,
-    moneda?: string | null,
-  ): string => {
-    if (!precio || precio <= 0) return "Consultar precio";
+  const planCreditoRaw = producto.planCredito as any;
 
-    const monedaNormalizada = moneda?.trim().toUpperCase() || "PYG";
+  const opcionesCredito = Array.isArray(planCreditoRaw)
+    ? planCreditoRaw
+    : Array.isArray(planCreditoRaw?.opciones)
+      ? planCreditoRaw.opciones
+      : [];
 
-    if (monedaNormalizada === "USD") {
-      return `USD ${Number(precio).toLocaleString("es-PY", {
-        maximumFractionDigits: 0,
-      })}`;
-    }
+  const primeraCuota = opcionesCredito
+    .map((opcion: any) => ({
+      cuotas: Number(opcion?.cuotas ?? opcion?.Cuotas ?? 0),
+      valorCuota: Number(opcion?.valorCuota ?? opcion?.ValorCuota ?? 0),
+    }))
+    .find(
+      (opcion: { cuotas: number; valorCuota: number }) =>
+        opcion.cuotas > 0 && opcion.valorCuota > 0,
+    );
 
-    return `Gs. ${Number(precio).toLocaleString("es-PY", {
-      maximumFractionDigits: 0,
-    })}`;
-  };
+  const mostrarPrimeraCuota =
+    producto.mostrarBotonesCompra === true && Boolean(primeraCuota);
+
+  const tienePrecioPublicado = Boolean(producto.precio && producto.precio > 0);
+
+  const cantidadFotos = imagenesProducto.filter(
+    (imagen) => !imagen?.mainUrl?.toLowerCase().endsWith(".mp4"),
+  ).length;
+
+  const ubicacionVisible =
+    producto.ubicacion?.trim() || "Ubicación no informada";
+
+  const categoriaVisible = producto.categoria?.trim() || "Producto o servicio";
+
+  const textoParaDetectarInmueble =
+    `${categoriaVisible} ${producto.nombre || ""}`.toLowerCase();
+
+  const esInmueble = [
+    "inmueble",
+    "inmuebles",
+    "casa",
+    "casas",
+    "terreno",
+    "terrenos",
+    "departamento",
+    "departamentos",
+    "dúplex",
+    "duplex",
+    "lote",
+    "lotes",
+    "oficina",
+    "oficinas",
+    "local comercial",
+    "propiedad",
+    "propiedades",
+    "residencia",
+    "residencial",
+    "quinta",
+  ].some((palabra) => textoParaDetectarInmueble.includes(palabra));
 
   return (
     <Link
       to={`/producto/${producto.id}`}
       onClick={handleVerDetalle}
-      className="block"
+      className={[
+        "group block self-start rounded-2xl border-0",
+        "no-underline outline-none hover:no-underline",
+        "focus:no-underline focus:outline-none",
+      ].join(" ")}
+      style={{
+        textDecoration: "none",
+        border: "none",
+      }}
     >
       <div
         className={[
-          "bg-white rounded-2xl shadow-sm hover:shadow-md transition duration-200 cursor-pointer",
-          "overflow-hidden flex flex-col h-full ring-1 ring-transparent hover:ring-yellow-500",
-          destacadoActivo ? "ring-2 ring-yellow-400" : "",
+          "relative isolate overflow-hidden rounded-2xl bg-white",
+          "shadow-sm ring-1 ring-inset ring-slate-200",
+          "transition-all duration-200 ease-out",
+          "hover:-translate-y-0.5",
+          "hover:ring-2 hover:ring-inset hover:ring-amber-400",
+          "hover:shadow-[0_14px_34px_-15px_rgba(245,158,11,0.65)]",
+          destacadoActivo
+            ? "ring-2 ring-inset ring-yellow-400 shadow-[0_12px_30px_-16px_rgba(250,204,21,0.65)]"
+            : "",
           isCompact ? "text-[13px]" : "text-sm",
         ].join(" ")}
       >
+        {/* Imagen */}
         <div
           className={[
-            "w-full relative overflow-hidden rounded-t-lg bg-black",
+            "relative z-0 w-full overflow-hidden border-0 bg-black",
             isCompact ? "aspect-[16/10]" : "aspect-[4/3]",
           ].join(" ")}
+          style={{
+            border: "none",
+            outline: "none",
+          }}
         >
           {destacadoActivo && (
             <div
               className={[
-                "absolute top-2 left-2 bg-yellow-300 text-black font-semibold rounded-full shadow-md z-10 flex items-center gap-1",
-                isCompact ? "text-[10px] px-2 py-[2px]" : "text-xs px-3 py-1",
+                "absolute left-2 top-2 z-10",
+                "flex items-center gap-1 rounded-full",
+                "bg-yellow-300 font-semibold text-black shadow-md",
+                isCompact
+                  ? "px-2 py-[2px] text-[9px]"
+                  : "px-2.5 py-1 text-[10px]",
               ].join(" ")}
             >
               ⭐ Publicación destacada
@@ -931,8 +1046,11 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           {producto.esTemporada && producto.badgeTexto && (
             <div
               className={[
-                "absolute top-2 right-2 rounded-full shadow-md z-10 flex items-center gap-1",
-                isCompact ? "text-[10px] px-2 py-[2px]" : "text-xs px-3 py-1",
+                "absolute right-2 top-2 z-10",
+                "flex items-center gap-1 rounded-full shadow-md",
+                isCompact
+                  ? "px-2 py-[2px] text-[9px]"
+                  : "px-2.5 py-1 text-[10px]",
               ].join(" ")}
               style={{
                 backgroundColor: producto.badgeColor || "#ef4444",
@@ -945,7 +1063,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           )}
 
           {producto.estado === "Vendido" && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 text-xl font-bold text-white">
+            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/45 text-xl font-black text-white">
               🔥 VENDIDO
             </div>
           )}
@@ -953,7 +1071,11 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           {imagenesProducto[0]?.mainUrl?.endsWith(".mp4") ? (
             <video
               src={imagenesProducto[0]?.mainUrl}
-              className="absolute left-0 top-0 h-full w-full object-cover"
+              className="absolute inset-0 block h-full w-full border-0 object-cover"
+              style={{
+                border: "none",
+                outline: "none",
+              }}
               muted
               autoPlay
               loop
@@ -969,51 +1091,301 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
               loading="lazy"
               decoding="async"
               alt={producto.nombre}
-              className="absolute left-0 top-0 h-full w-full object-cover"
+              className="absolute inset-0 block h-full w-full border-0 object-cover"
+              style={{
+                border: "none",
+                outline: "none",
+              }}
             />
+          )}
+
+          {cantidadFotos > 1 && (
+            <div
+              className={[
+                "absolute bottom-2 left-2 z-10",
+                "flex items-center gap-1 rounded-full",
+                "border border-white/20 bg-black/65",
+                "font-semibold text-white shadow-sm backdrop-blur-sm",
+                isCompact ? "px-1.5 py-0.5 text-[8px]" : "px-2 py-1 text-[9px]",
+              ].join(" ")}
+            >
+              <PhotoIcon className="h-3 w-3" />
+              <span>{cantidadFotos} fotos</span>
+            </div>
           )}
 
           {!mostrarAcciones && (
             <FavoritoButton
               producto={producto}
               mostrarCantidad
-              className="absolute bottom-3 right-3"
+              className="absolute bottom-2 right-2"
             />
           )}
         </div>
 
+        {/*
+          -mt-px hace que el contenido blanco se superponga 1 píxel
+          sobre la imagen. Esto elimina la línea interna.
+        */}
         <div
-          className={
-            isCompact ? "flex flex-1 flex-col p-2" : "flex flex-1 flex-col p-3"
-          }
+          className={[
+            "relative z-10 -mt-px border-0 bg-white",
+            isCompact ? "p-2.5" : "p-3",
+          ].join(" ")}
+          style={{
+            border: "none",
+            outline: "none",
+          }}
         >
+          {/* Título */}
           <h3
             className={[
-              "font-semibold text-gray-800 leading-snug mb-1 line-clamp-2",
-              isCompact ? "text-[13px]" : "text-sm",
+              "line-clamp-2 font-semibold leading-snug text-slate-800",
+              isCompact ? "text-[11px]" : "text-[12px] sm:text-[13px]",
             ].join(" ")}
             dangerouslySetInnerHTML={{
               __html: resaltarPromo(producto.nombre),
             }}
           />
 
-          <p
+          {/* Categoría */}
+          <div className="mt-1 flex min-w-0 items-center gap-1.5 text-slate-500">
+            <TagIcon className="h-3 w-3 shrink-0 text-amber-500" />
+
+            <span
+              className={[
+                "truncate font-medium",
+                isCompact ? "text-[8px]" : "text-[9px]",
+              ].join(" ")}
+            >
+              {categoriaVisible}
+            </span>
+          </div>
+
+          {/* Precio contado */}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <p
+              className={[
+                "font-black leading-none tracking-[-0.02em] text-emerald-600",
+                isCompact ? "text-[12px]" : "text-[13px] sm:text-[15px]",
+              ].join(" ")}
+            >
+              {formatearPrecio(producto.precio, producto.moneda)}
+            </p>
+
+            {tienePrecioPublicado && (
+              <span
+                className={[
+                  "rounded-full border border-emerald-200",
+                  "bg-emerald-50 font-extrabold uppercase",
+                  "tracking-wide text-emerald-700",
+                  isCompact
+                    ? "px-1.5 py-0.5 text-[7px]"
+                    : "px-2 py-0.5 text-[8px]",
+                ].join(" ")}
+              >
+                Contado
+              </span>
+            )}
+          </div>
+
+          {/* Producto con cuotas */}
+          {mostrarPrimeraCuota && primeraCuota && (
+            <div
+              className={[
+                "mt-2 flex items-center gap-2 rounded-xl",
+                "bg-gradient-to-r from-emerald-50 via-white to-emerald-100/80",
+                "px-2.5 py-2",
+                "ring-1 ring-inset ring-emerald-200",
+                "shadow-[0_5px_14px_-10px_rgba(16,185,129,0.8)]",
+                "transition-all duration-200",
+                "group-hover:ring-emerald-300",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex shrink-0 items-center justify-center",
+                  "rounded-md bg-slate-900 text-yellow-400 shadow-sm",
+                  isCompact ? "h-6 w-6" : "h-7 w-7",
+                ].join(" ")}
+              >
+                <CreditCardIcon
+                  className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[7px] font-black uppercase leading-none tracking-wide text-emerald-800 sm:text-[8px]">
+                    Cuota desde
+                  </span>
+
+                  <span className="shrink-0 text-[7px] font-bold text-slate-500 sm:text-[8px]">
+                    × {primeraCuota.cuotas} cuotas
+                  </span>
+                </div>
+
+                <p
+                  className={[
+                    "mt-1 truncate font-black leading-none",
+                    "tracking-[-0.02em] text-emerald-700",
+                    isCompact ? "text-[10px]" : "text-[11px] sm:text-[12px]",
+                  ].join(" ")}
+                >
+                  {formatearPrecio(primeraCuota.valorCuota, producto.moneda)}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Inmueble sin cuotas */}
+          {!mostrarPrimeraCuota && esInmueble && (
+            <div
+              className={[
+                "mt-2 flex items-center gap-2 rounded-xl",
+                "bg-gradient-to-r from-sky-50 via-white to-blue-50",
+                "px-2.5 py-2",
+                "ring-1 ring-inset ring-sky-200",
+                "shadow-[0_5px_14px_-10px_rgba(14,165,233,0.75)]",
+                "transition-all duration-200",
+                "group-hover:ring-sky-300",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex shrink-0 items-center justify-center",
+                  "rounded-md bg-slate-900 text-sky-300 shadow-sm",
+                  isCompact ? "h-6 w-6" : "h-7 w-7",
+                ].join(" ")}
+              >
+                <BuildingLibraryIcon
+                  className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p
+                  className={[
+                    "font-black uppercase leading-tight tracking-wide text-sky-800",
+                    isCompact ? "text-[7px]" : "text-[8px] sm:text-[9px]",
+                  ].join(" ")}
+                >
+                  Crédito bancario disponible
+                </p>
+
+                <p
+                  className={[
+                    "mt-0.5 truncate font-semibold leading-tight text-slate-600",
+                    isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+                  ].join(" ")}
+                >
+                  Te ayudamos con la gestión
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Producto normal sin cuotas */}
+          {!mostrarPrimeraCuota && !esInmueble && (
+            <div
+              className={[
+                "mt-2 flex items-center gap-2 rounded-xl",
+                "bg-gradient-to-r from-amber-50 via-white to-yellow-50",
+                "px-2.5 py-2",
+                "ring-1 ring-inset ring-amber-200",
+                "shadow-[0_5px_14px_-10px_rgba(245,158,11,0.75)]",
+                "transition-all duration-200",
+                "group-hover:ring-amber-300",
+              ].join(" ")}
+            >
+              <div
+                className={[
+                  "flex shrink-0 items-center justify-center",
+                  "rounded-md bg-slate-900 text-yellow-400 shadow-sm",
+                  isCompact ? "h-6 w-6" : "h-7 w-7",
+                ].join(" ")}
+              >
+                <BanknotesIcon
+                  className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p
+                  className={[
+                    "font-black uppercase leading-tight tracking-wide text-amber-800",
+                    isCompact ? "text-[7px]" : "text-[8px] sm:text-[9px]",
+                  ].join(" ")}
+                >
+                  Compra directa
+                </p>
+
+                <p
+                  className={[
+                    "mt-0.5 truncate font-semibold leading-tight text-slate-600",
+                    isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+                  ].join(" ")}
+                >
+                  Consultá disponibilidad
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Crédito bancario adicional cuando un inmueble ya tiene cuotas */}
+          {mostrarPrimeraCuota && esInmueble && (
+            <div className="mt-1.5 flex">
+              <span
+                className={[
+                  "inline-flex max-w-full items-center gap-1",
+                  "rounded-full bg-sky-50 px-2 py-1",
+                  "font-bold text-sky-700",
+                  "ring-1 ring-inset ring-sky-200",
+                  isCompact ? "text-[7px]" : "text-[8px]",
+                ].join(" ")}
+              >
+                <BuildingLibraryIcon className="h-3 w-3 shrink-0" />
+
+                <span className="truncate">Crédito bancario disponible</span>
+              </span>
+            </div>
+          )}
+
+          {/* Ubicación */}
+          <div
             className={[
-              "text-green-600 font-bold mb-1",
-              isCompact ? "text-[13px]" : "text-sm",
+              "mt-2 flex min-w-0 items-center gap-2 rounded-lg",
+              "bg-gradient-to-r from-slate-50 to-amber-50/40",
+              "px-2 py-1.5",
+              "ring-1 ring-inset ring-slate-100",
+              "transition-all duration-200",
+              "group-hover:from-amber-50/80",
+              "group-hover:to-white",
+              "group-hover:ring-amber-200",
             ].join(" ")}
           >
-            {formatearPrecio(producto.precio, producto.moneda)}
-          </p>
+            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+              <MapPinIcon className="h-3 w-3" />
+            </div>
 
-          <p
-            className={
-              isCompact ? "text-[11px] text-gray-500" : "text-xs text-gray-500"
-            }
-          >
-            {producto.ubicacion}
-          </p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[6px] font-black uppercase leading-none tracking-[0.08em] text-amber-700/75 sm:text-[7px]">
+                Ubicación
+              </p>
 
+              <p
+                className={[
+                  "mt-0.5 truncate font-medium leading-tight text-slate-600",
+                  isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+                ].join(" ")}
+                title={ubicacionVisible}
+              >
+                {ubicacionVisible}
+              </p>
+            </div>
+          </div>
+
+          {/* Métricas */}
           {mostrarAcciones && (
             <PublicacionMetricas
               cantidadFavoritos={producto.cantidadFavoritos}
@@ -1022,8 +1394,9 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             />
           )}
 
-          <div className="mb-1 mt-2 flex items-center justify-between">
-            {mostrarAcciones && producto.vendedor && (
+          {/* Vendedor */}
+          {mostrarAcciones && producto.vendedor && (
+            <div className="mb-1 mt-2 flex items-center justify-between">
               <div className="mr-1 flex items-center gap-1">
                 <img
                   src={producto.vendedor.avatar}
@@ -1032,13 +1405,15 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                   alt={producto.vendedor.nombre}
                   className="h-4 w-4 rounded-full object-cover"
                 />
+
                 <span className="text-[11px] text-gray-500">
                   {producto.vendedor.nombre}
                 </span>
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
+          {/* Acciones de publicación */}
           {mostrarAcciones && (
             <div className="mb-1 mt-1 flex items-center justify-end gap-2 pr-1">
               <Tippy content="Editar publicación" theme="light">
@@ -1082,7 +1457,11 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (producto.estado === "Vendido") return;
+
+                    if (producto.estado === "Vendido") {
+                      return;
+                    }
+
                     marcarVendidoFlow();
                   }}
                 >
@@ -1092,6 +1471,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
+          {/* Botones premium */}
           {mostrarAcciones && (
             <div className="mt-3 space-y-2 pb-6">
               <button

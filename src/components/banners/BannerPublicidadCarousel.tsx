@@ -155,21 +155,41 @@ export function BannerPublicidadCarousel({
     [bannerActivo?.urlDestino],
   );
 
-  const whatsappUrl = useMemo(
-    () => obtenerWhatsappUrl(bannerActivo?.whatsappUrl),
-    [bannerActivo?.whatsappUrl],
-  );
+  const whatsappUrl = useMemo(() => {
+    const valorWhatsapp =
+      bannerActivo?.whatsappUrl ||
+      (bannerActivo?.tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+        ? bannerActivo?.urlDestino
+        : null);
+
+    return obtenerWhatsappUrl(valorWhatsapp);
+  }, [
+    bannerActivo?.whatsappUrl,
+    bannerActivo?.urlDestino,
+    bannerActivo?.tipoDestino,
+  ]);
 
   if (!bannerActivo) {
     return null;
   }
 
+  const urlDestinoPareceWhatsapp = Boolean(
+    bannerActivo.urlDestino &&
+    /(?:wa\.me|api\.whatsapp\.com|whatsapp\.com)/i.test(
+      bannerActivo.urlDestino,
+    ),
+  );
+
   const tipoDestino =
     bannerActivo.tipoDestino ??
-    (urlDestino ? BANNER_TIPOS_DESTINO.URL : BANNER_TIPOS_DESTINO.WHATSAPP);
+    (bannerActivo.whatsappUrl || urlDestinoPareceWhatsapp
+      ? BANNER_TIPOS_DESTINO.WHATSAPP
+      : BANNER_TIPOS_DESTINO.URL);
 
   const destinoPrincipal =
-    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP ? whatsappUrl : urlDestino;
+    tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP
+      ? whatsappUrl || urlDestino
+      : urlDestino;
 
   const eventoPrincipal: BannerEventoTipo =
     tipoDestino === BANNER_TIPOS_DESTINO.WHATSAPP

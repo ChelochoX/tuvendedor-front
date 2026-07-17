@@ -934,12 +934,24 @@ export default function BannerPublicitarioAdminModal({
 
               <select
                 value={valores.tipoDestino}
-                onChange={(event) =>
-                  actualizarValor(
-                    "tipoDestino",
-                    event.target.value as BannerTipoDestino,
-                  )
-                }
+                onChange={(event) => {
+                  const nuevoTipo = event.target.value as BannerTipoDestino;
+
+                  actualizarValor("tipoDestino", nuevoTipo);
+
+                  if (nuevoTipo === BANNER_TIPOS_DESTINO.WHATSAPP) {
+                    setValores((prev) => ({
+                      ...prev,
+                      tipoDestino: nuevoTipo,
+                      textoBoton:
+                        prev.textoBoton.trim() &&
+                        prev.textoBoton.trim() !== "Conocer más"
+                          ? prev.textoBoton
+                          : "Escribir por WhatsApp",
+                      mostrarBotonWhatsapp: false,
+                    }));
+                  }
+                }}
                 className="mt-2 w-full rounded-lg border border-white/15 bg-[#18191c] px-3 py-2 outline-none focus:border-yellow-400"
                 disabled={procesando || procesandoImagen}
               >

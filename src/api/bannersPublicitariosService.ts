@@ -404,7 +404,22 @@ function normalizarBannerPublico(
     return null;
   }
 
-  const whatsappUrl = convertirTexto(
+  const urlDestinoNormalizada = convertirTexto(
+    obtenerPrimerValor(valor, [
+      "urlDestino",
+      "UrlDestino",
+      "url_destino",
+      "url",
+      "Url",
+    ]),
+  );
+
+  const tipoDestinoNormalizado =
+    convertirTipoDestino(
+      obtenerPrimerValor(valor, ["tipoDestino", "TipoDestino", "tipo_destino"]),
+    ) ?? null;
+
+  const whatsappUrlDirecta = convertirTexto(
     obtenerPrimerValor(valor, [
       "whatsappUrl",
       "WhatsappUrl",
@@ -414,6 +429,23 @@ function normalizarBannerPublico(
       "url_whatsapp",
     ]),
   );
+
+  const urlPareceWhatsapp = (urlDestinoNormalizada ?? "")
+    .trim()
+    .toLowerCase()
+    .match(/(?:wa\.me|api\.whatsapp\.com|whatsapp\.com|^\+?\d[\d\s()-]+$)/);
+
+  const tipoDestinoFinal =
+    tipoDestinoNormalizado ??
+    (whatsappUrlDirecta || urlPareceWhatsapp
+      ? BANNER_TIPOS_DESTINO.WHATSAPP
+      : BANNER_TIPOS_DESTINO.URL);
+
+  const whatsappUrl =
+    whatsappUrlDirecta ||
+    (tipoDestinoFinal === BANNER_TIPOS_DESTINO.WHATSAPP
+      ? urlDestinoNormalizada
+      : null);
 
   return {
     id,
@@ -437,14 +469,9 @@ function normalizarBannerPublico(
     imagenDesktopUrl: imagenDesktopUrl ?? imagenMobileUrl ?? "",
     imagenMobileUrl,
 
-    tipoDestino:
-      convertirTipoDestino(
-        obtenerPrimerValor(valor, ["tipoDestino", "TipoDestino"]),
-      ) ?? BANNER_TIPOS_DESTINO.URL,
+    tipoDestino: tipoDestinoFinal,
 
-    urlDestino: convertirTexto(
-      obtenerPrimerValor(valor, ["urlDestino", "UrlDestino", "url", "Url"]),
-    ),
+    urlDestino: urlDestinoNormalizada,
 
     whatsappUrl,
 

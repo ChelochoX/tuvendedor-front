@@ -77,33 +77,61 @@
   La imagen subida puede seguir siendo 1600 x 360.
 */
 .banner-publicidad--home-inline {
+  width: 100%;
   margin: 1.25rem 0;
   overflow: hidden;
-  border: 1px solid rgba(250, 204, 21, 0.35);
+
+  border: 1px solid rgba(250, 204, 21, 0.4);
   border-radius: 14px;
-  background: #111827;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+
+  background: #0b111c;
+
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .banner-publicidad--home-inline .banner-publicidad__contenedor {
-  border-radius: 14px 14px 0 0;
+  width: 100%;
   overflow: hidden;
+
+  border-radius: 13px 13px 0 0;
+  background: #070b12;
+  box-shadow: none;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__imagen-boton {
-  aspect-ratio: auto;
-  height: clamp(105px, 12vw, 155px);
-  min-height: unset;
-  max-height: 155px;
-  border-radius: 14px 14px 0 0;
+  display: block;
+  width: 100%;
+  height: clamp(120px, 15vw, 150px);
+
   overflow: hidden;
+  border: 0;
+  border-radius: 13px 13px 0 0;
+
+  background: #070b12;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__imagen {
+  display: block;
   width: 100%;
   height: 100%;
+
   object-fit: cover;
   object-position: center;
+
+  border: 0;
+  border-radius: 0;
+
+  transform: none;
+  transition: filter 180ms ease;
+}
+
+.banner-publicidad--home-inline
+  .banner-publicidad__imagen-boton--clickeable:hover
+  .banner-publicidad__imagen {
+  transform: none;
+  filter: brightness(1.04);
 }
 
 /* =========================================================
@@ -380,50 +408,89 @@
    ========================================================= */
 
 .banner-publicidad--home-inline .banner-publicidad__acciones {
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 0 0 14px 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+
+  padding: 8px 10px;
+
+  border: 0;
+  border-top: 1px solid rgba(250, 204, 21, 0.22);
+  border-radius: 0 0 13px 13px;
+
   background:
     radial-gradient(
       circle at top left,
       rgba(250, 204, 21, 0.1),
-      transparent 30%
+      transparent 34%
     ),
     linear-gradient(
       135deg,
-      rgba(11, 18, 32, 0.98) 0%,
-      rgba(17, 24, 39, 0.98) 62%,
-      rgba(3, 7, 18, 0.98) 100%
+      rgba(10, 15, 25, 0.99) 0%,
+      rgba(15, 23, 42, 0.99) 60%,
+      rgba(3, 7, 18, 0.99) 100%
     );
+
+  box-shadow: none;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__informacion {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
   gap: 2px;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__titulo {
+  display: block;
+  overflow: hidden;
+
+  color: #ffffff;
   font-size: 11px;
-  font-weight: 700;
-  line-height: 1.1;
+  font-weight: 750;
+  line-height: 1.15;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__descripcion {
+  display: block;
+  overflow: hidden;
+
+  color: rgba(255, 255, 255, 0.67);
   font-size: 9px;
-  line-height: 1.15;
-  -webkit-line-clamp: 1;
+  line-height: 1.2;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__botones {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
   gap: 7px;
+  flex-wrap: nowrap;
 }
 
 .banner-publicidad--home-inline .banner-publicidad__boton {
+  min-width: 104px;
   min-height: 30px;
-  padding: 7px 11px;
+
+  padding: 6px 11px;
+
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.1;
+
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
 /*
@@ -469,9 +536,23 @@
   }
 
   .banner-publicidad--home-inline .banner-publicidad__imagen-boton {
-    height: 92px;
-    max-height: 92px;
-    border-radius: 12px 12px 0 0;
+    width: 100%;
+    height: auto;
+
+    aspect-ratio: 9 / 4;
+
+    overflow: hidden;
+    border-radius: 11px 11px 0 0;
+
+    background: #070b12;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__imagen {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+    object-position: center;
   }
 
   .banner-publicidad__flecha {
@@ -569,31 +650,69 @@
   }
 
   .banner-publicidad--home-inline .banner-publicidad__acciones {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     gap: 7px;
+
     padding: 8px;
-    border-radius: 0 0 12px 12px;
+
+    border-radius: 0 0 11px 11px;
+  }
+
+  .banner-publicidad--home-inline .banner-publicidad__informacion {
+    gap: 2px;
   }
 
   .banner-publicidad--home-inline .banner-publicidad__titulo {
-    font-size: 10px;
-    font-weight: 700;
+    overflow: hidden;
+
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.15;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .banner-publicidad--home-inline .banner-publicidad__descripcion {
-    font-size: 8.5px;
+    display: block;
+    overflow: hidden;
+
+    font-size: 9px;
     line-height: 1.15;
-    -webkit-line-clamp: 1;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .banner-publicidad--home-inline .banner-publicidad__botones {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
     gap: 7px;
   }
 
+  .banner-publicidad--home-inline
+    .banner-publicidad__botones
+    .banner-publicidad__boton:only-child {
+    grid-column: 1 / -1;
+  }
+
   .banner-publicidad--home-inline .banner-publicidad__boton {
+    width: 100%;
+    min-width: 0;
     min-height: 31px;
+
     padding: 7px 8px;
+
     font-size: 9.5px;
-    font-weight: 600;
+    font-weight: 700;
+    line-height: 1;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 

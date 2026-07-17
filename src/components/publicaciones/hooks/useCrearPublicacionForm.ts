@@ -33,10 +33,6 @@ const estadoInicial: CrearPublicacionForm = {
   },
 };
 
-/**
- * Generamos una nueva instancia del estado inicial para evitar
- * reutilizar referencias de arreglos u objetos entre aperturas del modal.
- */
 const crearEstadoInicial = (): CrearPublicacionForm => ({
   ...estadoInicial,
   planCredito: [],
@@ -53,13 +49,6 @@ const mapearPublicacionAFormulario = (
     return crearEstadoInicial();
   }
 
-  /**
-   * La moneda de la publicación se copia tanto al campo general
-   * como al campo inmobiliario.
-   *
-   * Esto permite que, al editar una publicación en dólares,
-   * el selector muestre correctamente "Dólares".
-   */
   const monedaPublicacion = normalizarMoneda(publicacion.moneda);
 
   return {
@@ -93,10 +82,7 @@ const mapearPublicacionAFormulario = (
     camposInmuebles: {
       tipoOperacion: "",
       tipoPropiedad: "",
-
-      // Se usa la moneda real de la publicación.
       moneda: monedaPublicacion,
-
       ciudad: "",
       barrio: "",
       superficieTerreno: "",
@@ -133,12 +119,14 @@ export const useCrearPublicacionForm = (
     }));
   }, [form.archivos]);
 
-  /**
-   * Actualiza un campo general del formulario.
-   *
-   * Cuando se modifica la moneda general, también sincronizamos
-   * la moneda de los campos inmobiliarios.
-   */
+  useEffect(() => {
+    return () => {
+      previews.forEach((preview) => {
+        URL.revokeObjectURL(preview.url);
+      });
+    };
+  }, [previews]);
+
   const actualizarCampo = <K extends keyof CrearPublicacionForm>(
     campo: K,
     valor: CrearPublicacionForm[K],
@@ -149,9 +137,7 @@ export const useCrearPublicacionForm = (
 
         return {
           ...prev,
-
           moneda,
-
           camposInmuebles: {
             ...prev.camposInmuebles,
             moneda,
@@ -166,18 +152,6 @@ export const useCrearPublicacionForm = (
     });
   };
 
-  /**
-   * Actualiza los campos específicos de inmuebles.
-   *
-   * CORRECCIÓN PRINCIPAL:
-   * cuando el usuario selecciona USD o PYG en el formulario
-   * inmobiliario, actualizamos también form.moneda.
-   *
-   * De esa manera:
-   * - la vista previa muestra la moneda correcta;
-   * - el FormData envía la moneda correcta;
-   * - la edición guarda USD cuando se selecciona dólares.
-   */
   const actualizarCampoInmueble = (
     campo: keyof CrearPublicacionForm["camposInmuebles"],
     valor: string,
@@ -207,11 +181,13 @@ export const useCrearPublicacionForm = (
   };
 
   const agregarArchivos = (archivos: FileList | null) => {
-    if (!archivos) return;
+    if (!archivos?.length) return;
+
+    const nuevosArchivos = Array.from(archivos);
 
     setForm((prev) => ({
       ...prev,
-      archivos: [...prev.archivos, ...Array.from(archivos)],
+      archivos: [...prev.archivos, ...nuevosArchivos],
     }));
   };
 

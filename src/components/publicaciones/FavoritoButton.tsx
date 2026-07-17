@@ -18,13 +18,14 @@ const FavoritoButton: React.FC<Props> = ({
 }) => {
   const [operando, setOperando] = useState(false);
   const [esFavorito, setEsFavorito] = useState(!!producto.esFavorito);
+
   const [cantidadFavoritos, setCantidadFavoritos] = useState(
-    producto.cantidadFavoritos ?? 0,
+    Number(producto.cantidadFavoritos ?? 0),
   );
 
   useEffect(() => {
     setEsFavorito(!!producto.esFavorito);
-    setCantidadFavoritos(producto.cantidadFavoritos ?? 0);
+    setCantidadFavoritos(Number(producto.cantidadFavoritos ?? 0));
   }, [producto.id, producto.esFavorito, producto.cantidadFavoritos]);
 
   const handleClick = async (e: React.MouseEvent) => {
@@ -39,7 +40,7 @@ const FavoritoButton: React.FC<Props> = ({
       const data = await toggleFavoritoPublicacion(producto.id);
 
       setEsFavorito(data.esFavorito);
-      setCantidadFavoritos(data.cantidadFavoritos);
+      setCantidadFavoritos(Number(data.cantidadFavoritos ?? 0));
     } catch (error: any) {
       Swal.fire({
         icon: "error",
@@ -62,22 +63,40 @@ const FavoritoButton: React.FC<Props> = ({
       disabled={operando}
       title={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
       className={[
-        "z-30 flex flex-col items-center justify-center gap-[2px]",
-        "bg-transparent border-0 outline-none",
-        "transition duration-200 ease-out",
-        "hover:scale-110 active:scale-95",
+        "z-30 flex flex-col items-center justify-center gap-1",
+        "border-0 bg-transparent p-0 outline-none",
         "disabled:cursor-wait disabled:opacity-70",
         className,
       ].join(" ")}
     >
-      {esFavorito ? (
-        <HeartSolidIcon className="h-7 w-7 text-red-500 drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)]" />
-      ) : (
-        <HeartOutlineIcon className="h-7 w-7 text-white drop-shadow-[0_2px_5px_rgba(0,0,0,0.95)]" />
-      )}
+      <span
+        className={[
+          "flex h-8 w-8 items-center justify-center rounded-full",
+          "bg-black/22",
+          "shadow-[0_2px_8px_rgba(0,0,0,0.28)]",
+          "backdrop-blur-[3px]",
+          "transition-[background-color,box-shadow] duration-200",
+          "hover:bg-black/32",
+          "hover:shadow-[0_4px_12px_rgba(0,0,0,0.32)]",
+        ].join(" ")}
+      >
+        {esFavorito ? (
+          <HeartSolidIcon className="h-[18px] w-[18px] text-red-500 drop-shadow-sm" />
+        ) : (
+          <HeartOutlineIcon className="h-[18px] w-[18px] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]" />
+        )}
+      </span>
 
-      {mostrarCantidad && cantidadFavoritos > 0 && (
-        <span className="min-w-[18px] rounded-full bg-white/95 px-1.5 py-[1px] text-center text-[10px] font-extrabold leading-none text-red-500 shadow-md">
+      {mostrarCantidad && (
+        <span
+          className={[
+            "min-w-[18px] rounded-full",
+            "bg-black/22",
+            "px-1 py-[1px] text-center",
+            "text-[8px] font-extrabold leading-none text-white",
+            "shadow-sm backdrop-blur-[3px]",
+          ].join(" ")}
+        >
           {cantidadFavoritos}
         </span>
       )}

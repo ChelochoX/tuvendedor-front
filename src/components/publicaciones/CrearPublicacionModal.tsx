@@ -252,6 +252,60 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     const nuevosArchivos = Array.from(archivos);
 
+    const extensionesPermitidas = [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif",
+      ".mp4",
+      ".webm",
+      ".mov",
+    ];
+
+    const archivoNoPermitido = nuevosArchivos.find((archivo) => {
+      const nombre = archivo.name.toLowerCase();
+
+      const tieneExtensionPermitida = extensionesPermitidas.some((extension) =>
+        nombre.endsWith(extension),
+      );
+
+      const tieneMimePermitido =
+        archivo.type.startsWith("image/") ||
+        archivo.type.startsWith("video/") ||
+        archivo.type === "";
+
+      return !tieneExtensionPermitida || !tieneMimePermitido;
+    });
+
+    if (archivoNoPermitido) {
+      Swal.fire({
+        title: "Archivo no compatible",
+        text: `“${archivoNoPermitido.name}” no tiene un formato compatible. Usá JPG, JPEG, PNG, WEBP, GIF, MP4, WEBM o MOV.`,
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+        background: "#111827",
+        color: "#fff",
+      });
+
+      return;
+    }
+
+    const archivoVacio = nuevosArchivos.find((archivo) => archivo.size <= 0);
+
+    if (archivoVacio) {
+      Swal.fire({
+        title: "Archivo inválido",
+        text: `“${archivoVacio.name}” está vacío o no pudo ser leído correctamente.`,
+        icon: "warning",
+        confirmButtonColor: "#facc15",
+        background: "#111827",
+        color: "#fff",
+      });
+
+      return;
+    }
+
     const archivoExcedido = nuevosArchivos.find(
       (archivo) => archivo.size > MAX_TAMANO_ARCHIVO_BYTES,
     );

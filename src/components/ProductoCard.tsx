@@ -8,9 +8,11 @@ import {
   CreditCardIcon,
   BanknotesIcon,
   BuildingLibraryIcon,
+  UserIcon,
   MapPinIcon,
   PhotoIcon,
   TagIcon,
+  EyeIcon,
 } from "@heroicons/react/24/outline";
 import Swal from "sweetalert2";
 import {
@@ -961,6 +963,10 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
   const ubicacionVisible =
     producto.ubicacion?.trim() || "Ubicación no informada";
 
+  const nombreVendedorVisible = producto.vendedor?.nombre?.trim() || "Vendedor";
+
+  const avatarVendedorVisible = producto.vendedor?.avatar?.trim() || "";
+
   const categoriaVisible = producto.categoria?.trim() || "Producto o servicio";
 
   const textoParaDetectarInmueble =
@@ -989,6 +995,27 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
     "quinta",
   ].some((palabra) => textoParaDetectarInmueble.includes(palabra));
 
+  const vistasPublicas = Number(producto.cantidadVistas ?? 0);
+
+  const IconoGestionPublica = mostrarPrimeraCuota
+    ? CreditCardIcon
+    : esInmueble
+      ? BuildingLibraryIcon
+      : BanknotesIcon;
+
+  const tituloGestionPublica = mostrarPrimeraCuota
+    ? "Cuota desde"
+    : esInmueble
+      ? "Crédito bancario"
+      : "Compra directa";
+
+  const subtituloGestionPublica =
+    mostrarPrimeraCuota && primeraCuota
+      ? `${formatearPrecio(primeraCuota.valorCuota, producto.moneda)} · ${primeraCuota.cuotas} cuotas`
+      : esInmueble
+        ? "Te asesoramos"
+        : "Consultá ahora";
+
   return (
     <Link
       to={`/producto/${producto.id}`}
@@ -1007,10 +1034,9 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
         className={[
           "relative isolate overflow-hidden rounded-2xl bg-white",
           "shadow-sm ring-1 ring-inset ring-slate-200",
-          "transition-all duration-200 ease-out",
-          "hover:-translate-y-0.5",
-          "hover:ring-2 hover:ring-inset hover:ring-amber-400",
-          "hover:shadow-[0_14px_34px_-15px_rgba(245,158,11,0.65)]",
+          "transition-[box-shadow,ring-color] duration-200 ease-out",
+          "group-hover:ring-2 group-hover:ring-inset group-hover:ring-indigo-300",
+          "group-hover:shadow-[0_12px_30px_-15px_rgba(99,102,241,0.35)]",
           destacadoActivo
             ? "ring-2 ring-inset ring-yellow-400 shadow-[0_12px_30px_-16px_rgba(250,204,21,0.65)]"
             : "",
@@ -1114,17 +1140,45 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
           )}
 
           {!mostrarAcciones && (
-            <FavoritoButton
-              producto={producto}
-              mostrarCantidad
-              className="absolute bottom-2 right-2"
-            />
+            <div className="absolute bottom-2 right-2 z-10 flex flex-col items-center gap-1.5">
+              <FavoritoButton producto={producto} mostrarCantidad />
+
+              <div
+                title={`${vistasPublicas} vistas`}
+                className="flex flex-col items-center justify-center gap-1"
+              >
+                <span
+                  className={[
+                    "flex h-8 w-8 items-center justify-center rounded-full",
+                    "bg-black/22",
+                    "shadow-[0_2px_8px_rgba(0,0,0,0.28)]",
+                    "backdrop-blur-[3px]",
+                  ].join(" ")}
+                >
+                  <EyeIcon className="h-[18px] w-[18px] text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.75)]" />
+                </span>
+
+                <span
+                  className={[
+                    "min-w-[18px] rounded-full",
+                    "bg-black/22",
+                    "px-1 py-[1px] text-center",
+                    "text-[8px] font-extrabold leading-none text-white",
+                    "shadow-sm backdrop-blur-[3px]",
+                  ].join(" ")}
+                >
+                  {vistasPublicas}
+                </span>
+              </div>
+            </div>
           )}
         </div>
 
         <div
           className={[
-            "relative z-10 -mt-px border-0 bg-white",
+            "relative z-10 -mt-[2px] border-0 bg-white",
+            "transition-colors duration-200 ease-out",
+            "group-hover:bg-slate-50",
             isCompact ? "p-2.5" : "p-3",
           ].join(" ")}
           style={{
@@ -1181,7 +1235,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             )}
           </div>
 
-          {mostrarPrimeraCuota && primeraCuota && (
+          {mostrarAcciones && mostrarPrimeraCuota && primeraCuota && (
             <div
               className={[
                 "mt-2 flex items-center gap-2 rounded-xl",
@@ -1189,8 +1243,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                 "px-2.5 py-2",
                 "ring-1 ring-inset ring-emerald-200",
                 "shadow-[0_5px_14px_-10px_rgba(16,185,129,0.8)]",
-                "transition-all duration-200",
-                "group-hover:ring-emerald-300",
+                "transition-colors duration-200",
               ].join(" ")}
             >
               <div
@@ -1229,7 +1282,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {!mostrarPrimeraCuota && esInmueble && (
+          {mostrarAcciones && !mostrarPrimeraCuota && esInmueble && (
             <div
               className={[
                 "mt-2 flex min-h-[56px] items-center gap-2 rounded-xl",
@@ -1237,8 +1290,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                 "px-2.5 py-2",
                 "ring-1 ring-inset ring-sky-200",
                 "shadow-[0_5px_14px_-10px_rgba(14,165,233,0.75)]",
-                "transition-all duration-200",
-                "group-hover:ring-sky-300",
+                "transition-colors duration-200",
               ].join(" ")}
             >
               <div
@@ -1275,7 +1327,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {!mostrarPrimeraCuota && !esInmueble && (
+          {mostrarAcciones && !mostrarPrimeraCuota && !esInmueble && (
             <div
               className={[
                 "mt-2 flex min-h-[56px] items-center gap-2 rounded-xl",
@@ -1283,8 +1335,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                 "px-2.5 py-2",
                 "ring-1 ring-inset ring-amber-200",
                 "shadow-[0_5px_14px_-10px_rgba(245,158,11,0.75)]",
-                "transition-all duration-200",
-                "group-hover:ring-amber-300",
+                "transition-colors duration-200",
               ].join(" ")}
             >
               <div
@@ -1321,7 +1372,7 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
             </div>
           )}
 
-          {mostrarPrimeraCuota && esInmueble && (
+          {mostrarAcciones && mostrarPrimeraCuota && esInmueble && (
             <div className="mt-1.5 flex">
               <span
                 className={[
@@ -1333,44 +1384,157 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
                 ].join(" ")}
               >
                 <BuildingLibraryIcon className="h-3 w-3 shrink-0" />
-
                 <span>Crédito bancario</span>
               </span>
             </div>
           )}
 
-          <div
-            className={[
-              "mt-2 flex min-w-0 items-center gap-2 rounded-lg",
-              "bg-gradient-to-r from-slate-50 to-amber-50/40",
-              "px-2 py-1.5",
-              "ring-1 ring-inset ring-slate-100",
-              "transition-all duration-200",
-              "group-hover:from-amber-50/80",
-              "group-hover:to-white",
-              "group-hover:ring-amber-200",
-            ].join(" ")}
-          >
-            <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-              <MapPinIcon className="h-3 w-3" />
-            </div>
-
-            <div className="min-w-0 flex-1">
-              <p className="text-[6px] font-black uppercase leading-none tracking-[0.08em] text-amber-700/75 sm:text-[7px]">
-                Ubicación
-              </p>
-
-              <p
+          {!mostrarAcciones ? (
+            <div
+              className={[
+                "mt-2 overflow-hidden rounded-xl border",
+                "border-slate-200/90",
+                isCompact ? "-mx-2.5 -mb-2.5" : "-mx-3 -mb-3",
+              ].join(" ")}
+            >
+              <div
                 className={[
-                  "mt-0.5 truncate font-medium leading-tight text-slate-600",
-                  isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+                  "flex items-center gap-2 border-b border-amber-100/90",
+                  "bg-gradient-to-r from-amber-50 via-white to-orange-50",
+                  "transition-colors duration-200 ease-out",
+                  "group-hover:from-orange-50 group-hover:via-amber-50 group-hover:to-yellow-50",
+                  isCompact ? "px-2.5 py-2" : "px-3 py-2.5",
                 ].join(" ")}
-                title={ubicacionVisible}
               >
-                {ubicacionVisible}
-              </p>
+                <div
+                  className={[
+                    "flex shrink-0 items-center justify-center rounded-full",
+                    "bg-slate-900 text-yellow-400 shadow-sm",
+                    isCompact ? "h-7 w-7" : "h-8 w-8",
+                  ].join(" ")}
+                >
+                  <IconoGestionPublica
+                    className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                  />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={[
+                      "font-black uppercase leading-none tracking-[0.1em]",
+                      mostrarPrimeraCuota
+                        ? "text-emerald-700"
+                        : esInmueble
+                          ? "text-sky-700"
+                          : "text-amber-700",
+                      isCompact ? "text-[6px]" : "text-[7px]",
+                    ].join(" ")}
+                  >
+                    {tituloGestionPublica}
+                  </p>
+
+                  <p
+                    className={[
+                      "mt-1 truncate font-semibold leading-tight text-slate-600",
+                      isCompact ? "text-[8px]" : "text-[9px]",
+                    ].join(" ")}
+                  >
+                    {subtituloGestionPublica}
+                  </p>
+                </div>
+              </div>
+
+              <div
+                className={[
+                  "flex items-center gap-2",
+                  "bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50",
+                  "transition-colors duration-200 ease-out",
+                  "group-hover:from-blue-50 group-hover:via-indigo-50/80 group-hover:to-slate-50",
+                  isCompact ? "px-2.5 py-2" : "px-3 py-2.5",
+                ].join(" ")}
+              >
+                {avatarVendedorVisible ? (
+                  <img
+                    src={avatarVendedorVisible}
+                    loading="lazy"
+                    decoding="async"
+                    alt={nombreVendedorVisible}
+                    className={[
+                      "shrink-0 rounded-full border-2 border-white",
+                      "bg-white object-cover shadow-sm ring-1 ring-indigo-200",
+                      isCompact ? "h-7 w-7" : "h-8 w-8",
+                    ].join(" ")}
+                  />
+                ) : (
+                  <div
+                    className={[
+                      "flex shrink-0 items-center justify-center rounded-full",
+                      "border-2 border-white bg-gradient-to-br",
+                      "from-indigo-500 to-blue-600 text-white shadow-sm",
+                      "ring-1 ring-indigo-200",
+                      isCompact ? "h-7 w-7" : "h-8 w-8",
+                    ].join(" ")}
+                  >
+                    <UserIcon
+                      className={isCompact ? "h-3.5 w-3.5" : "h-4 w-4"}
+                    />
+                  </div>
+                )}
+
+                <div className="min-w-0 flex-1">
+                  <p
+                    className={[
+                      "font-black uppercase leading-none tracking-[0.12em]",
+                      "text-indigo-500/70",
+                      isCompact ? "text-[6px]" : "text-[7px]",
+                    ].join(" ")}
+                  >
+                    Vendedor
+                  </p>
+
+                  <p
+                    className={[
+                      "mt-1 truncate font-bold leading-tight text-slate-800",
+                      isCompact ? "text-[9px]" : "text-[10px] sm:text-[11px]",
+                    ].join(" ")}
+                    title={nombreVendedorVisible}
+                  >
+                    {nombreVendedorVisible}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div
+              className={[
+                "mt-2 flex min-w-0 items-center gap-2 rounded-lg",
+                "bg-gradient-to-r from-slate-50 to-amber-50/40",
+                "px-2 py-1.5",
+                "ring-1 ring-inset ring-slate-100",
+                "transition-colors duration-200",
+              ].join(" ")}
+            >
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <MapPinIcon className="h-3 w-3" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="text-[6px] font-black uppercase leading-none tracking-[0.08em] text-amber-700/75 sm:text-[7px]">
+                  Ubicación
+                </p>
+
+                <p
+                  className={[
+                    "mt-0.5 truncate font-medium leading-tight text-slate-600",
+                    isCompact ? "text-[8px]" : "text-[9px] sm:text-[10px]",
+                  ].join(" ")}
+                  title={ubicacionVisible}
+                >
+                  {ubicacionVisible}
+                </p>
+              </div>
+            </div>
+          )}
 
           {mostrarAcciones && (
             <PublicacionMetricas
@@ -1378,24 +1542,6 @@ Quiero activar este servicio. Me confirmás la forma de pago y el plan disponibl
               cantidadVistas={producto.cantidadVistas}
               cantidadClicksWhatsapp={producto.cantidadClicksWhatsapp}
             />
-          )}
-
-          {mostrarAcciones && producto.vendedor && (
-            <div className="mb-1 mt-2 flex items-center justify-between">
-              <div className="mr-1 flex items-center gap-1">
-                <img
-                  src={producto.vendedor.avatar}
-                  loading="lazy"
-                  decoding="async"
-                  alt={producto.vendedor.nombre}
-                  className="h-4 w-4 rounded-full object-cover"
-                />
-
-                <span className="text-[11px] text-gray-500">
-                  {producto.vendedor.nombre}
-                </span>
-              </div>
-            </div>
           )}
 
           {mostrarAcciones && (

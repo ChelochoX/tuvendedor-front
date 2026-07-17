@@ -99,29 +99,53 @@ const mapearProducto = (p: any): Producto => {
     permiteDelivery: p.permiteDelivery ?? p.PermiteDelivery ?? false,
 
     esFavorito: p.esFavorito ?? p.EsFavorito ?? false,
-    cantidadFavoritos: Number(
-      p.cantidadFavoritos ?? p.CantidadFavoritos ?? 0,
-    ),
+    cantidadFavoritos: Number(p.cantidadFavoritos ?? p.CantidadFavoritos ?? 0),
     cantidadVistas: Number(p.cantidadVistas ?? p.CantidadVistas ?? 0),
     cantidadClicksWhatsapp: Number(
       p.cantidadClicksWhatsapp ?? p.CantidadClicksWhatsapp ?? 0,
     ),
 
     vendedor: {
+      ...(p.vendedor ?? p.Vendedor ?? {}),
+
       nombre:
+        p.vendedor?.nombreNegocio ??
+        p.vendedor?.NombreNegocio ??
+        p.Vendedor?.nombreNegocio ??
+        p.Vendedor?.NombreNegocio ??
+        p.nombreNegocioVendedor ??
+        p.NombreNegocioVendedor ??
         p.vendedor?.nombre ??
+        p.vendedor?.Nombre ??
+        p.Vendedor?.nombre ??
         p.Vendedor?.Nombre ??
         p.nombreVendedor ??
         p.NombreVendedor ??
-        "Tu Vendedor",
+        "Vendedor",
+
       avatar:
+        p.vendedor?.fotoPerfil ??
+        p.vendedor?.FotoPerfil ??
+        p.Vendedor?.fotoPerfil ??
+        p.Vendedor?.FotoPerfil ??
+        p.fotoPerfilVendedor ??
+        p.FotoPerfilVendedor ??
         p.vendedor?.avatar ??
+        p.vendedor?.Avatar ??
+        p.Vendedor?.avatar ??
         p.Vendedor?.Avatar ??
         p.avatarVendedor ??
         p.AvatarVendedor ??
         "",
+
       telefono:
+        p.vendedor?.whatsapp ??
+        p.vendedor?.Whatsapp ??
+        p.Vendedor?.whatsapp ??
+        p.Vendedor?.Whatsapp ??
         p.vendedor?.telefono ??
+        p.vendedor?.Telefono ??
+        p.Vendedor?.telefono ??
         p.Vendedor?.Telefono ??
         p.telefonoVendedor ??
         p.TelefonoVendedor ??

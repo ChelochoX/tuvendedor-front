@@ -481,8 +481,6 @@ const ProductDetail: React.FC<Props> = ({
   const navigate = useNavigate();
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [mostrarDescripcionCompleta, setMostrarDescripcionCompleta] =
-    useState(false);
   const [relacionadas, setRelacionadas] = useState<Producto[]>([]);
 
   const imagenes = Array.isArray(producto.imagenes) ? producto.imagenes : [];
@@ -1095,59 +1093,41 @@ const ProductDetail: React.FC<Props> = ({
         ...cardSx,
         borderRadius: 3,
         p: isMobile ? 1.4 : 2,
+        width: "100%",
+        height: "auto",
+        minHeight: 0,
+        maxHeight: "none",
+        overflow: "visible",
       }}
     >
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Typography
-          sx={{
-            color: "#fff",
-            fontSize: "0.9rem",
-            fontWeight: 950,
-          }}
-        >
-          Descripción
-        </Typography>
-
-        <Button
-          onClick={() => setMostrarDescripcionCompleta((actual) => !actual)}
-          endIcon={
-            <KeyboardArrowDownRoundedIcon
-              sx={{
-                transform: mostrarDescripcionCompleta
-                  ? "rotate(180deg)"
-                  : "none",
-                transition: "transform .18s ease",
-              }}
-            />
-          }
-          sx={{
-            color: "#facc15",
-            minWidth: 0,
-            p: 0.25,
-            fontSize: "0.74rem",
-            fontWeight: 850,
-            textTransform: "none",
-          }}
-        >
-          {mostrarDescripcionCompleta ? "Ver menos" : "Ver más"}
-        </Button>
-      </Box>
-
       <Typography
         sx={{
+          color: "#fff",
+          fontSize: "0.9rem",
+          fontWeight: 950,
+        }}
+      >
+        Descripción
+      </Typography>
+
+      <Typography
+        component="div"
+        sx={{
           mt: 0.9,
+          width: "100%",
+          height: "auto",
+          minHeight: 0,
+          maxHeight: "none",
+          overflow: "visible",
+          display: "block",
           color: "rgba(255,255,255,0.82)",
           fontSize: isMobile ? "0.76rem" : "0.84rem",
-          lineHeight: 1.55,
-          whiteSpace: "pre-line",
-          ...(mostrarDescripcionCompleta
-            ? {}
-            : {
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                WebkitLineClamp: isMobile ? 3 : 4,
-                overflow: "hidden",
-              }),
+          lineHeight: 1.6,
+          whiteSpace: "pre-wrap",
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
+          WebkitLineClamp: "unset",
+          WebkitBoxOrient: "unset",
         }}
       >
         {producto.descripcion}
@@ -1565,17 +1545,22 @@ const ProductDetail: React.FC<Props> = ({
                     />
 
                     <Typography
-                      component="h1"
+                      component="h2"
                       sx={{
                         color: "#fff",
                         fontWeight: 950,
                         lineHeight: 1.16,
                         letterSpacing: "-0.025em",
                         fontSize: "0.92rem",
-                        display: "-webkit-box",
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
+                        display: "block",
+                        width: "100%",
+                        whiteSpace: "normal",
+                        overflow: "visible",
+                        textOverflow: "clip",
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                        WebkitLineClamp: "unset",
+                        WebkitBoxOrient: "unset",
                       }}
                     >
                       {tituloProducto}
@@ -2135,17 +2120,22 @@ const ProductDetail: React.FC<Props> = ({
               </Box>
 
               <Typography
-                component="h1"
+                component="h2"
                 sx={{
                   color: "#fff",
                   fontWeight: 950,
                   lineHeight: 1.08,
                   letterSpacing: "-0.035em",
-                  fontSize: "clamp(1.28rem, 1.65vw, 1.72rem)",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
+                  fontSize: "clamp(1.18rem, 1.45vw, 1.55rem)",
+                  display: "block",
+                  width: "100%",
+                  whiteSpace: "normal",
+                  overflow: "visible",
+                  textOverflow: "clip",
+                  overflowWrap: "anywhere",
+                  wordBreak: "break-word",
+                  WebkitLineClamp: "unset",
+                  WebkitBoxOrient: "unset",
                 }}
               >
                 {tituloProducto}

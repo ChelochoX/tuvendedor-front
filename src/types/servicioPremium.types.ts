@@ -12,6 +12,7 @@ export const ESTADOS_SERVICIO_PREMIUM = {
   SOLICITADO: "SOLICITADO",
   PENDIENTE_PAGO: "PENDIENTE_PAGO",
   ACTIVO: "ACTIVO",
+  SUSPENDIDO_PAGO: "SUSPENDIDO_PAGO",
   VENCIDO: "VENCIDO",
   CANCELADO: "CANCELADO",
 } as const;
@@ -29,13 +30,21 @@ export interface ActivarServicioPremiumRequest {
   fechaInicio?: string;
   fechaFin?: string;
   duracionDias?: number;
+
   idTemporada?: number;
+
   modoActivacionEspecial?: "DIAS" | "TEMPORADA";
+
   monto?: number;
+
   medioPago?: string;
+
   referenciaPago?: string;
+
   observacion?: string;
+
   badgeTexto?: string;
+
   badgeColor?: string;
 }
 
@@ -43,55 +52,82 @@ export interface CancelarServicioPremiumRequest {
   observacion?: string;
 }
 
+export interface SuspenderServicioPremiumRequest {
+  observacion?: string;
+}
+
 export interface ServicioPremium {
   id: number;
 
   idVendedor: number;
+
   idUsuarioVendedor: number;
+
   nombreNegocio: string;
+
   nombreUsuarioVendedor?: string | null;
 
   idPublicacion?: number | null;
+
   tituloPublicacion?: string | null;
 
   idTemporada?: number | null;
+
   nombreTemporada?: string | null;
 
   tipoServicio: TipoServicioPremium | string;
+
   estado: EstadoServicioPremium | string;
 
   fechaSolicitud: string;
+
   fechaInicio?: string | null;
+
   fechaFin?: string | null;
+
   fechaPago?: string | null;
 
   monto?: number | null;
+
   medioPago?: string | null;
+
   referenciaPago?: string | null;
+
   observacion?: string | null;
 
   idUsuarioAdmin?: number | null;
+
   nombreUsuarioAdmin?: string | null;
 }
 
 export interface ResumenServiciosPremium {
   solicitudesPendientes: number;
+
   serviciosActivos: number;
+
   proximosAVencer: number;
+
   montoCobrado: number;
 }
 
 export interface FiltrosServiciosPremium {
   estado?: string;
+
   tipoServicio?: string;
+
   cliente?: string;
+
   fechaDesde?: string;
+
   fechaHasta?: string;
+
   pagina?: number;
+
   tamanioPagina?: number;
 }
 
 export interface Datos<T> {
   items: T;
+
   totalRegistros: number;
 }

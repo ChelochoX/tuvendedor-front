@@ -8,7 +8,6 @@ import {
 } from "react-router-dom";
 
 import { obtenerPerfilPublicoVendedor } from "../../api/perfilVendedorService";
-import { obtenerPublicaciones } from "../../api/publicacionesService";
 import {
   PublicacionPerfilVendedor,
   PerfilPublicoVendedor,
@@ -152,6 +151,7 @@ const PerfilVendedorPublico: React.FC = () => {
     const cargarPerfil = async () => {
       if (!slug) {
         setError("No se recibió el identificador del perfil.");
+
         setCargando(false);
         return;
       }
@@ -160,83 +160,34 @@ const PerfilVendedorPublico: React.FC = () => {
         setCargando(true);
         setError(null);
 
-        const [perfilData, publicacionesMarketplace] = await Promise.all([
-          obtenerPerfilPublicoVendedor(slug),
-          obtenerPublicaciones(),
-        ]);
+        /*
+         * IMPORTANTE:
+         * La vitrina ya no consulta el Marketplace.
+         *
+         * El backend devuelve exclusivamente las publicaciones
+         * CanalPublicacion = VITRINA con todos sus datos.
+         */
+        const perfilData = await obtenerPerfilPublicoVendedor(slug);
 
-        const mapaMarketplace = new Map(
-          (publicacionesMarketplace || []).map((p: any) => [p.id, p]),
-        );
-
-        const publicacionesEnriquecidas = (perfilData.publicaciones || []).map(
-          (pub: any) => {
-            const full = mapaMarketplace.get(pub.id) as any;
-
-            if (!full) {
-              return {
-                ...pub,
-                moneda: pub.moneda ?? pub.Moneda ?? "PYG",
-                imagenes: pub.imagenes || [],
-                permiteDelivery:
-                  pub.permiteDelivery ?? pub.PermiteDelivery ?? false,
-                PermiteDelivery:
-                  pub.PermiteDelivery ?? pub.permiteDelivery ?? false,
-              };
-            }
-
-            return {
-              ...pub,
-              titulo: full.nombre || full.titulo || pub.titulo,
-              descripcion: full.descripcion ?? pub.descripcion,
-              precio: full.precio ?? pub.precio,
-              moneda: full.moneda ?? pub.moneda ?? "PYG",
-              categoria: full.categoria ?? pub.categoria,
-              ubicacion: full.ubicacion ?? pub.ubicacion,
-              estado: full.estado ?? pub.estado,
-              imagenPrincipal:
-                full.imagenes?.[0]?.mainUrl || pub.imagenPrincipal,
-              thumbUrl: full.imagenes?.[0]?.thumbUrl || pub.thumbUrl,
-              esDestacada: full.esDestacada ?? pub.esDestacada,
-              latitud: full.latitud ?? pub.latitud ?? null,
-              longitud: full.longitud ?? pub.longitud ?? null,
-              googleMapsUrl: full.googleMapsUrl ?? pub.googleMapsUrl ?? null,
-              permiteDelivery:
-                full.permiteDelivery ??
-                full.PermiteDelivery ??
-                pub.permiteDelivery ??
-                pub.PermiteDelivery ??
-                false,
-              PermiteDelivery:
-                full.PermiteDelivery ??
-                full.permiteDelivery ??
-                pub.PermiteDelivery ??
-                pub.permiteDelivery ??
-                false,
-              imagenes: Array.isArray(full.imagenes) ? full.imagenes : [],
-              esFavorito: full.esFavorito ?? pub.esFavorito ?? false,
-              cantidadFavoritos:
-                full.cantidadFavoritos ?? pub.cantidadFavoritos ?? 0,
-              cantidadVistas: full.cantidadVistas ?? pub.cantidadVistas ?? 0,
-              cantidadClicksWhatsapp:
-                full.cantidadClicksWhatsapp ?? pub.cantidadClicksWhatsapp ?? 0,
-            };
-          },
-        );
-
-        setPerfil({
-          ...perfilData,
-          publicaciones: publicacionesEnriquecidas,
-        });
-      } catch (err) {
+        setPerfil(perfilData);
+      } catch (err: any) {
         console.error("Error al cargar perfil público:", err);
-        setError("No se pudo cargar el perfil del vendedor.");
+
+        const status = err?.response?.status;
+
+        setPerfil(null);
+
+        setError(
+          status === 404
+            ? "Esta vitrina no está disponible en este momento."
+            : "No se pudo cargar el perfil del vendedor.",
+        );
       } finally {
         setCargando(false);
       }
     };
 
-    cargarPerfil();
+    void cargarPerfil();
   }, [slug]);
 
   useEffect(() => {

@@ -1,3 +1,5 @@
+export type CanalPublicacion = "MARKETPLACE" | "VITRINA";
+
 export interface PlanCreditoForm {
   cuotas: string;
   valorCuota: string;
@@ -43,20 +45,28 @@ export interface ImagenExistenteEditable {
 
 export interface PublicacionEditable {
   id: number;
+
   titulo?: string;
   descripcion?: string;
   precio?: number;
   moneda?: "PYG" | "USD" | string | null;
+
   categoria?: string;
   ubicacion?: string;
+
+  canalPublicacion?: CanalPublicacion | string;
+
   mostrarBotonesCompra?: boolean;
   permiteDelivery?: boolean;
+
   planCredito?: Array<{
     cuotas?: number;
     valorCuota?: number;
   }>;
+
   latitud?: number | null;
   longitud?: number | null;
   googleMapsUrl?: string | null;
+
   imagenesExistentes?: ImagenExistenteEditable[];
 }

@@ -304,6 +304,7 @@ const MiPerfilVendedor: React.FC = () => {
       <VitrinaPremiumLanding
         idVendedor={form.idVendedor}
         nombreNegocio={form.nombreNegocio}
+        requiereRegularizacion={form.esPerfilPublico}
       />
     );
   }

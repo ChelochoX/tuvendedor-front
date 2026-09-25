@@ -1,4 +1,7 @@
-import { CrearPublicacionForm } from "../../../types/publicacion.types";
+import {
+  CanalPublicacion,
+  CrearPublicacionForm,
+} from "../../../types/publicacion.types";
 
 export const categoriasInmuebles = [
   "Inmuebles",
@@ -142,7 +145,10 @@ export const normalizarMoneda = (valor?: string | null) => {
   return "PYG";
 };
 
-export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
+export const crearFormDataPublicacion = (
+  form: CrearPublicacionForm,
+  canalPublicacion: CanalPublicacion,
+) => {
   const formData = new FormData();
 
   const monedaSeleccionada = normalizarMoneda(
@@ -154,9 +160,22 @@ export const crearFormDataPublicacion = (form: CrearPublicacionForm) => {
   formData.append("Precio", String(limpiarPrecio(form.precio)));
   formData.append("Moneda", monedaSeleccionada);
   formData.append("Categoria", form.categoria.trim());
+
+  // IMPORTANTE:
+  // Define si la publicación pertenece al Marketplace
+  // o exclusivamente a la vitrina.
+  formData.append("CanalPublicacion", canalPublicacion);
+
   formData.append("Ubicacion", form.ubicacion?.trim() || "");
-  formData.append("MostrarBotonesCompra", String(form.mostrarBotonesCompra));
-  formData.append("PermiteDelivery", String(form.permiteDelivery));
+  formData.append(
+    "MostrarBotonesCompra",
+    String(form.mostrarBotonesCompra),
+  );
+
+  formData.append(
+    "PermiteDelivery",
+    String(form.permiteDelivery),
+  );
 
   form.archivos.forEach((archivo) => {
     formData.append("Imagenes", archivo);

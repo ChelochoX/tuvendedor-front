@@ -20,6 +20,8 @@ import {
   ShieldAlert,
   Store,
   XCircle,
+  PauseCircle,
+  PlayCircle,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -37,6 +39,8 @@ import {
   cancelarServicioPremiumAdmin,
   obtenerResumenServiciosPremiumAdmin,
   obtenerServiciosPremiumAdmin,
+  reactivarServicioPremiumAdmin,
+  suspenderServicioPremiumAdmin,
 } from "../../api/serviciosPremiumService";
 
 import {
@@ -874,6 +878,8 @@ const ServiciosPremiumAdmin: React.FC = () => {
         return "border-gray-400/30 bg-gray-400/10 text-gray-300";
       case ESTADOS_SERVICIO_PREMIUM.PENDIENTE_PAGO:
         return "border-orange-400/30 bg-orange-400/10 text-orange-300";
+      case ESTADOS_SERVICIO_PREMIUM.SUSPENDIDO_PAGO:
+        return "border-orange-400/30 bg-orange-400/10 text-orange-300";
       default:
         return "border-yellow-400/30 bg-yellow-400/10 text-yellow-300";
     }
@@ -1401,6 +1407,150 @@ const ServiciosPremiumAdmin: React.FC = () => {
     }
   };
 
+  const suspenderServicio = async (servicio: ServicioPremium) => {
+    const resultadoModal = await Swal.fire({
+      icon: "warning",
+
+      title: "¿Suspender vitrina por falta de pago?",
+
+      text: "La página pública quedará temporalmente fuera de línea, pero no se borrarán productos ni configuración.",
+
+      input: "textarea",
+
+      inputLabel: "Observación",
+
+      inputPlaceholder: "Ej.: Pago pendiente del período actual...",
+
+      showCancelButton: true,
+
+      confirmButtonText: "Sí, suspender",
+
+      cancelButtonText: "Volver",
+
+      background: "#16181f",
+
+      color: "#fff",
+
+      confirmButtonColor: "#f59e0b",
+
+      cancelButtonColor: "#6b7280",
+
+      customClass: SWAL_DARK_CLASSES,
+    });
+
+    if (!resultadoModal.isConfirmed) {
+      return;
+    }
+
+    try {
+      await suspenderServicioPremiumAdmin(servicio.id, {
+        observacion: resultadoModal.value?.trim() || undefined,
+      });
+
+      await Swal.fire({
+        icon: "success",
+
+        title: "Vitrina suspendida",
+
+        text: "La vitrina quedó temporalmente fuera de línea y conserva toda su configuración.",
+
+        background: "#16181f",
+
+        color: "#fff",
+
+        confirmButtonColor: "#facc15",
+
+        customClass: SWAL_DARK_CLASSES,
+      });
+
+      await cargarDatos();
+    } catch (error: any) {
+      await Swal.fire({
+        icon: "error",
+
+        title: "No se pudo suspender",
+
+        text: error?.message || "Ocurrió un error al suspender la vitrina.",
+
+        background: "#16181f",
+
+        color: "#fff",
+
+        confirmButtonColor: "#facc15",
+
+        customClass: SWAL_DARK_CLASSES,
+      });
+    }
+  };
+
+  const reactivarServicio = async (servicio: ServicioPremium) => {
+    const resultadoModal = await Swal.fire({
+      icon: "question",
+
+      title: "¿Reactivar vitrina?",
+
+      text: "La vitrina volverá a estar disponible con sus productos y configuración anteriores.",
+
+      showCancelButton: true,
+
+      confirmButtonText: "Sí, reactivar",
+
+      cancelButtonText: "Volver",
+
+      background: "#16181f",
+
+      color: "#fff",
+
+      confirmButtonColor: "#22c55e",
+
+      cancelButtonColor: "#6b7280",
+
+      customClass: SWAL_DARK_CLASSES,
+    });
+
+    if (!resultadoModal.isConfirmed) {
+      return;
+    }
+
+    try {
+      await reactivarServicioPremiumAdmin(servicio.id);
+
+      await Swal.fire({
+        icon: "success",
+
+        title: "Vitrina reactivada",
+
+        text: "La página pública vuelve a estar disponible.",
+
+        background: "#16181f",
+
+        color: "#fff",
+
+        confirmButtonColor: "#facc15",
+
+        customClass: SWAL_DARK_CLASSES,
+      });
+
+      await cargarDatos();
+    } catch (error: any) {
+      await Swal.fire({
+        icon: "error",
+
+        title: "No se pudo reactivar",
+
+        text: error?.message || "Ocurrió un error al reactivar la vitrina.",
+
+        background: "#16181f",
+
+        color: "#fff",
+
+        confirmButtonColor: "#facc15",
+
+        customClass: SWAL_DARK_CLASSES,
+      });
+    }
+  };
+
   if (!tieneAccesoAdmin) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050914] px-4 text-white">
@@ -1535,6 +1685,7 @@ const ServiciosPremiumAdmin: React.FC = () => {
               <option value="SOLICITADO">Solicitados</option>
               <option value="PENDIENTE_PAGO">Pendientes de pago</option>
               <option value="ACTIVO">Activos</option>
+              <option value="SUSPENDIDO_PAGO">Suspendidos por pago</option>
               <option value="VENCIDO">Vencidos</option>
               <option value="CANCELADO">Cancelados</option>
             </select>
@@ -1695,13 +1846,43 @@ const ServiciosPremiumAdmin: React.FC = () => {
                       <div className="flex flex-wrap justify-end gap-2">
                         {servicio.estado !== ESTADOS_SERVICIO_PREMIUM.ACTIVO &&
                           servicio.estado !==
-                            ESTADOS_SERVICIO_PREMIUM.CANCELADO && (
+                            ESTADOS_SERVICIO_PREMIUM.CANCELADO &&
+                          servicio.estado !==
+                            ESTADOS_SERVICIO_PREMIUM.SUSPENDIDO_PAGO && (
                             <button
                               type="button"
                               onClick={() => activarServicio(servicio)}
                               className="rounded-lg bg-yellow-400 px-3 py-2 text-[11px] font-extrabold text-black transition hover:bg-yellow-300"
                             >
                               Confirmar pago y activar
+                            </button>
+                          )}
+
+                        {servicio.tipoServicio ===
+                          TIPOS_SERVICIO_PREMIUM.VITRINA_PROFESIONAL &&
+                          servicio.estado ===
+                            ESTADOS_SERVICIO_PREMIUM.ACTIVO && (
+                            <button
+                              type="button"
+                              onClick={() => suspenderServicio(servicio)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-orange-500/15 px-3 py-2 text-[11px] font-extrabold text-orange-300 transition hover:bg-orange-500 hover:text-white"
+                            >
+                              <PauseCircle size={13} />
+                              Suspender pago
+                            </button>
+                          )}
+
+                        {servicio.tipoServicio ===
+                          TIPOS_SERVICIO_PREMIUM.VITRINA_PROFESIONAL &&
+                          servicio.estado ===
+                            ESTADOS_SERVICIO_PREMIUM.SUSPENDIDO_PAGO && (
+                            <button
+                              type="button"
+                              onClick={() => reactivarServicio(servicio)}
+                              className="inline-flex items-center gap-1 rounded-lg bg-green-500/15 px-3 py-2 text-[11px] font-extrabold text-green-300 transition hover:bg-green-500 hover:text-white"
+                            >
+                              <PlayCircle size={13} />
+                              Reactivar
                             </button>
                           )}
 

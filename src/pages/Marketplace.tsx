@@ -42,6 +42,7 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
     : Array.isArray((producto.planCredito as any)?.opciones)
       ? (producto.planCredito as any).opciones.map((plan: any) => ({
           cuotas: plan?.cuotas,
+
           valorCuota: plan?.valorCuota,
         }))
       : [];
@@ -49,22 +50,40 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
   const imagenesExistentes = Array.isArray(producto.imagenes)
     ? producto.imagenes.map((img: any) => ({
         mainUrl: img?.mainUrl || img?.url || "",
+
         thumbUrl: img?.thumbUrl || img?.mainUrl || img?.url || "",
       }))
     : [];
 
   return {
     id: producto.id,
+
     titulo: producto.nombre,
+
     descripcion: producto.descripcion,
+
     precio: producto.precio,
+
+    moneda: producto.moneda ?? "PYG",
+
     categoria: producto.categoria,
+
     ubicacion: producto.ubicacion,
+
+    canalPublicacion: producto.canalPublicacion ?? "MARKETPLACE",
+
     mostrarBotonesCompra: producto.mostrarBotonesCompra,
+
+    permiteDelivery: Boolean(producto.permiteDelivery),
+
     planCredito: planCreditoNormalizado,
-    latitud: (producto as any).latitud ?? null,
-    longitud: (producto as any).longitud ?? null,
-    googleMapsUrl: (producto as any).googleMapsUrl ?? null,
+
+    latitud: producto.latitud ?? null,
+
+    longitud: producto.longitud ?? null,
+
+    googleMapsUrl: producto.googleMapsUrl ?? null,
+
     imagenesExistentes,
   };
 };
@@ -127,7 +146,13 @@ const Marketplace: React.FC = () => {
       let data: Producto[] = [];
 
       if (mostrarSoloMias) {
-        data = await obtenerMisPublicaciones();
+        const propias = await obtenerMisPublicaciones();
+
+        data = propias.filter(
+          (producto) =>
+            (producto.canalPublicacion || "MARKETPLACE").toUpperCase() ===
+            "MARKETPLACE",
+        );
       } else {
         const categoria =
           categoriaSeleccionada && categoriaSeleccionada.nombre !== "Todos"

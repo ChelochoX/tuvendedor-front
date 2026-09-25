@@ -83,9 +83,19 @@ const mapearProducto = (p: any): Producto => {
     categoria: p.categoria ?? p.Categoria ?? "",
     ubicacion: p.ubicacion ?? p.Ubicacion ?? "",
     descripcion: p.descripcion ?? p.Descripcion ?? "",
+
     estado: p.estado ?? p.Estado ?? "Activo",
 
+    canalPublicacion: p.canalPublicacion ?? p.CanalPublicacion ?? "MARKETPLACE",
+
+    latitud: p.latitud ?? p.Latitud ?? null,
+
+    longitud: p.longitud ?? p.Longitud ?? null,
+
+    googleMapsUrl: p.googleMapsUrl ?? p.GoogleMapsUrl ?? null,
+
     esDestacada: p.esDestacada ?? p.EsDestacada ?? false,
+
     fechaFinDestacado: p.fechaFinDestacado ?? p.FechaFinDestacado,
 
     esTemporada: p.esTemporada ?? p.EsTemporada ?? false,

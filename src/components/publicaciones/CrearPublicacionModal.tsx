@@ -18,6 +18,7 @@ import {
   obtenerCategorias,
 } from "../../api/publicacionesService";
 import {
+  CanalPublicacion,
   CategoriaPublicacionOption,
   ImagenExistenteEditable,
   PublicacionEditable,
@@ -190,6 +191,15 @@ const CrearPublicacionModal: React.FC<Props> = ({
   }, [publicacionAEditar, modalAbierto]);
 
   const esModoVitrina = modo === "perfil-vendedor";
+
+  const canalPublicacion: CanalPublicacion =
+    publicacionAEditar?.canalPublicacion?.toUpperCase() === "VITRINA"
+      ? "VITRINA"
+      : publicacionAEditar?.canalPublicacion?.toUpperCase() === "MARKETPLACE"
+        ? "MARKETPLACE"
+        : esModoVitrina
+          ? "VITRINA"
+          : "MARKETPLACE";
 
   const esInmobiliario =
     esCategoriaInmobiliaria(form.categoria) ||
@@ -564,7 +574,7 @@ const CrearPublicacionModal: React.FC<Props> = ({
       setGuardando(true);
       mostrarModalProcesando();
 
-      const formData = crearFormDataPublicacion(form);
+      const formData = crearFormDataPublicacion(form, canalPublicacion);
 
       const latitudBackend = coordenadaParaBackend(ubicacionGps.latitud);
       const longitudBackend = coordenadaParaBackend(ubicacionGps.longitud);
@@ -599,11 +609,14 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
       Swal.fire({
         title: esEdicion ? "¡Publicación actualizada!" : "¡Publicación creada!",
-        text: esModoVitrina
-          ? "La publicación ya puede verse en tu vitrina pública y también en el marketplace."
-          : esEdicion
-            ? "Los cambios se guardaron correctamente."
-            : "La publicación fue creada correctamente.",
+        text:
+          canalPublicacion === "VITRINA"
+            ? esEdicion
+              ? "Los cambios se guardaron y la publicación continúa únicamente en tu vitrina."
+              : "La publicación fue creada únicamente para tu vitrina pública."
+            : esEdicion
+              ? "Los cambios se guardaron y la publicación continúa únicamente en el marketplace."
+              : "La publicación fue creada únicamente para el marketplace.",
         icon: "success",
         confirmButtonColor: "#facc15",
         background: "#111827",
@@ -673,8 +686,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
               <p className="mt-1 max-w-3xl text-sm font-normal leading-relaxed text-gray-400">
                 {esModoVitrina
-                  ? "Cargá fotos, precio, ubicación y descripción. Esta publicación aparecerá en tu vitrina pública, en el marketplace y podrá usarse en campañas de WhatsApp."
-                  : "Cargá la información principal del producto. Si elegís una categoría inmobiliaria, aparecerán campos especiales para propiedades."}
+                  ? "Cargá fotos, precio, ubicación y descripción. Esta publicación aparecerá únicamente en tu vitrina pública y podrá usarse en campañas de WhatsApp."
+                  : "Cargá la información principal del producto. Esta publicación aparecerá únicamente en el marketplace."}
               </p>
             </div>
 
@@ -948,15 +961,14 @@ const CrearPublicacionModal: React.FC<Props> = ({
                   <div className="rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3.5 text-[13px] font-normal leading-6 text-slate-300">
                     {esModoVitrina ? (
                       <>
-                        Tu publicación se mostrará en tu vitrina pública, en el
-                        marketplace y también podrá compartirse desde campañas
-                        de WhatsApp.
+                        Tu publicación se mostrará únicamente en tu vitrina
+                        pública y también podrá compartirse desde campañas de
+                        WhatsApp.
                       </>
                     ) : (
                       <>
-                        Tu publicación se mostrará en el marketplace. Si tenés
-                        perfil público de vendedor, también aparecerá en tu
-                        vitrina.
+                        Tu publicación se mostrará únicamente en el marketplace
+                        general de Tu Vendedor.
                       </>
                     )}
                   </div>
@@ -980,8 +992,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs leading-5 text-slate-400">
                 {esModoVitrina
-                  ? "La publicación aparecerá en tu vitrina pública y en el marketplace."
-                  : "La publicación aparecerá en el marketplace."}
+                  ? "La publicación aparecerá únicamente en tu vitrina pública."
+                  : "La publicación aparecerá únicamente en el marketplace."}
               </p>
 
               <div className="flex flex-col gap-3 sm:flex-row">

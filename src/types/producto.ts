@@ -1,5 +1,7 @@
 // src/types/producto.ts
 
+export type CanalPublicacion = "MARKETPLACE" | "VITRINA";
+
 export interface Imagen {
   mainUrl: string;
   thumbUrl: string;
@@ -13,7 +15,11 @@ export interface Producto {
   categoria: string;
   ubicacion: string;
   descripcion?: string;
-  // ⭐ Destacado
+
+  // Canal al que pertenece la publicación.
+  canalPublicacion?: CanalPublicacion | string;
+
+  // Destacado
   esDestacada?: boolean;
   fechaFinDestacado?: string;
 
@@ -31,19 +37,25 @@ export interface Producto {
   };
 
   imagenes: Imagen[];
+
   mostrarBotonesCompra?: boolean;
   permiteDelivery?: boolean;
 
-  // 🎉 TEMPORADA → AGREGAR ESTO
+  // GPS / mapa
+  latitud?: number | null;
+  longitud?: number | null;
+  googleMapsUrl?: string | null;
+
+  // Temporada
   esTemporada?: boolean;
   badgeTexto?: string;
   badgeColor?: string;
   fechaFinTemporada?: string;
 
-  // 🔥 NUEVO: estado de la publicación
+  // Estado
   estado: "Activo" | "Vendido" | "Pausado" | string;
 
-  // ❤️ Interacciones / métricas
+  // Interacciones / métricas
   esFavorito?: boolean;
   cantidadFavoritos?: number;
   cantidadVistas?: number;

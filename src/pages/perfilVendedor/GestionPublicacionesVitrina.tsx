@@ -41,12 +41,15 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
     moneda: producto.moneda ?? "PYG",
     categoria: producto.categoria,
     ubicacion: producto.ubicacion,
+    canalPublicacion: producto.canalPublicacion ?? "VITRINA",
     mostrarBotonesCompra: producto.mostrarBotonesCompra,
     permiteDelivery: Boolean(producto.permiteDelivery),
     planCredito: planCreditoNormalizado,
-    latitud: (producto as any).latitud ?? null,
-    longitud: (producto as any).longitud ?? null,
-    googleMapsUrl: (producto as any).googleMapsUrl ?? null,
+    latitud: producto.latitud ?? null,
+
+    longitud: producto.longitud ?? null,
+
+    googleMapsUrl: producto.googleMapsUrl ?? null,
     imagenesExistentes,
   };
 };
@@ -71,7 +74,14 @@ const GestionPublicacionesVitrina: React.FC<Props> = ({
       setCargando(true);
 
       const data = await obtenerMisPublicaciones();
-      setPublicaciones(data);
+
+      setPublicaciones(
+        data.filter(
+          (producto) =>
+            (producto.canalPublicacion || "MARKETPLACE").toUpperCase() ===
+            "VITRINA",
+        ),
+      );
     } catch (error) {
       console.error("Error al cargar publicaciones de la vitrina:", error);
 
@@ -126,7 +136,15 @@ const GestionPublicacionesVitrina: React.FC<Props> = ({
     const slugSeguro = slug?.trim();
 
     if (!slugSeguro) {
-      navigate(`/producto/${producto.id}`);
+      void Swal.fire({
+        icon: "warning",
+        title: "Falta el enlace de la vitrina",
+        text: "Primero configurá el slug público de tu vitrina para abrir esta publicación.",
+        background: "#111827",
+        color: "#fff",
+        confirmButtonColor: "#facc15",
+      });
+
       return;
     }
 

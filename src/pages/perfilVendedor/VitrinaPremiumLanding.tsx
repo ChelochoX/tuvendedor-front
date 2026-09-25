@@ -20,27 +20,47 @@ import { TIPOS_SERVICIO_PREMIUM } from "../../types/servicioPremium.types";
 interface VitrinaPremiumLandingProps {
   idVendedor?: number;
   nombreNegocio?: string;
+  requiereRegularizacion?: boolean;
 }
 
 const VitrinaPremiumLanding: React.FC<VitrinaPremiumLandingProps> = ({
   idVendedor,
   nombreNegocio,
+  requiereRegularizacion = false,
 }) => {
   const navigate = useNavigate();
 
   const solicitarActivacion = async () => {
-    await intentarRegistrarSolicitudPremium({
-      tipoServicio: TIPOS_SERVICIO_PREMIUM.VITRINA_PROFESIONAL,
-      observacion:
-        "Solicitud enviada desde la pantalla comercial de vitrina profesional.",
-    });
+    /*
+     * Si nunca tuvo vitrina Premium,
+     * registramos una nueva solicitud.
+     *
+     * Si ya tenía una vitrina pero está
+     * inactiva/suspendida, NO generamos
+     * otra solicitud duplicada.
+     */
+    if (!requiereRegularizacion) {
+      await intentarRegistrarSolicitudPremium({
+        tipoServicio: TIPOS_SERVICIO_PREMIUM.VITRINA_PROFESIONAL,
 
-    const mensaje = `Hola 👋 Quiero activar la vitrina pública profesional de mi negocio en Tu Vendedor.
+        observacion:
+          "Solicitud enviada desde la pantalla comercial de vitrina profesional.",
+      });
+    }
 
-Negocio: ${nombreNegocio || "Sin especificar"}
-Código de vendedor: ${idVendedor || "Sin especificar"}
+    const mensaje = requiereRegularizacion
+      ? `Hola 👋 Quiero regularizar y reactivar la vitrina pública profesional de mi negocio en Tu Vendedor.
 
-Quisiera conocer el precio y las formas de pago.`;
+      Negocio: ${nombreNegocio || "Sin especificar"}
+      Código de vendedor: ${idVendedor || "Sin especificar"}
+
+      Quisiera poner el servicio al día y volver a habilitar mi página.`
+      : `Hola 👋 Quiero activar la vitrina pública profesional de mi negocio en Tu Vendedor.
+
+      Negocio: ${nombreNegocio || "Sin especificar"}
+      Código de vendedor: ${idVendedor || "Sin especificar"}
+
+      Quisiera conocer el precio y las formas de pago.`;
 
     abrirWhatsapp(ADMIN_WHATSAPP, mensaje);
   };
@@ -103,13 +123,21 @@ Quisiera conocer el precio y las formas de pago.`;
                 </div>
 
                 <h1 className="mt-4 max-w-2xl text-[28px] font-black leading-[1.05] tracking-[-0.05em] text-white sm:text-5xl">
-                  Convertí tu negocio en una{" "}
-                  <span className="text-yellow-300">vitrina profesional</span>
+                  {requiereRegularizacion
+                    ? "Tu vitrina profesional está "
+                    : "Convertí tu negocio en una "}
+
+                  <span className="text-yellow-300">
+                    {requiereRegularizacion
+                      ? "temporalmente inactiva"
+                      : "vitrina profesional"}
+                  </span>
                 </h1>
 
                 <p className="mt-4 max-w-xl text-sm leading-6 text-gray-300 sm:text-base sm:leading-7">
-                  Mostrá todos tus productos en un solo lugar, compartí tu
-                  propio enlace y recibí consultas directamente por WhatsApp.
+                  {requiereRegularizacion
+                    ? "Tu catálogo y configuración siguen guardados. Regularizá el servicio para volver a publicar tu página sin perder nada."
+                    : "Mostrá todos tus productos en un solo lugar, compartí tu propio enlace y recibí consultas directamente por WhatsApp."}
                 </p>
 
                 <div className="mt-5 rounded-3xl border border-yellow-400/15 bg-yellow-400/[0.06] p-4">
@@ -167,7 +195,9 @@ Quisiera conocer el precio y las formas de pago.`;
                   className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-green-500 to-green-600 px-5 py-3.5 text-sm font-black text-white shadow-[0_14px_30px_rgba(34,197,94,0.22)] transition hover:-translate-y-0.5 hover:from-green-400 hover:to-green-600 sm:w-auto sm:px-7 sm:text-base"
                 >
                   <MessageCircle size={20} />
-                  Consultar por WhatsApp
+                  {requiereRegularizacion
+                    ? "Regularizar por WhatsApp"
+                    : "Consultar por WhatsApp"}
                 </button>
 
                 <p className="mt-3 text-center text-xs text-gray-500 sm:text-left">

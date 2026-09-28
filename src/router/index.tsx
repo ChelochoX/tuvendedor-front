@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 
 import { lazy, Suspense } from "react";
 
+import DescuentosContado from "../pages/clientes/DescuentosContado";
+
 // Marketplace
 const Marketplace = lazy(() => import("pages/Marketplace"));
 
@@ -70,6 +72,11 @@ const RoutesHandler = () => (
       <Route path="/clientes/modelos" element={<GestionModelos />} />
 
       <Route path="/clientes/precios" element={<GestionPrecios />} />
+
+      <Route
+        path="/clientes/descuentos-contado"
+        element={<DescuentosContado />}
+      />
 
       <Route path="/clientes/perfil-vendedor" element={<MiPerfilVendedor />} />
 

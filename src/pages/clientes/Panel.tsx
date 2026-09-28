@@ -1,118 +1,278 @@
 import React from "react";
 
-import { useNavigate } from "react-router-dom";
+import {
+  useNavigate,
+} from "react-router-dom";
 
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
+import AssignmentTurnedInIcon
+  from "@mui/icons-material/AssignmentTurnedIn";
 
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import PersonAddIcon
+  from "@mui/icons-material/PersonAdd";
 
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowBackIcon
+  from "@mui/icons-material/ArrowBack";
 
-import StoreIcon from "@mui/icons-material/Store";
+import StoreIcon
+  from "@mui/icons-material/Store";
 
-import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import LocalOfferIcon
+  from "@mui/icons-material/LocalOffer";
 
-import CategoryIcon from "@mui/icons-material/Category";
+import CategoryIcon
+  from "@mui/icons-material/Category";
 
-const Panel: React.FC = () => {
-  const navigate = useNavigate();
+import PercentIcon
+  from "@mui/icons-material/Percent";
+
+
+const Panel:
+  React.FC = () => {
+
+  const navigate =
+    useNavigate();
+
 
   return (
-    <div className="flex flex-col justify-between h-full relative">
-      <div className="flex flex-col gap-2 overflow-y-auto pb-20 md:pb-0">
-        <h2 className="text-yellow-400 font-bold text-lg px-4 mb-3">
+
+    <div
+      className="
+        flex
+        flex-col
+        justify-between
+        h-full
+        relative
+      "
+    >
+
+      <div
+        className="
+          flex
+          flex-col
+          gap-2
+          overflow-y-auto
+          pb-20
+          md:pb-0
+        "
+      >
+
+        <h2
+          className="
+            text-yellow-400
+            font-bold
+            text-lg
+            px-4
+            mb-3
+          "
+        >
           Gestión de clientes
         </h2>
 
+
         <button
-          onClick={() => navigate("/clientes/dashboard")}
+          onClick={() =>
+            navigate(
+              "/clientes/dashboard",
+            )
+          }
           className="
-            flex items-center gap-2
-            px-4 py-2 rounded
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
             text-white
             hover:bg-yellow-500
             hover:text-black
             transition-all
           "
         >
-          <AssignmentTurnedInIcon fontSize="small" />
+
+          <AssignmentTurnedInIcon
+            fontSize="small"
+          />
+
           Solicitudes de crédito
+
         </button>
 
+
         <button
-          onClick={() => navigate("/clientes/cargar")}
+          onClick={() =>
+            navigate(
+              "/clientes/cargar",
+            )
+          }
           className="
-            flex items-center gap-2
-            px-4 py-2 rounded
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
             text-white
             hover:bg-yellow-500
             hover:text-black
             transition-all
           "
         >
-          <PersonAddIcon fontSize="small" />
+
+          <PersonAddIcon
+            fontSize="small"
+          />
+
           Registrar cliente
+
         </button>
 
-        <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
+
+        <h2
+          className="
+            text-yellow-400
+            font-bold
+            text-lg
+            px-4
+            mt-6
+            mb-3
+          "
+        >
           Gestión Producto
         </h2>
 
+
         <button
-          onClick={() => navigate("/clientes/marcas")}
+          onClick={() =>
+            navigate(
+              "/clientes/marcas",
+            )
+          }
           className="
-            flex items-center gap-2
-            px-4 py-2 rounded
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
             text-white
             hover:bg-yellow-500
             hover:text-black
             transition-all
           "
         >
-          <StoreIcon fontSize="small" />
+
+          <StoreIcon
+            fontSize="small"
+          />
+
           Marcas
+
         </button>
 
+
         <button
-          onClick={() => navigate("/clientes/modelos")}
+          onClick={() =>
+            navigate(
+              "/clientes/modelos",
+            )
+          }
           className="
-            flex items-center gap-2
-            px-4 py-2 rounded
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
             text-white
             hover:bg-yellow-500
             hover:text-black
             transition-all
           "
         >
-          <CategoryIcon fontSize="small" />
+
+          <CategoryIcon
+            fontSize="small"
+          />
+
           Modelos
+
         </button>
 
+
         <button
-          onClick={() => navigate("/clientes/precios")}
+          onClick={() =>
+            navigate(
+              "/clientes/precios",
+            )
+          }
           className="
-            flex items-center gap-2
-            px-4 py-2 rounded
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
             text-white
             hover:bg-yellow-500
             hover:text-black
             transition-all
           "
         >
-          <LocalOfferIcon fontSize="small" />
+
+          <LocalOfferIcon
+            fontSize="small"
+          />
+
           Precios
+
         </button>
+
+
+        <button
+          onClick={() =>
+            navigate(
+              "/clientes/descuentos-contado",
+            )
+          }
+          className="
+            flex
+            items-center
+            gap-2
+            px-4
+            py-2
+            rounded
+            text-white
+            hover:bg-yellow-500
+            hover:text-black
+            transition-all
+          "
+        >
+
+          <PercentIcon
+            fontSize="small"
+          />
+
+          Descuentos contado
+
+        </button>
+
       </div>
 
+
       <div className="hidden md:block mt-4">
+
         <button
-          onClick={() => navigate("/")}
+          onClick={() =>
+            navigate("/")
+          }
           className="
             w-full
-            flex items-center
+            flex
+            items-center
             justify-center
             gap-2
-            px-4 py-2
+            px-4
+            py-2
             rounded-full
             font-semibold
             text-yellow-400
@@ -124,10 +284,17 @@ const Panel: React.FC = () => {
             duration-300
           "
         >
-          <ArrowBackIcon fontSize="small" />
+
+          <ArrowBackIcon
+            fontSize="small"
+          />
+
           Volver al Marketplace
+
         </button>
+
       </div>
+
 
       <div
         className="
@@ -141,8 +308,11 @@ const Panel: React.FC = () => {
           z-30
         "
       >
+
         <button
-          onClick={() => navigate("/")}
+          onClick={() =>
+            navigate("/")
+          }
           className="
             flex
             items-center
@@ -160,12 +330,20 @@ const Panel: React.FC = () => {
             duration-200
           "
         >
-          <ArrowBackIcon fontSize="small" />
+
+          <ArrowBackIcon
+            fontSize="small"
+          />
+
           Volver al Marketplace
+
         </button>
+
       </div>
+
     </div>
   );
 };
+
 
 export default Panel;

@@ -30,6 +30,7 @@ import DescriptionIcon from "@mui/icons-material/Description";
 import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import HistoryIcon from "@mui/icons-material/History";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 
 import Panel from "./Panel";
 
@@ -38,6 +39,7 @@ import {
   listarSolicitudesCreditoMoto,
   obtenerDocumentoCreditoMoto,
   obtenerMensajeError,
+  obtenerPdfSolicitudCreditoMoto,
   obtenerSolicitudCreditoMoto,
 } from "../../api/creditoMotoGestionService";
 
@@ -249,6 +251,7 @@ const Dashboard: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const [procesandoAccion, setProcesandoAccion] = useState(false);
+  const [generandoPdf, setGenerandoPdf] = useState(false);
 
   const [detalle, setDetalle] = useState<DetalleSeleccionado>(null);
   const [nuevaUrgente, setNuevaUrgente] = useState(false);
@@ -669,6 +672,57 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // =========================================================
+  // DESCARGAR PDF DE CREDITO PARA CHACOMER
+  // =========================================================
+
+  const descargarPdfCredito = async () => {
+    if (!detalle || detalle.tipo !== "CREDITO") {
+      return;
+    }
+
+    setGenerandoPdf(true);
+
+    try {
+      const blob = await obtenerPdfSolicitudCreditoMoto(
+        detalle.data.idSolicitudCredito,
+      );
+
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+
+      const nombreCliente = (detalle.data.nombreCompleto || "cliente")
+        .trim()
+        .replace(/[^\p{L}\p{N}]+/gu, "_")
+        .replace(/^_+|_+$/g, "");
+
+      enlace.href = url;
+      enlace.download = `Solicitud_Credito_${detalle.data.idSolicitudCredito}_${nombreCliente || "cliente"}.pdf`;
+
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+
+      Swal.fire({
+        icon: "success",
+        title: "PDF generado",
+        text: "La solicitud quedó descargada y lista para enviar a Chacomer.",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire(
+        "No se pudo generar el PDF",
+        obtenerMensajeError(error),
+        "error",
+      );
+    } finally {
+      setGenerandoPdf(false);
+    }
+  };
+
   const abrirDocumento = async (idDocumento: number) => {
     if (!detalle) {
       return;
@@ -687,19 +741,29 @@ const Dashboard: React.FC = () => {
             );
 
       const url = URL.createObjectURL(blob);
-      const ventana = window.open(url, "_blank", "noopener,noreferrer");
 
-      if (!ventana) {
-        const enlace = document.createElement("a");
-        enlace.href = url;
-        enlace.target = "_blank";
-        enlace.rel = "noopener noreferrer";
-        enlace.click();
-      }
+      // Abrimos UNA sola pestaña.
+      // Antes se usaba window.open(..., "noopener,noreferrer") y luego un
+      // fallback con <a>. En algunos navegadores window.open devuelve null
+      // aunque la pestaña sí se abrió, provocando una segunda pestaña.
+      const enlace = document.createElement("a");
+
+      enlace.href = url;
+      enlace.target = "_blank";
+      enlace.rel = "noopener noreferrer";
+
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
 
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (error) {
-      Swal.fire("Error", obtenerMensajeError(error), "error");
+      const mensaje =
+        detalle.tipo === "CONTADO"
+          ? obtenerMensajeErrorContado(error)
+          : obtenerMensajeError(error);
+
+      Swal.fire("No se pudo abrir el documento", mensaje, "error");
     }
   };
 
@@ -1309,30 +1373,49 @@ const Dashboard: React.FC = () => {
                       </div>
                     )}
 
-                  {detalle.tipo === "CREDITO" &&
-                    detalle.data.estadoControl === "PENDIENTE_ENVIO" && (
+                  {detalle.tipo === "CREDITO" && (
+                    <div className="space-y-3">
                       <button
-                        onClick={() => void marcarCreditoEnviado()}
-                        disabled={procesandoAccion}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50"
+                        onClick={() => void descargarPdfCredito()}
+                        disabled={generandoPdf || procesandoAccion}
+                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold disabled:opacity-50 transition"
                       >
-                        <SendIcon fontSize="small" />
-                        {procesandoAccion
-                          ? "Actualizando..."
-                          : "Marcar como enviada a la empresa"}
+                        <PictureAsPdfIcon fontSize="small" />
+                        {generandoPdf
+                          ? "Generando PDF..."
+                          : "Generar PDF para Chacomer"}
                       </button>
-                    )}
 
-                  {((detalle.tipo === "CONTADO" &&
-                    ["CONCRETADA", "NO_CONCRETADA"].includes(
-                      detalle.data.estadoControl,
-                    )) ||
-                    (detalle.tipo === "CREDITO" &&
-                      detalle.data.estadoControl === "ENVIADA_EMPRESA")) && (
-                    <div className="text-center text-sm text-gray-400 py-1">
-                      Esta gestión ya no tiene acciones pendientes.
+                      {detalle.data.estadoControl === "PENDIENTE_ENVIO" && (
+                        <button
+                          onClick={() => void marcarCreditoEnviado()}
+                          disabled={procesandoAccion || generandoPdf}
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold disabled:opacity-50 transition"
+                        >
+                          <SendIcon fontSize="small" />
+                          {procesandoAccion
+                            ? "Actualizando..."
+                            : "Marcar como enviada a la empresa"}
+                        </button>
+                      )}
+
+                      {detalle.data.estadoControl === "ENVIADA_EMPRESA" && (
+                        <div className="text-center text-sm text-gray-400 py-1">
+                          La solicitud ya fue marcada como enviada. Podés volver
+                          a descargar el PDF cuando lo necesites.
+                        </div>
+                      )}
                     </div>
                   )}
+
+                  {detalle.tipo === "CONTADO" &&
+                    ["CONCRETADA", "NO_CONCRETADA"].includes(
+                      detalle.data.estadoControl,
+                    ) && (
+                      <div className="text-center text-sm text-gray-400 py-1">
+                        Esta gestión ya no tiene acciones pendientes.
+                      </div>
+                    )}
                 </div>
               </>
             )}

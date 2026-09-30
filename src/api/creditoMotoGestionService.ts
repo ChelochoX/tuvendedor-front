@@ -41,9 +41,7 @@ const extraerData = <T>(respuesta: ApiEnvelope<T>): T => {
   const data = respuesta.Data ?? respuesta.data;
 
   if (data === undefined || data === null) {
-    throw new Error(
-      "La API no devolvió datos para la operación solicitada.",
-    );
+    throw new Error("La API no devolvió datos para la operación solicitada.");
   }
 
   return data;
@@ -86,11 +84,12 @@ export const listarSolicitudesCreditoMoto = async (
     params.fecha = fecha;
   }
 
-  const response = await instance.get<
-    ApiEnvelope<CreditoMotoGestionLista[]>
-  >(API_URL, {
-    params,
-  });
+  const response = await instance.get<ApiEnvelope<CreditoMotoGestionLista[]>>(
+    API_URL,
+    {
+      params,
+    },
+  );
 
   return extraerData(response.data);
 };
@@ -102,9 +101,9 @@ export const listarSolicitudesCreditoMoto = async (
 export const obtenerSolicitudCreditoMoto = async (
   idSolicitudCredito: number,
 ): Promise<CreditoMotoGestionDetalle> => {
-  const response = await instance.get<
-    ApiEnvelope<CreditoMotoGestionDetalle>
-  >(`${API_URL}/${idSolicitudCredito}`);
+  const response = await instance.get<ApiEnvelope<CreditoMotoGestionDetalle>>(
+    `${API_URL}/${idSolicitudCredito}`,
+  );
 
   return extraerData(response.data);
 };
@@ -122,9 +121,10 @@ export const marcarSolicitudEnviadaEmpresa = async (
     observacion,
   };
 
-  const response = await instance.patch<
-    ApiEnvelope<CreditoMotoGestionDetalle>
-  >(`${API_URL}/${idSolicitudCredito}/estado`, payload);
+  const response = await instance.patch<ApiEnvelope<CreditoMotoGestionDetalle>>(
+    `${API_URL}/${idSolicitudCredito}/estado`,
+    payload,
+  );
 
   return extraerData(response.data);
 };
@@ -138,11 +138,26 @@ export const cambiarEstadoSolicitudCreditoMoto = async (
   idSolicitudCredito: number,
   payload: CambiarEstadoCreditoMotoRequest,
 ): Promise<CreditoMotoGestionDetalle> => {
-  const response = await instance.patch<
-    ApiEnvelope<CreditoMotoGestionDetalle>
-  >(`${API_URL}/${idSolicitudCredito}/estado`, payload);
+  const response = await instance.patch<ApiEnvelope<CreditoMotoGestionDetalle>>(
+    `${API_URL}/${idSolicitudCredito}/estado`,
+    payload,
+  );
 
   return extraerData(response.data);
+};
+
+// =========================================================
+// PDF DE SOLICITUD DE CREDITO
+// =========================================================
+
+export const obtenerPdfSolicitudCreditoMoto = async (
+  idSolicitudCredito: number,
+): Promise<Blob> => {
+  const response = await instance.get(`${API_URL}/${idSolicitudCredito}/pdf`, {
+    responseType: "blob",
+  });
+
+  return response.data;
 };
 
 // =========================================================

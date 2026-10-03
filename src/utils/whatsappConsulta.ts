@@ -53,10 +53,18 @@ export const generarMensajeConsultaWhatsapp = (
   const urlPublicacion = buildProductoShareUrl(producto.id, slugVendedor);
   const tituloCorto = obtenerTituloCortoWhatsapp(producto.titulo);
 
+  /*
+   * [TV_PRODUCTO:id] es una referencia estable para el bridge/backend.
+   * El link sigue presente como segundo mecanismo de identificación.
+   * Así Panambí no depende de interpretar el título comercial ni de un
+   * código de modelo escrito por el cliente.
+   */
   return [
-    `¡Hola! 👋 Me interesa *${tituloCorto}*.`,
-    "¿Me contás las opciones disponibles?",
+    "¡Hola! 👋 Estoy consultando desde TuVendedor.",
+    `Me interesa *${tituloCorto}*.`,
+    `Referencia: [TV_PRODUCTO:${producto.id}]`,
+    "¿Qué opciones hay disponibles?",
     "",
-    urlPublicacion,
+    `Publicación: ${urlPublicacion}`,
   ].join("\n");
 };

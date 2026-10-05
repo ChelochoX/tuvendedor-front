@@ -13,6 +13,13 @@ export interface Producto {
   precio: number;
   moneda?: "PYG" | "USD" | string | null;
   categoria: string;
+
+  // Identificación exacta del modelo asociado (solo motos).
+  idModeloProducto?: number | null;
+  codigoReferenciaModelo?: string | null;
+  nombreModelo?: string | null;
+  marcaModelo?: string | null;
+
   ubicacion: string;
   descripcion?: string;
 

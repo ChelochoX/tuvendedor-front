@@ -81,6 +81,13 @@ const mapearProducto = (p: any): Producto => {
     precio: p.precio ?? p.Precio ?? 0,
     moneda: p.moneda ?? p.Moneda ?? "PYG",
     categoria: p.categoria ?? p.Categoria ?? "",
+
+    idModeloProducto: p.idModeloProducto ?? p.IdModeloProducto ?? null,
+    codigoReferenciaModelo:
+      p.codigoReferenciaModelo ?? p.CodigoReferenciaModelo ?? null,
+    nombreModelo: p.nombreModelo ?? p.NombreModelo ?? null,
+    marcaModelo: p.marcaModelo ?? p.MarcaModelo ?? null,
+
     ubicacion: p.ubicacion ?? p.Ubicacion ?? "",
     descripcion: p.descripcion ?? p.Descripcion ?? "",
 

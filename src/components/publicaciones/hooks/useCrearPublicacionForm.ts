@@ -4,6 +4,7 @@ import {
   PublicacionEditable,
 } from "../../../types/publicacion.types";
 import {
+  esCategoriaMoto,
   formatearPrecioVisual,
   normalizarMoneda,
 } from "../crear-publicacion/helpers";
@@ -14,6 +15,7 @@ const estadoInicial: CrearPublicacionForm = {
   precio: "",
   moneda: "PYG",
   categoria: "",
+  idModeloProducto: null,
   ubicacion: "",
   mostrarBotonesCompra: false,
   permiteDelivery: false,
@@ -62,6 +64,7 @@ const mapearPublicacionAFormulario = (
     moneda: monedaPublicacion,
 
     categoria: publicacion.categoria ?? "",
+    idModeloProducto: publicacion.idModeloProducto ?? null,
     ubicacion: publicacion.ubicacion ?? "",
 
     mostrarBotonesCompra: Boolean(publicacion.mostrarBotonesCompra),
@@ -142,6 +145,18 @@ export const useCrearPublicacionForm = (
             ...prev.camposInmuebles,
             moneda,
           },
+        };
+      }
+
+      if (campo === "categoria") {
+        const categoria = String(valor ?? "");
+
+        return {
+          ...prev,
+          categoria,
+          idModeloProducto: esCategoriaMoto(categoria)
+            ? prev.idModeloProducto
+            : null,
         };
       }
 

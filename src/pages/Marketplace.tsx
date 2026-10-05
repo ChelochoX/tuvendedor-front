@@ -68,6 +68,11 @@ const mapearProductoAEditable = (producto: Producto): PublicacionEditable => {
 
     categoria: producto.categoria,
 
+    idModeloProducto: producto.idModeloProducto ?? null,
+    codigoReferenciaModelo: producto.codigoReferenciaModelo ?? null,
+    nombreModelo: producto.nombreModelo ?? null,
+    marcaModelo: producto.marcaModelo ?? null,
+
     ubicacion: producto.ubicacion,
 
     canalPublicacion: producto.canalPublicacion ?? "MARKETPLACE",

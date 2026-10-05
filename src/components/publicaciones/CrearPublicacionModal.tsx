@@ -29,6 +29,7 @@ import { prepararCategoriasPublicacion } from "../../utils/categorias";
 import { useCrearPublicacionForm } from "./hooks/useCrearPublicacionForm";
 import PublicacionDatosBasicos from "./crear-publicacion/PublicacionDatosBasicos";
 import PublicacionCamposInmuebles from "./crear-publicacion/PublicacionCamposInmuebles";
+import PublicacionModeloMoto from "./crear-publicacion/PublicacionModeloMoto";
 import PublicacionMediaUploader from "./crear-publicacion/PublicacionMediaUploader";
 import PublicacionPlanCredito from "./crear-publicacion/PublicacionPlanCredito";
 import PublicacionPreview from "./crear-publicacion/PublicacionPreview";
@@ -37,6 +38,7 @@ import {
   categoriasGenerales,
   crearFormDataPublicacion,
   esCategoriaInmobiliaria,
+  esCategoriaMoto,
   limpiarPrecio,
 } from "./crear-publicacion/helpers";
 
@@ -205,6 +207,8 @@ const CrearPublicacionModal: React.FC<Props> = ({
     esCategoriaInmobiliaria(form.categoria) ||
     esCategoriaInmobiliaria(rubroVendedor);
 
+  const esMotoPublicacion = esCategoriaMoto(form.categoria);
+
   useEffect(() => {
     if (!modalAbierto) return;
 
@@ -369,6 +373,10 @@ const CrearPublicacionModal: React.FC<Props> = ({
 
     if (!form.categoria.trim()) {
       return "Seleccioná una categoría.";
+    }
+
+    if (esMotoPublicacion && !form.idModeloProducto) {
+      return "Seleccioná la marca y el modelo exacto de la moto.";
     }
 
     if (!esEdicion && !form.archivos.length) {
@@ -738,6 +746,15 @@ const CrearPublicacionModal: React.FC<Props> = ({
                     onPrecio={actualizarPrecio}
                   />
                 </div>
+
+                {esMotoPublicacion && (
+                  <PublicacionModeloMoto
+                    idModeloProducto={form.idModeloProducto}
+                    onChange={(idModeloProducto) =>
+                      actualizarCampo("idModeloProducto", idModeloProducto)
+                    }
+                  />
+                )}
 
                 {esInmobiliario && (
                   <div className="rounded-3xl border border-yellow-400/15 bg-yellow-400/[0.04] p-4 sm:p-5">

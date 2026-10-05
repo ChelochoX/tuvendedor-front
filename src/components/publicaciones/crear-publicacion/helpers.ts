@@ -125,6 +125,19 @@ export const esCategoriaInmobiliaria = (valor?: string | null) => {
   ].some((x) => normalizado.includes(x));
 };
 
+
+export const esCategoriaMoto = (valor?: string | null) => {
+  if (!valor) return false;
+
+  const normalizado = valor
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  return normalizado.includes("moto");
+};
+
 export const formatearPrecioVisual = (valor: string) => {
   const limpio = valor.replace(/\D/g, "");
 
@@ -160,6 +173,10 @@ export const crearFormDataPublicacion = (
   formData.append("Precio", String(limpiarPrecio(form.precio)));
   formData.append("Moneda", monedaSeleccionada);
   formData.append("Categoria", form.categoria.trim());
+
+  if (esCategoriaMoto(form.categoria) && form.idModeloProducto) {
+    formData.append("IdModeloProducto", String(form.idModeloProducto));
+  }
 
   // IMPORTANTE:
   // Define si la publicación pertenece al Marketplace

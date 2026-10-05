@@ -24,6 +24,7 @@ export interface CrearPublicacionForm {
   precio: string;
   moneda: "PYG" | "USD" | string;
   categoria: string;
+  idModeloProducto: number | null;
   ubicacion: string;
   mostrarBotonesCompra: boolean;
   permiteDelivery: boolean;
@@ -52,6 +53,10 @@ export interface PublicacionEditable {
   moneda?: "PYG" | "USD" | string | null;
 
   categoria?: string;
+  idModeloProducto?: number | null;
+  codigoReferenciaModelo?: string | null;
+  nombreModelo?: string | null;
+  marcaModelo?: string | null;
   ubicacion?: string;
 
   canalPublicacion?: CanalPublicacion | string;

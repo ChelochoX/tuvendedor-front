@@ -1,11 +1,6 @@
 // src/pages/clientes/FormularioInteresado.tsx
 
-import React, {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import Swal from "sweetalert2";
 
@@ -106,9 +101,7 @@ const aInputFechaHora = (fecha?: string | null) => {
     return "";
   }
 
-  const local = new Date(
-    valor.getTime() - valor.getTimezoneOffset() * 60_000,
-  );
+  const local = new Date(valor.getTime() - valor.getTimezoneOffset() * 60_000);
 
   return local.toISOString().slice(0, 16);
 };
@@ -142,45 +135,30 @@ const FormularioInteresado: React.FC<Props> = ({
   seguimientos,
   setSeguimientos,
 }) => {
-  const [detalle, setDetalle] =
-    useState<InteresadoDetalle | null>(null);
+  const [detalle, setDetalle] = useState<InteresadoDetalle | null>(null);
 
-  const [cargandoDetalle, setCargandoDetalle] =
-    useState(false);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
 
-  const [guardando, setGuardando] =
-    useState(false);
+  const [guardando, setGuardando] = useState(false);
 
   const [formInteresado, setFormInteresado] =
-    useState<Partial<Interesado>>(
-      formularioVacio(),
-    );
+    useState<Partial<Interesado>>(formularioVacio());
 
-  const [fechaSeguimiento, setFechaSeguimiento] =
-    useState("");
+  const [fechaSeguimiento, setFechaSeguimiento] = useState("");
 
-  const [motivoSeguimiento, setMotivoSeguimiento] =
-    useState("");
+  const [motivoSeguimiento, setMotivoSeguimiento] = useState("");
 
-  const [comentarioSeguimiento, setComentarioSeguimiento] =
-    useState("");
+  const [comentarioSeguimiento, setComentarioSeguimiento] = useState("");
 
-  const [requiereSeguimiento, setRequiereSeguimiento] =
-    useState(true);
+  const [requiereSeguimiento, setRequiereSeguimiento] = useState(true);
 
-  const fileInputRef =
-    useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const cargarDetalle = async (
-    idInteresado: number,
-  ) => {
+  const cargarDetalle = async (idInteresado: number) => {
     setCargandoDetalle(true);
 
     try {
-      const data =
-        await obtenerDetalleInteresado(
-          idInteresado,
-        );
+      const data = await obtenerDetalleInteresado(idInteresado);
 
       setDetalle(data);
       setSeguimientos(data.seguimientos || []);
@@ -188,31 +166,20 @@ const FormularioInteresado: React.FC<Props> = ({
       setFormInteresado({
         ...data.interesado,
 
-        estado:
-          data.interesado.estado ||
-          "Activo",
+        estado: data.interesado.estado || "Activo",
 
-        fechaProximoContacto:
-          aFechaSimple(
-            data.interesado.fechaProximoContacto,
-          ),
+        fechaProximoContacto: aFechaSimple(
+          data.interesado.fechaProximoContacto,
+        ),
       });
 
       setFechaSeguimiento(
-        aInputFechaHora(
-          data.interesado.fechaProximoContacto,
-        ),
+        aInputFechaHora(data.interesado.fechaProximoContacto),
       );
 
-      setMotivoSeguimiento(
-        data.interesado.motivoSeguimiento ||
-          "",
-      );
+      setMotivoSeguimiento(data.interesado.motivoSeguimiento || "");
 
-      setRequiereSeguimiento(
-        data.interesado.requiereSeguimiento ??
-          true,
-      );
+      setRequiereSeguimiento(data.interesado.requiereSeguimiento ?? true);
     } catch (error) {
       Swal.fire(
         "No se pudo cargar",
@@ -251,48 +218,28 @@ const FormularioInteresado: React.FC<Props> = ({
   };
 
   const nombreModeloActual = useMemo(() => {
-    const interesado =
-      detalle?.interesado ||
-      seleccionado;
+    const interesado = detalle?.interesado || seleccionado;
 
     if (!interesado) {
       return "—";
     }
 
-    const modelo = [
-      interesado.marcaInteres,
-      interesado.modeloInteres,
-    ]
+    const modelo = [interesado.marcaInteres, interesado.modeloInteres]
       .filter(Boolean)
       .join(" ")
       .trim();
 
-    return (
-      modelo ||
-      interesado.productoInteres ||
-      "Sin modelo definido"
-    );
+    return modelo || interesado.productoInteres || "Sin modelo definido";
   }, [detalle, seleccionado]);
 
   const guardarInteresado = async () => {
     if (!formInteresado.nombre?.trim()) {
-      Swal.fire(
-        "Atención",
-        "Indicá el nombre del interesado.",
-        "warning",
-      );
+      Swal.fire("Atención", "Indicá el nombre del interesado.", "warning");
       return;
     }
 
-    if (
-      formInteresado.aportaIPS &&
-      !formInteresado.cantidadAportes
-    ) {
-      Swal.fire(
-        "Atención",
-        "Indicá la cantidad de aportes de IPS.",
-        "warning",
-      );
+    if (formInteresado.aportaIPS && !formInteresado.cantidadAportes) {
+      Swal.fire("Atención", "Indicá la cantidad de aportes de IPS.", "warning");
       return;
     }
 
@@ -305,25 +252,13 @@ const FormularioInteresado: React.FC<Props> = ({
           ...formInteresado,
           id: seleccionado.id,
           nombre: formInteresado.nombre.trim(),
-          aportaIPS:
-            Boolean(formInteresado.aportaIPS),
-          cantidadAportes:
-            Number(
-              formInteresado.cantidadAportes ||
-                0,
-            ),
-          estado:
-            formInteresado.estado ||
-            "Activo",
-          requiereSeguimiento:
-            seleccionado.requiereSeguimiento,
-          cantidadInteracciones:
-            seleccionado.cantidadInteracciones ||
-            0,
-          sinRespuesta:
-            seleccionado.sinRespuesta,
-          seguimientoVencido:
-            seleccionado.seguimientoVencido,
+          aportaIPS: Boolean(formInteresado.aportaIPS),
+          cantidadAportes: Number(formInteresado.cantidadAportes || 0),
+          estado: formInteresado.estado || "Activo",
+          requiereSeguimiento: seleccionado.requiereSeguimiento,
+          cantidadInteracciones: seleccionado.cantidadInteracciones || 0,
+          sinRespuesta: seleccionado.sinRespuesta,
+          seguimientoVencido: seleccionado.seguimientoVencido,
         } as Interesado);
 
         await cargarDetalle(seleccionado.id);
@@ -338,18 +273,10 @@ const FormularioInteresado: React.FC<Props> = ({
         await registrarInteresado({
           ...formularioVacio(),
           ...formInteresado,
-          nombre:
-            formInteresado.nombre.trim(),
-          aportaIPS:
-            Boolean(formInteresado.aportaIPS),
-          cantidadAportes:
-            Number(
-              formInteresado.cantidadAportes ||
-                0,
-            ),
-          estado:
-            formInteresado.estado ||
-            "Activo",
+          nombre: formInteresado.nombre.trim(),
+          aportaIPS: Boolean(formInteresado.aportaIPS),
+          cantidadAportes: Number(formInteresado.cantidadAportes || 0),
+          estado: formInteresado.estado || "Activo",
         } as InteresadoRequest);
 
         Swal.fire({
@@ -382,33 +309,22 @@ const FormularioInteresado: React.FC<Props> = ({
     setGuardando(true);
 
     try {
-      await actualizarSeguimientoInteresado(
-        seleccionado.id,
-        {
-          fechaProximoContacto:
-            fechaSeguimiento ||
-            null,
+      await actualizarSeguimientoInteresado(seleccionado.id, {
+        fechaProximoContacto: fechaSeguimiento || null,
 
-          requiereSeguimiento,
+        requiereSeguimiento,
 
-          motivoSeguimiento:
-            motivoSeguimiento.trim() ||
-            null,
+        motivoSeguimiento: motivoSeguimiento.trim() || null,
 
-          estadoConsulta:
-            detalle?.interesado.estadoConsulta ||
-            seleccionado.estadoConsulta ||
-            null,
+        estadoConsulta:
+          detalle?.interesado.estadoConsulta ||
+          seleccionado.estadoConsulta ||
+          null,
 
-          comentario:
-            comentarioSeguimiento.trim() ||
-            null,
-        },
-      );
+        comentario: comentarioSeguimiento.trim() || null,
+      });
 
-      await cargarDetalle(
-        seleccionado.id,
-      );
+      await cargarDetalle(seleccionado.id);
 
       setComentarioSeguimiento("");
       setRecargarLista(true);
@@ -433,18 +349,11 @@ const FormularioInteresado: React.FC<Props> = ({
     }
   };
 
-  if (
-    seleccionado &&
-    cargandoDetalle &&
-    !detalle
-  ) {
+  if (seleccionado && cargandoDetalle && !detalle) {
     return (
       <main className="flex-1 min-w-0 p-6 grid place-items-center bg-gray-950">
         <div className="text-gray-400 flex items-center gap-2">
-          <RefreshCw
-            size={18}
-            className="animate-spin"
-          />
+          <RefreshCw size={18} className="animate-spin" />
           Cargando información del cliente...
         </div>
       </main>
@@ -467,7 +376,8 @@ const FormularioInteresado: React.FC<Props> = ({
                     Registrar nuevo interesado
                   </h3>
                   <p className="text-sm text-gray-500">
-                    Esta carga manual convive con los clientes que Panambí registra automáticamente desde WhatsApp.
+                    Esta carga manual convive con los clientes que Panambí
+                    registra automáticamente desde WhatsApp.
                   </p>
                 </div>
               </div>
@@ -493,7 +403,9 @@ const FormularioInteresado: React.FC<Props> = ({
               <strong className="text-white">
                 Los clientes de WhatsApp aparecen solos.
               </strong>{" "}
-              Seleccioná uno desde la lista de la izquierda para ver qué moto consultó, el último mensaje, el historial de conversación y programar el próximo seguimiento.
+              Seleccioná uno desde la lista de la izquierda para ver qué moto
+              consultó, el último mensaje, el historial de conversación y
+              programar el próximo seguimiento.
             </div>
           </>
         ) : (
@@ -503,15 +415,11 @@ const FormularioInteresado: React.FC<Props> = ({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-xl md:text-2xl font-bold truncate">
-                      {detalle?.interesado.nombre ||
-                        seleccionado.nombre}
+                      {detalle?.interesado.nombre || seleccionado.nombre}
                     </h2>
 
                     <EstadoBadge
-                      interesado={
-                        detalle?.interesado ||
-                        seleccionado
-                      }
+                      interesado={detalle?.interesado || seleccionado}
                     />
                   </div>
 
@@ -522,9 +430,7 @@ const FormularioInteresado: React.FC<Props> = ({
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mt-2">
                     <span>
                       Origen:{" "}
-                      {detalle?.interesado.origen ||
-                        seleccionado.origen ||
-                        "—"}
+                      {detalle?.interesado.origen || seleccionado.origen || "—"}
                     </span>
 
                     <span>
@@ -547,12 +453,10 @@ const FormularioInteresado: React.FC<Props> = ({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {(detalle?.interesado.telefono ||
-                    seleccionado.telefono) && (
+                  {(detalle?.interesado.telefono || seleccionado.telefono) && (
                     <a
                       href={`https://wa.me/${String(
-                        detalle?.interesado.telefono ||
-                          seleccionado.telefono,
+                        detalle?.interesado.telefono || seleccionado.telefono,
                       ).replace(/\D/g, "")}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -576,13 +480,11 @@ const FormularioInteresado: React.FC<Props> = ({
 
               <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-px bg-gray-800">
                 <InfoMini
-                  label="Teléfono / ID"
+                  label="Teléfono"
                   value={
                     detalle?.interesado.telefono ||
                     seleccionado.telefono ||
-                    detalle?.interesado.identificadorExterno ||
-                    seleccionado.identificadorExterno ||
-                    "—"
+                    "Número pendiente de resolver"
                   }
                 />
 
@@ -617,50 +519,38 @@ const FormularioInteresado: React.FC<Props> = ({
 
             <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/[0.04] p-4 md:p-5">
               <div className="flex items-center gap-2 mb-4">
-                <CalendarClock
-                  size={18}
-                  className="text-yellow-300"
-                />
+                <CalendarClock size={18} className="text-yellow-300" />
 
                 <div>
-                  <h3 className="font-bold">
-                    Próximo seguimiento
-                  </h3>
+                  <h3 className="font-bold">Próximo seguimiento</h3>
                   <p className="text-xs text-gray-500">
-                    Programá cuándo volver a contactar al cliente y dejá una nota para el vendedor.
+                    Programá cuándo volver a contactar al cliente y dejá una
+                    nota para el vendedor.
                   </p>
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-3">
                 <label className="space-y-1">
-                  <span className="text-xs text-gray-400">
-                    Fecha y hora
-                  </span>
+                  <span className="text-xs text-gray-400">Fecha y hora</span>
 
                   <input
                     type="datetime-local"
                     value={fechaSeguimiento}
                     onChange={(event) =>
-                      setFechaSeguimiento(
-                        event.target.value,
-                      )
+                      setFechaSeguimiento(event.target.value)
                     }
                     className="w-full h-10 rounded-lg bg-gray-950 border border-gray-700 px-3 text-sm focus:outline-none focus:border-yellow-400"
                   />
                 </label>
 
                 <label className="space-y-1">
-                  <span className="text-xs text-gray-400">
-                    Motivo
-                  </span>
+                  <span className="text-xs text-gray-400">Motivo</span>
 
                   <input
                     value={motivoSeguimiento}
                     onChange={(event) =>
-                      setMotivoSeguimiento(
-                        event.target.value,
-                      )
+                      setMotivoSeguimiento(event.target.value)
                     }
                     placeholder="Ej.: Volver a consultar si consiguió garante"
                     className="w-full h-10 rounded-lg bg-gray-950 border border-gray-700 px-3 text-sm focus:outline-none focus:border-yellow-400"
@@ -676,9 +566,7 @@ const FormularioInteresado: React.FC<Props> = ({
                     rows={3}
                     value={comentarioSeguimiento}
                     onChange={(event) =>
-                      setComentarioSeguimiento(
-                        event.target.value,
-                      )
+                      setComentarioSeguimiento(event.target.value)
                     }
                     placeholder="Ej.: Hablé con el cliente. Me pidió que lo contacte el jueves por la tarde."
                     className="w-full rounded-lg bg-gray-950 border border-gray-700 px-3 py-2 text-sm focus:outline-none focus:border-yellow-400"
@@ -692,9 +580,7 @@ const FormularioInteresado: React.FC<Props> = ({
                     type="checkbox"
                     checked={requiereSeguimiento}
                     onChange={(event) =>
-                      setRequiereSeguimiento(
-                        event.target.checked,
-                      )
+                      setRequiereSeguimiento(event.target.checked)
                     }
                     className="accent-yellow-400"
                   />
@@ -716,83 +602,57 @@ const FormularioInteresado: React.FC<Props> = ({
             <div className="grid 2xl:grid-cols-2 gap-4">
               <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <ClipboardList
-                    size={18}
-                    className="text-sky-300"
-                  />
-                  <h3 className="font-bold">
-                    Modelos consultados
-                  </h3>
+                  <ClipboardList size={18} className="text-sky-300" />
+                  <h3 className="font-bold">Modelos consultados</h3>
                 </div>
 
                 {detalle?.consultasMoto?.length ? (
                   <div className="space-y-3">
-                    {detalle.consultasMoto.map(
-                      (consulta) => (
-                        <div
-                          key={consulta.id}
-                          className="rounded-xl border border-gray-800 bg-gray-950/70 p-3"
-                        >
-                          <div className="flex flex-wrap items-start justify-between gap-2">
-                            <div>
-                              <div className="font-bold text-yellow-300">
-                                {[
-                                  consulta.marca,
-                                  consulta.modelo,
-                                ]
-                                  .filter(Boolean)
-                                  .join(" ") ||
-                                  "Modelo no definido"}
-                              </div>
-
-                              {consulta.codigoReferencia && (
-                                <div className="text-[11px] text-gray-500 mt-0.5">
-                                  Ref.{" "}
-                                  {
-                                    consulta.codigoReferencia
-                                  }
-                                </div>
-                              )}
+                    {detalle.consultasMoto.map((consulta) => (
+                      <div
+                        key={consulta.id}
+                        className="rounded-xl border border-gray-800 bg-gray-950/70 p-3"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <div className="font-bold text-yellow-300">
+                              {[consulta.marca, consulta.modelo]
+                                .filter(Boolean)
+                                .join(" ") || "Modelo no definido"}
                             </div>
 
-                            <span className="text-[10px] px-2 py-1 rounded-full border border-gray-700 text-gray-400">
-                              {estadoLabel(
-                                consulta.estadoConsulta,
-                              )}
-                            </span>
-                          </div>
-
-                          <div className="text-xs text-gray-500 mt-2">
-                            {consulta.tipoConsulta?.replaceAll(
-                              "_",
-                              " ",
-                            ) || "Consulta"}{" "}
-                            ·{" "}
-                            {fechaHora(
-                              consulta.fechaUltimaConsulta,
+                            {consulta.codigoReferencia && (
+                              <div className="text-[11px] text-gray-500 mt-0.5">
+                                Ref. {consulta.codigoReferencia}
+                              </div>
                             )}
                           </div>
 
-                          {consulta.ultimoMensajeCliente && (
-                            <div className="mt-2 text-sm text-gray-300">
-                              <span className="text-gray-500">
-                                Cliente:
-                              </span>{" "}
-                              {
-                                consulta.ultimoMensajeCliente
-                              }
-                            </div>
-                          )}
-
-                          {consulta.ultimaRespuesta && (
-                            <div className="mt-1 text-sm text-gray-500">
-                              <span>Panambí:</span>{" "}
-                              {consulta.ultimaRespuesta}
-                            </div>
-                          )}
+                          <span className="text-[10px] px-2 py-1 rounded-full border border-gray-700 text-gray-400">
+                            {estadoLabel(consulta.estadoConsulta)}
+                          </span>
                         </div>
-                      ),
-                    )}
+
+                        <div className="text-xs text-gray-500 mt-2">
+                          {consulta.tipoConsulta?.replaceAll("_", " ") ||
+                            "Consulta"}{" "}
+                          · {fechaHora(consulta.fechaUltimaConsulta)}
+                        </div>
+
+                        {consulta.ultimoMensajeCliente && (
+                          <div className="mt-2 text-sm text-gray-300">
+                            <span className="text-gray-500">Cliente:</span>{" "}
+                            {consulta.ultimoMensajeCliente}
+                          </div>
+                        )}
+
+                        {consulta.ultimaRespuesta && (
+                          <div className="mt-1 text-sm text-gray-500">
+                            <span>Panambí:</span> {consulta.ultimaRespuesta}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <Vacio texto="Todavía no hay modelos vinculados a este interesado." />
@@ -801,59 +661,45 @@ const FormularioInteresado: React.FC<Props> = ({
 
               <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <MessageCircleMore
-                    size={18}
-                    className="text-emerald-300"
-                  />
-                  <h3 className="font-bold">
-                    Última conversación
-                  </h3>
+                  <MessageCircleMore size={18} className="text-emerald-300" />
+                  <h3 className="font-bold">Última conversación</h3>
                 </div>
 
                 {detalle?.ultimosMensajes?.length ? (
                   <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
-                    {detalle.ultimosMensajes.map(
-                      (mensaje, indice) => {
-                        const esCliente =
-                          mensaje.emisor?.toUpperCase() ===
-                          "CLIENTE";
+                    {detalle.ultimosMensajes.map((mensaje, indice) => {
+                      const esCliente =
+                        mensaje.emisor?.toUpperCase() === "CLIENTE";
 
-                        return (
+                      return (
+                        <div
+                          key={`${mensaje.fecha}-${indice}`}
+                          className={`flex ${
+                            esCliente ? "justify-end" : "justify-start"
+                          }`}
+                        >
                           <div
-                            key={`${mensaje.fecha}-${indice}`}
-                            className={`flex ${
+                            className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
                               esCliente
-                                ? "justify-end"
-                                : "justify-start"
+                                ? "bg-emerald-900/60 border border-emerald-700/40 text-gray-100"
+                                : "bg-gray-950 border border-gray-800 text-gray-300"
                             }`}
                           >
-                            <div
-                              className={`max-w-[90%] rounded-xl px-3 py-2 text-sm ${
-                                esCliente
-                                  ? "bg-emerald-900/60 border border-emerald-700/40 text-gray-100"
-                                  : "bg-gray-950 border border-gray-800 text-gray-300"
-                              }`}
-                            >
-                              <div className="text-[10px] uppercase tracking-wide opacity-60 mb-1">
-                                {esCliente
-                                  ? "Cliente"
-                                  : "Panambí"}
-                              </div>
+                            <div className="text-[10px] uppercase tracking-wide opacity-60 mb-1">
+                              {esCliente ? "Cliente" : "Panambí"}
+                            </div>
 
-                              <div className="whitespace-pre-wrap break-words">
-                                {mensaje.mensaje}
-                              </div>
+                            <div className="whitespace-pre-wrap break-words">
+                              {mensaje.mensaje}
+                            </div>
 
-                              <div className="text-[10px] opacity-50 mt-1 text-right">
-                                {fechaHora(
-                                  mensaje.fecha,
-                                )}
-                              </div>
+                            <div className="text-[10px] opacity-50 mt-1 text-right">
+                              {fechaHora(mensaje.fecha)}
                             </div>
                           </div>
-                        );
-                      },
-                    )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
                   <Vacio texto="No hay conversación disponible para este registro." />
@@ -863,22 +709,14 @@ const FormularioInteresado: React.FC<Props> = ({
 
             <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
               <div className="flex items-center gap-2 mb-4">
-                <Clock3
-                  size={18}
-                  className="text-yellow-300"
-                />
-                <h3 className="font-bold">
-                  Historial de seguimiento
-                </h3>
+                <Clock3 size={18} className="text-yellow-300" />
+                <h3 className="font-bold">Historial de seguimiento</h3>
               </div>
 
               {seguimientos.length ? (
                 <div className="space-y-3">
                   {seguimientos.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex gap-3"
-                    >
+                    <div key={item.id} className="flex gap-3">
                       <div className="mt-1.5 h-2.5 w-2.5 rounded-full bg-yellow-400 shrink-0" />
 
                       <div>
@@ -888,9 +726,7 @@ const FormularioInteresado: React.FC<Props> = ({
 
                         <div className="text-xs text-gray-500 mt-1">
                           {fechaHora(item.fecha)}
-                          {item.usuario
-                            ? ` · ${item.usuario}`
-                            : ""}
+                          {item.usuario ? ` · ${item.usuario}` : ""}
                         </div>
                       </div>
                     </div>
@@ -904,10 +740,7 @@ const FormularioInteresado: React.FC<Props> = ({
             <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
               <details>
                 <summary className="cursor-pointer list-none flex items-center gap-2 font-bold">
-                  <Edit3
-                    size={17}
-                    className="text-gray-400"
-                  />
+                  <Edit3 size={17} className="text-gray-400" />
                   Editar datos del cliente
                   <span className="text-xs font-normal text-gray-500">
                     (opcional)
@@ -942,11 +775,7 @@ const FormularioInteresado: React.FC<Props> = ({
 
 interface FormularioDatosProps {
   form: Partial<Interesado>;
-  setForm: React.Dispatch<
-    React.SetStateAction<
-      Partial<Interesado>
-    >
-  >;
+  setForm: React.Dispatch<React.SetStateAction<Partial<Interesado>>>;
   fileInputRef: React.RefObject<HTMLInputElement>;
 }
 
@@ -1033,10 +862,9 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
             setForm((actual) => ({
               ...actual,
               aportaIPS: event.target.checked,
-              cantidadAportes:
-                event.target.checked
-                  ? actual.cantidadAportes || 0
-                  : 0,
+              cantidadAportes: event.target.checked
+                ? actual.cantidadAportes || 0
+                : 0,
             }))
           }
           className="accent-yellow-400"
@@ -1046,9 +874,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
 
       {form.aportaIPS && (
         <label className="inline-flex items-center gap-2 text-sm">
-          <span className="text-gray-400">
-            Aportes:
-          </span>
+          <span className="text-gray-400">Aportes:</span>
 
           <input
             type="number"
@@ -1057,9 +883,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
             onChange={(event) =>
               setForm((actual) => ({
                 ...actual,
-                cantidadAportes:
-                  Number(event.target.value) ||
-                  0,
+                cantidadAportes: Number(event.target.value) || 0,
               }))
             }
             className="w-24 h-9 rounded bg-gray-900 border border-gray-700 px-2"
@@ -1068,9 +892,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
       )}
 
       <label className="inline-flex items-center gap-2 text-sm ml-auto">
-        <span className="text-gray-400">
-          Registro activo
-        </span>
+        <span className="text-gray-400">Registro activo</span>
 
         <input
           type="checkbox"
@@ -1078,9 +900,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
           onChange={(event) =>
             setForm((actual) => ({
               ...actual,
-              estado: event.target.checked
-                ? "Activo"
-                : "Inactivo",
+              estado: event.target.checked ? "Activo" : "Inactivo",
             }))
           }
           className="accent-yellow-400"
@@ -1089,9 +909,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
     </div>
 
     <div className="sm:col-span-2">
-      <label className="text-xs text-gray-400">
-        Archivo de conversación
-      </label>
+      <label className="text-xs text-gray-400">Archivo de conversación</label>
 
       <input
         ref={fileInputRef}
@@ -1100,9 +918,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
         onChange={(event) =>
           setForm((actual) => ({
             ...actual,
-            archivoConversacion:
-              event.target.files?.[0] ||
-              null,
+            archivoConversacion: event.target.files?.[0] || null,
           }))
         }
         className="mt-1 block w-full text-sm text-gray-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-yellow-50 file:text-yellow-800 file:font-semibold"
@@ -1122,9 +938,7 @@ const FormularioDatos: React.FC<FormularioDatosProps> = ({
     </div>
 
     <label className="sm:col-span-2 space-y-1">
-      <span className="text-xs text-gray-400">
-        Descripción
-      </span>
+      <span className="text-xs text-gray-400">Descripción</span>
 
       <textarea
         rows={3}
@@ -1155,16 +969,12 @@ const Campo: React.FC<CampoProps> = ({
   onChange,
 }) => (
   <label className="space-y-1">
-    <span className="text-xs text-gray-400">
-      {label}
-    </span>
+    <span className="text-xs text-gray-400">{label}</span>
 
     <input
       type={type}
       value={value}
-      onChange={(event) =>
-        onChange(event.target.value)
-      }
+      onChange={(event) => onChange(event.target.value)}
       className="w-full h-10 rounded-lg bg-gray-950 border border-gray-700 px-3 text-sm focus:outline-none focus:border-yellow-400"
     />
   </label>
@@ -1173,42 +983,29 @@ const Campo: React.FC<CampoProps> = ({
 const InfoMini: React.FC<{
   label: string;
   value: string;
-}> = ({
-  label,
-  value,
-}) => (
+}> = ({ label, value }) => (
   <div className="bg-gray-900 p-3">
     <div className="text-[10px] uppercase tracking-wide text-gray-500">
       {label}
     </div>
-    <div className="text-sm font-semibold mt-1 break-words">
-      {value}
-    </div>
+    <div className="text-sm font-semibold mt-1 break-words">{value}</div>
   </div>
 );
 
 const EstadoBadge: React.FC<{
   interesado: Interesado;
-}> = ({
-  interesado,
-}) => {
-  const esSinRespuesta =
-    interesado.sinRespuesta;
+}> = ({ interesado }) => {
+  const esSinRespuesta = interesado.sinRespuesta;
 
-  const texto =
-    esSinRespuesta
-      ? "Sin respuesta"
-      : estadoLabel(
-          interesado.estadoGestion ||
-            interesado.estadoConsulta,
-        );
+  const texto = esSinRespuesta
+    ? "Sin respuesta"
+    : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta);
 
-  const clase =
-    esSinRespuesta
-      ? "border-red-400/40 bg-red-400/10 text-red-300"
-      : interesado.seguimientoVencido
-        ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
-        : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  const clase = esSinRespuesta
+    ? "border-red-400/40 bg-red-400/10 text-red-300"
+    : interesado.seguimientoVencido
+      ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
+      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
 
   return (
     <span
@@ -1221,12 +1018,8 @@ const EstadoBadge: React.FC<{
 
 const Vacio: React.FC<{
   texto: string;
-}> = ({
-  texto,
-}) => (
-  <div className="py-8 text-center text-sm text-gray-500">
-    {texto}
-  </div>
+}> = ({ texto }) => (
+  <div className="py-8 text-center text-sm text-gray-500">{texto}</div>
 );
 
 export default FormularioInteresado;

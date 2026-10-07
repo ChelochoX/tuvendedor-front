@@ -1,11 +1,6 @@
 // src/pages/clientes/ListarInteresados.tsx
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import Swal from "sweetalert2";
 
@@ -19,10 +14,7 @@ import {
 } from "lucide-react";
 
 import { obtenerInteresados } from "../../api/clientesService";
-import {
-  FiltroInteresadosRequest,
-  Interesado,
-} from "../../types/clientes";
+import { FiltroInteresadosRequest, Interesado } from "../../types/clientes";
 
 interface Props {
   seleccionado: Interesado | null;
@@ -113,9 +105,7 @@ const estadoLabel = (estado?: string | null) => {
   }
 };
 
-const estadoClass = (
-  interesado: Interesado,
-) => {
+const estadoClass = (interesado: Interesado) => {
   if (interesado.sinRespuesta) {
     return "border-red-400/40 bg-red-400/10 text-red-300";
   }
@@ -160,64 +150,38 @@ const ListarInteresados: React.FC<Props> = ({
       const data = await obtenerInteresados({
         ...aplicados,
 
-        nombre:
-          aplicados.nombre?.trim() ||
-          undefined,
+        nombre: aplicados.nombre?.trim() || undefined,
 
-        estado:
-          aplicados.estado ||
-          undefined,
+        estado: aplicados.estado || undefined,
 
-        origen:
-          aplicados.origen ||
-          undefined,
+        origen: aplicados.origen || undefined,
 
-        estadoConsulta:
-          aplicados.estadoConsulta ||
-          undefined,
+        estadoConsulta: aplicados.estadoConsulta || undefined,
 
-        fechaRegistroDesde:
-          aplicados.fechaRegistroDesde ||
-          undefined,
+        fechaRegistroDesde: aplicados.fechaRegistroDesde || undefined,
 
-        fechaRegistroHasta:
-          aplicados.fechaRegistroHasta ||
-          undefined,
+        fechaRegistroHasta: aplicados.fechaRegistroHasta || undefined,
 
         fechaProximoContactoDesde:
-          aplicados.fechaProximoContactoDesde ||
-          undefined,
+          aplicados.fechaProximoContactoDesde || undefined,
 
         fechaProximoContactoHasta:
-          aplicados.fechaProximoContactoHasta ||
-          undefined,
+          aplicados.fechaProximoContactoHasta || undefined,
       });
 
       setInteresados(data.items || []);
       setTotalRegistros(data.totalRegistros || 0);
 
-      if (
-        seleccionado &&
-        !data.items.some((x) => x.id === seleccionado.id)
-      ) {
+      if (seleccionado && !data.items.some((x) => x.id === seleccionado.id)) {
         setSeleccionado(null);
       }
     } catch {
-      Swal.fire(
-        "Error",
-        "No se pudieron obtener los interesados.",
-        "error",
-      );
+      Swal.fire("Error", "No se pudieron obtener los interesados.", "error");
     } finally {
       setCargando(false);
       setRecargarLista(false);
     }
-  }, [
-    aplicados,
-    seleccionado,
-    setRecargarLista,
-    setSeleccionado,
-  ]);
+  }, [aplicados, seleccionado, setRecargarLista, setSeleccionado]);
 
   useEffect(() => {
     void cargarInteresados();
@@ -227,10 +191,7 @@ const ListarInteresados: React.FC<Props> = ({
     () =>
       Math.max(
         1,
-        Math.ceil(
-          totalRegistros /
-            Math.max(1, aplicados.registrosPorPagina),
-        ),
+        Math.ceil(totalRegistros / Math.max(1, aplicados.registrosPorPagina)),
       ),
     [aplicados.registrosPorPagina, totalRegistros],
   );
@@ -263,10 +224,7 @@ const ListarInteresados: React.FC<Props> = ({
   };
 
   const cambiarPagina = (pagina: number) => {
-    const segura = Math.min(
-      totalPaginas,
-      Math.max(1, pagina),
-    );
+    const segura = Math.min(totalPaginas, Math.max(1, pagina));
 
     setBorrador((actual) => ({
       ...actual,
@@ -343,8 +301,7 @@ const ListarInteresados: React.FC<Props> = ({
             type="button"
             onClick={() => aplicarEstadoRapido("")}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
-              !aplicados.estadoConsulta &&
-              !aplicados.soloSinRespuesta
+              !aplicados.estadoConsulta && !aplicados.soloSinRespuesta
                 ? "bg-yellow-400 border-yellow-400 text-black"
                 : "border-gray-700 text-gray-400 hover:border-gray-500"
             }`}
@@ -354,12 +311,7 @@ const ListarInteresados: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={() =>
-              aplicarEstadoRapido(
-                "SIN_RESPUESTA",
-                true,
-              )
-            }
+            onClick={() => aplicarEstadoRapido("SIN_RESPUESTA", true)}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
               aplicados.soloSinRespuesta
                 ? "bg-red-400 border-red-400 text-black"
@@ -383,9 +335,7 @@ const ListarInteresados: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={() =>
-              aplicarEstadoRapido("CREDITO_EN_PROCESO")
-            }
+            onClick={() => aplicarEstadoRapido("CREDITO_EN_PROCESO")}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
               aplicados.estadoConsulta === "CREDITO_EN_PROCESO"
                 ? "bg-yellow-400 border-yellow-400 text-black"
@@ -397,9 +347,7 @@ const ListarInteresados: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={() =>
-              aplicarEstadoRapido("CONTADO_EN_PROCESO")
-            }
+            onClick={() => aplicarEstadoRapido("CONTADO_EN_PROCESO")}
             className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
               aplicados.estadoConsulta === "CONTADO_EN_PROCESO"
                 ? "bg-orange-400 border-orange-400 text-black"
@@ -427,16 +375,12 @@ const ListarInteresados: React.FC<Props> = ({
                 <option value="">Todos</option>
                 <option value="WHATSAPP">WhatsApp</option>
                 <option value="MANUAL">Manual</option>
-                <option value="MANUAL+WHATSAPP">
-                  Manual + WhatsApp
-                </option>
+                <option value="MANUAL+WHATSAPP">Manual + WhatsApp</option>
               </select>
             </label>
 
             <label className="space-y-1">
-              <span className="text-gray-400">
-                Estado del registro
-              </span>
+              <span className="text-gray-400">Estado del registro</span>
               <select
                 value={borrador.estado || ""}
                 onChange={(event) =>
@@ -454,9 +398,7 @@ const ListarInteresados: React.FC<Props> = ({
             </label>
 
             <label className="space-y-1">
-              <span className="text-gray-400">
-                Registrado desde
-              </span>
+              <span className="text-gray-400">Registrado desde</span>
               <input
                 type="date"
                 value={borrador.fechaRegistroDesde || ""}
@@ -471,9 +413,7 @@ const ListarInteresados: React.FC<Props> = ({
             </label>
 
             <label className="space-y-1">
-              <span className="text-gray-400">
-                Registrado hasta
-              </span>
+              <span className="text-gray-400">Registrado hasta</span>
               <input
                 type="date"
                 value={borrador.fechaRegistroHasta || ""}
@@ -507,21 +447,16 @@ const ListarInteresados: React.FC<Props> = ({
             <label className="flex items-center gap-2 sm:col-span-2">
               <input
                 type="checkbox"
-                checked={Boolean(
-                  borrador.soloSeguimientoVencido,
-                )}
+                checked={Boolean(borrador.soloSeguimientoVencido)}
                 onChange={(event) =>
                   setBorrador((actual) => ({
                     ...actual,
-                    soloSeguimientoVencido:
-                      event.target.checked,
+                    soloSeguimientoVencido: event.target.checked,
                   }))
                 }
                 className="accent-red-400"
               />
-              <span className="text-gray-300">
-                Solo seguimientos vencidos
-              </span>
+              <span className="text-gray-300">Solo seguimientos vencidos</span>
             </label>
 
             <div className="sm:col-span-2 flex gap-2 justify-end">
@@ -556,8 +491,7 @@ const ListarInteresados: React.FC<Props> = ({
           </div>
         ) : (
           interesados.map((interesado) => {
-            const seleccionadoAhora =
-              seleccionado?.id === interesado.id;
+            const seleccionadoAhora = seleccionado?.id === interesado.id;
 
             return (
               <button
@@ -577,9 +511,7 @@ const ListarInteresados: React.FC<Props> = ({
                     </div>
 
                     <div className="text-xs text-gray-500 mt-0.5">
-                      {interesado.telefono ||
-                        interesado.identificadorExterno ||
-                        "Sin teléfono"}
+                      {interesado.telefono || "Número pendiente de resolver"}
                     </div>
                   </div>
 
@@ -591,16 +523,14 @@ const ListarInteresados: React.FC<Props> = ({
                     {interesado.sinRespuesta
                       ? "Sin respuesta"
                       : estadoLabel(
-                          interesado.estadoGestion ||
-                            interesado.estadoConsulta,
+                          interesado.estadoGestion || interesado.estadoConsulta,
                         )}
                   </span>
                 </div>
 
                 <div className="mt-3 text-sm">
                   <div className="font-semibold text-yellow-300 truncate">
-                    {interesado.marcaInteres ||
-                    interesado.modeloInteres
+                    {interesado.marcaInteres || interesado.modeloInteres
                       ? `${interesado.marcaInteres || ""} ${
                           interesado.modeloInteres || ""
                         }`.trim()
@@ -620,17 +550,14 @@ const ListarInteresados: React.FC<Props> = ({
                   <div className="mt-3 rounded-lg bg-black/20 p-2">
                     {interesado.ultimoMensajeCliente && (
                       <p className="text-xs text-gray-300 line-clamp-2">
-                        <span className="text-gray-500">
-                          Cliente:
-                        </span>{" "}
+                        <span className="text-gray-500">Cliente:</span>{" "}
                         {interesado.ultimoMensajeCliente}
                       </p>
                     )}
 
                     {interesado.ultimaRespuesta && (
                       <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                        <span>Panambí:</span>{" "}
-                        {interesado.ultimaRespuesta}
+                        <span>Panambí:</span> {interesado.ultimaRespuesta}
                       </p>
                     )}
                   </div>
@@ -661,9 +588,7 @@ const ListarInteresados: React.FC<Props> = ({
                       Seguimiento{" "}
                       {interesado.seguimientoVencido
                         ? "vencido"
-                        : fechaCorta(
-                            interesado.fechaProximoContacto,
-                          )}
+                        : fechaCorta(interesado.fechaProximoContacto)}
                     </span>
                   )}
                 </div>
@@ -711,9 +636,7 @@ const ListarInteresados: React.FC<Props> = ({
           <div className="flex gap-1">
             <button
               type="button"
-              onClick={() =>
-                cambiarPagina(aplicados.numeroPagina - 1)
-              }
+              onClick={() => cambiarPagina(aplicados.numeroPagina - 1)}
               disabled={aplicados.numeroPagina <= 1}
               className="h-8 w-8 rounded bg-gray-900 border border-gray-700 grid place-items-center disabled:opacity-30"
             >
@@ -722,12 +645,8 @@ const ListarInteresados: React.FC<Props> = ({
 
             <button
               type="button"
-              onClick={() =>
-                cambiarPagina(aplicados.numeroPagina + 1)
-              }
-              disabled={
-                aplicados.numeroPagina >= totalPaginas
-              }
+              onClick={() => cambiarPagina(aplicados.numeroPagina + 1)}
+              disabled={aplicados.numeroPagina >= totalPaginas}
               className="h-8 w-8 rounded bg-gray-900 border border-gray-700 grid place-items-center disabled:opacity-30"
             >
               <ChevronRight size={15} />

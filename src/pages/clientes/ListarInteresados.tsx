@@ -1,9 +1,28 @@
 // src/pages/clientes/ListarInteresados.tsx
-import React, { useEffect, useState } from "react";
-import { obtenerInteresados } from "../../api/clientesService";
-import { Interesado } from "../../types/clientes";
+
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import Swal from "sweetalert2";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+
+import {
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  MessageCircleMore,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
+
+import { obtenerInteresados } from "../../api/clientesService";
+import {
+  FiltroInteresadosRequest,
+  Interesado,
+} from "../../types/clientes";
 
 interface Props {
   seleccionado: Interesado | null;
@@ -11,6 +30,111 @@ interface Props {
   recargarLista: boolean;
   setRecargarLista: (v: boolean) => void;
 }
+
+const filtrosIniciales: FiltroInteresadosRequest = {
+  nombre: "",
+  estado: "Activo",
+  origen: "",
+  estadoConsulta: "",
+  soloSeguimiento: false,
+  soloSinRespuesta: false,
+  soloSeguimientoVencido: false,
+  fechaRegistroDesde: "",
+  fechaRegistroHasta: "",
+  fechaProximoContactoDesde: "",
+  fechaProximoContactoHasta: "",
+  numeroPagina: 1,
+  registrosPorPagina: 10,
+};
+
+const fechaCorta = (fecha?: string | null) => {
+  if (!fecha) {
+    return "—";
+  }
+
+  const valor = new Date(fecha);
+
+  if (Number.isNaN(valor.getTime())) {
+    return "—";
+  }
+
+  return valor.toLocaleDateString("es-PY", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const fechaHora = (fecha?: string | null) => {
+  if (!fecha) {
+    return "—";
+  }
+
+  const valor = new Date(fecha);
+
+  if (Number.isNaN(valor.getTime())) {
+    return "—";
+  }
+
+  return valor.toLocaleString("es-PY", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const estadoLabel = (estado?: string | null) => {
+  switch (estado) {
+    case "CONSULTANDO":
+      return "Consultando";
+    case "ESPERANDO_MODELO":
+      return "Esperando modelo";
+    case "CONSULTA_PROMO":
+      return "Consultó promo";
+    case "COTIZADO":
+      return "Cotizado";
+    case "PENDIENTE_ASESOR":
+      return "Pendiente asesor";
+    case "CREDITO_EN_PROCESO":
+      return "Crédito en proceso";
+    case "CONTADO_EN_PROCESO":
+      return "Contado en proceso";
+    case "DERIVADO_HUMANO":
+      return "Atención humana";
+    case "CERRADO":
+      return "Cerrado";
+    case "SIN_RESPUESTA":
+      return "Sin respuesta";
+    case "REGISTRADO":
+      return "Registrado";
+    default:
+      return estado?.replaceAll("_", " ") || "Sin etapa";
+  }
+};
+
+const estadoClass = (
+  interesado: Interesado,
+) => {
+  if (interesado.sinRespuesta) {
+    return "border-red-400/40 bg-red-400/10 text-red-300";
+  }
+
+  switch (interesado.estadoGestion || interesado.estadoConsulta) {
+    case "CREDITO_EN_PROCESO":
+      return "border-yellow-400/40 bg-yellow-400/10 text-yellow-300";
+    case "CONTADO_EN_PROCESO":
+      return "border-orange-400/40 bg-orange-400/10 text-orange-300";
+    case "COTIZADO":
+      return "border-sky-400/40 bg-sky-400/10 text-sky-300";
+    case "DERIVADO_HUMANO":
+      return "border-violet-400/40 bg-violet-400/10 text-violet-300";
+    case "CERRADO":
+      return "border-gray-500/40 bg-gray-500/10 text-gray-400";
+    default:
+      return "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  }
+};
 
 const ListarInteresados: React.FC<Props> = ({
   seleccionado,
@@ -20,248 +144,593 @@ const ListarInteresados: React.FC<Props> = ({
 }) => {
   const [interesados, setInteresados] = useState<Interesado[]>([]);
   const [totalRegistros, setTotalRegistros] = useState(0);
-  const [filtros, setFiltros] = useState({
-    nombre: "",
-    estado: "",
-    fechaRegistroDesde: "",
-    fechaRegistroHasta: "",
-    fechaProximoContactoDesde: "",
-    fechaProximoContactoHasta: "",
-    numeroPagina: 1,
-    registrosPorPagina: 10,
-  });
+  const [cargando, setCargando] = useState(false);
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
-  const cargarInteresados = async () => {
+  const [borrador, setBorrador] =
+    useState<FiltroInteresadosRequest>(filtrosIniciales);
+
+  const [aplicados, setAplicados] =
+    useState<FiltroInteresadosRequest>(filtrosIniciales);
+
+  const cargarInteresados = useCallback(async () => {
+    setCargando(true);
+
     try {
       const data = await obtenerInteresados({
-        nombre: filtros.nombre,
-        estado: filtros.estado,
-        fechaRegistroDesde: filtros.fechaRegistroDesde || undefined,
-        fechaRegistroHasta: filtros.fechaRegistroHasta || undefined,
+        ...aplicados,
+
+        nombre:
+          aplicados.nombre?.trim() ||
+          undefined,
+
+        estado:
+          aplicados.estado ||
+          undefined,
+
+        origen:
+          aplicados.origen ||
+          undefined,
+
+        estadoConsulta:
+          aplicados.estadoConsulta ||
+          undefined,
+
+        fechaRegistroDesde:
+          aplicados.fechaRegistroDesde ||
+          undefined,
+
+        fechaRegistroHasta:
+          aplicados.fechaRegistroHasta ||
+          undefined,
+
         fechaProximoContactoDesde:
-          filtros.fechaProximoContactoDesde || undefined,
+          aplicados.fechaProximoContactoDesde ||
+          undefined,
+
         fechaProximoContactoHasta:
-          filtros.fechaProximoContactoHasta || undefined,
-        numeroPagina: filtros.numeroPagina,
-        registrosPorPagina: filtros.registrosPorPagina,
+          aplicados.fechaProximoContactoHasta ||
+          undefined,
       });
 
-      // 🔹 data ya tiene la forma { items, totalRegistros, paginaActual, registrosPorPagina }
       setInteresados(data.items || []);
       setTotalRegistros(data.totalRegistros || 0);
+
+      if (
+        seleccionado &&
+        !data.items.some((x) => x.id === seleccionado.id)
+      ) {
+        setSeleccionado(null);
+      }
+    } catch {
+      Swal.fire(
+        "Error",
+        "No se pudieron obtener los interesados.",
+        "error",
+      );
+    } finally {
+      setCargando(false);
       setRecargarLista(false);
-    } catch (error) {
-      Swal.fire("Error", "No se pudieron obtener los interesados", "error");
     }
-  };
+  }, [
+    aplicados,
+    seleccionado,
+    setRecargarLista,
+    setSeleccionado,
+  ]);
 
   useEffect(() => {
-    cargarInteresados();
-  }, [filtros.numeroPagina, filtros.registrosPorPagina, recargarLista]);
+    void cargarInteresados();
+  }, [cargarInteresados, recargarLista]);
 
-  const totalPaginas = Math.ceil(totalRegistros / filtros.registrosPorPagina);
+  const totalPaginas = useMemo(
+    () =>
+      Math.max(
+        1,
+        Math.ceil(
+          totalRegistros /
+            Math.max(1, aplicados.registrosPorPagina),
+        ),
+      ),
+    [aplicados.registrosPorPagina, totalRegistros],
+  );
+
+  const aplicarFiltros = () => {
+    setAplicados({
+      ...borrador,
+      numeroPagina: 1,
+    });
+  };
+
+  const limpiarFiltros = () => {
+    setBorrador(filtrosIniciales);
+    setAplicados(filtrosIniciales);
+  };
+
+  const aplicarEstadoRapido = (
+    estadoConsulta: string,
+    soloSinRespuesta = false,
+  ) => {
+    const siguiente = {
+      ...borrador,
+      estadoConsulta,
+      soloSinRespuesta,
+      numeroPagina: 1,
+    };
+
+    setBorrador(siguiente);
+    setAplicados(siguiente);
+  };
+
+  const cambiarPagina = (pagina: number) => {
+    const segura = Math.min(
+      totalPaginas,
+      Math.max(1, pagina),
+    );
+
+    setBorrador((actual) => ({
+      ...actual,
+      numeroPagina: segura,
+    }));
+
+    setAplicados((actual) => ({
+      ...actual,
+      numeroPagina: segura,
+    }));
+  };
 
   return (
-    <aside className="md:w-1/3 w-full p-3 border-b md:border-b-0 md:border-r border-yellow-400">
-      <h2 className="text-lg font-semibold text-yellow-400 mb-2">
-        Interesados
-      </h2>
-
-      {/* 🔹 Filtros */}
-      <div className="space-y-2 mb-4 text-sm">
-        <div>
-          <label className="block text-gray-300 mb-1">Nombre:</label>
-          <input
-            type="text"
-            placeholder="Buscar por nombre"
-            value={filtros.nombre}
-            onChange={(e) => setFiltros({ ...filtros, nombre: e.target.value })}
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-1 text-sm">
-            Estado del registro:
-          </label>
-          <div className="flex gap-2">
-            {["", "Activo", "Inactivo"].map((estado) => (
-              <button
-                key={estado || "Todos"}
-                onClick={() => setFiltros({ ...filtros, estado })}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition ${
-                  filtros.estado === estado
-                    ? "bg-yellow-500 text-black"
-                    : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                }`}
-              >
-                {estado === "" ? "Todos" : estado}
-              </button>
-            ))}
+    <aside className="w-full xl:w-[42%] 2xl:w-[38%] border-b xl:border-b-0 xl:border-r border-yellow-400/40 bg-gray-950/50">
+      <div className="p-4 border-b border-gray-800 sticky top-0 z-10 bg-gray-950/95 backdrop-blur">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="text-lg font-bold text-yellow-400">
+              Interesados y seguimiento
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {totalRegistros} cliente
+              {totalRegistros === 1 ? "" : "s"} encontrado
+              {totalRegistros === 1 ? "" : "s"}
+            </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setMostrarFiltros((valor) => !valor)}
+            className="h-9 w-9 rounded-lg border border-gray-700 bg-gray-900 grid place-items-center text-gray-300 hover:border-yellow-400 hover:text-yellow-300 transition"
+            title="Filtros"
+          >
+            <SlidersHorizontal size={17} />
+          </button>
         </div>
 
-        {/* 🔹 Filtros por fecha de registro */}
-        <div>
-          <label className="block text-gray-300 mb-1">
-            Fecha registro desde:
-          </label>
-          <input
-            type="date"
-            value={filtros.fechaRegistroDesde}
-            onChange={(e) =>
-              setFiltros({ ...filtros, fechaRegistroDesde: e.target.value })
-            }
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-1">
-            Fecha registro hasta:
-          </label>
-          <input
-            type="date"
-            value={filtros.fechaRegistroHasta}
-            onChange={(e) =>
-              setFiltros({ ...filtros, fechaRegistroHasta: e.target.value })
-            }
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          />
-        </div>
-
-        {/* 🔹 Filtros por fecha próximo seguimiento */}
-        <div>
-          <label className="block text-gray-300 mb-1">
-            Fecha próximo seguimiento desde:
-          </label>
-          <input
-            type="date"
-            value={filtros.fechaProximoContactoDesde}
-            onChange={(e) =>
-              setFiltros({
-                ...filtros,
-                fechaProximoContactoDesde: e.target.value,
-              })
-            }
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          />
-        </div>
-
-        <div>
-          <label className="block text-gray-300 mb-1">
-            Fecha próximo seguimiento hasta:
-          </label>
-          <input
-            type="date"
-            value={filtros.fechaProximoContactoHasta}
-            onChange={(e) =>
-              setFiltros({
-                ...filtros,
-                fechaProximoContactoHasta: e.target.value,
-              })
-            }
-            className="w-full p-1.5 text-sm rounded bg-gray-800 border border-gray-600"
-          />
-        </div>
-
-        <button
-          onClick={() => {
-            setFiltros({ ...filtros, numeroPagina: 1 });
-            cargarInteresados();
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            aplicarFiltros();
           }}
-          className="w-full bg-yellow-500 text-black font-semibold py-1.5 rounded hover:bg-yellow-400 transition mt-2"
+          className="flex gap-2"
         >
-          Buscar
-        </button>
-      </div>
+          <div className="relative flex-1">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            />
 
-      {/* 🔹 Lista compacta de interesados */}
-      <ul className="divide-y divide-gray-700 text-sm">
-        {interesados.map((i) => (
-          <li
-            key={i.id}
-            onClick={() => setSeleccionado(i)}
-            className={`p-2 cursor-pointer rounded transition flex flex-wrap justify-between items-center gap-1 ${
-              seleccionado?.id === i.id
-                ? "bg-gray-700 border-l-4 border-yellow-400"
-                : "hover:bg-gray-800"
+            <input
+              value={borrador.nombre || ""}
+              onChange={(event) =>
+                setBorrador((actual) => ({
+                  ...actual,
+                  nombre: event.target.value,
+                }))
+              }
+              placeholder="Nombre, teléfono, marca o modelo..."
+              className="w-full h-10 pl-9 pr-3 rounded-lg bg-gray-900 border border-gray-700 text-sm focus:outline-none focus:border-yellow-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="h-10 px-4 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm"
+          >
+            Buscar
+          </button>
+        </form>
+
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-1">
+          <button
+            type="button"
+            onClick={() => aplicarEstadoRapido("")}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
+              !aplicados.estadoConsulta &&
+              !aplicados.soloSinRespuesta
+                ? "bg-yellow-400 border-yellow-400 text-black"
+                : "border-gray-700 text-gray-400 hover:border-gray-500"
             }`}
           >
-            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-300">
-              <strong className="text-yellow-400">{i.nombre}</strong>
-              <span>📍 {i.ciudad || "Sin ciudad"}</span>
-              <span>💼 {i.productoInteres || "Sin interés"}</span>
-              <span>📅 {new Date(i.fechaRegistro).toLocaleDateString()}</span>
-            </div>
+            Todos
+          </button>
 
-            <span
-              className={`text-xs font-semibold ${
-                i.estado === "Activo" ? "text-green-400" : "text-red-400"
-              }`}
-            >
-              {i.estado || "Sin estado"}
-            </span>
-          </li>
-        ))}
-
-        {interesados.length === 0 && (
-          <li className="text-gray-400 text-center py-2 text-xs">
-            No se encontraron interesados.
-          </li>
-        )}
-      </ul>
-
-      {/* 🔹 Paginación */}
-      <div className="flex flex-col sm:flex-row justify-between items-center mt-3 text-xs text-gray-300 gap-2">
-        <div className="flex items-center gap-2">
-          <label>Mostrar:</label>
-          <select
-            value={filtros.registrosPorPagina}
-            onChange={(e) =>
-              setFiltros({
-                ...filtros,
-                registrosPorPagina: parseInt(e.target.value),
-                numeroPagina: 1,
-              })
+          <button
+            type="button"
+            onClick={() =>
+              aplicarEstadoRapido(
+                "SIN_RESPUESTA",
+                true,
+              )
             }
-            className="bg-gray-800 border border-gray-600 rounded p-1"
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
+              aplicados.soloSinRespuesta
+                ? "bg-red-400 border-red-400 text-black"
+                : "border-gray-700 text-gray-400 hover:border-red-400/60"
+            }`}
+          >
+            Sin respuesta
+          </button>
+
+          <button
+            type="button"
+            onClick={() => aplicarEstadoRapido("COTIZADO")}
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
+              aplicados.estadoConsulta === "COTIZADO"
+                ? "bg-sky-400 border-sky-400 text-black"
+                : "border-gray-700 text-gray-400 hover:border-sky-400/60"
+            }`}
+          >
+            Cotizados
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              aplicarEstadoRapido("CREDITO_EN_PROCESO")
+            }
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
+              aplicados.estadoConsulta === "CREDITO_EN_PROCESO"
+                ? "bg-yellow-400 border-yellow-400 text-black"
+                : "border-gray-700 text-gray-400 hover:border-yellow-400/60"
+            }`}
+          >
+            Crédito
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              aplicarEstadoRapido("CONTADO_EN_PROCESO")
+            }
+            className={`whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold ${
+              aplicados.estadoConsulta === "CONTADO_EN_PROCESO"
+                ? "bg-orange-400 border-orange-400 text-black"
+                : "border-gray-700 text-gray-400 hover:border-orange-400/60"
+            }`}
+          >
+            Contado
+          </button>
+        </div>
+
+        {mostrarFiltros && (
+          <div className="mt-3 p-3 rounded-xl border border-gray-800 bg-gray-900/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <label className="space-y-1">
+              <span className="text-gray-400">Origen</span>
+              <select
+                value={borrador.origen || ""}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    origen: event.target.value,
+                  }))
+                }
+                className="w-full h-9 rounded bg-gray-950 border border-gray-700 px-2"
+              >
+                <option value="">Todos</option>
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="MANUAL">Manual</option>
+                <option value="MANUAL+WHATSAPP">
+                  Manual + WhatsApp
+                </option>
+              </select>
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-gray-400">
+                Estado del registro
+              </span>
+              <select
+                value={borrador.estado || ""}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    estado: event.target.value,
+                  }))
+                }
+                className="w-full h-9 rounded bg-gray-950 border border-gray-700 px-2"
+              >
+                <option value="">Todos</option>
+                <option value="Activo">Activo</option>
+                <option value="Inactivo">Inactivo</option>
+              </select>
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-gray-400">
+                Registrado desde
+              </span>
+              <input
+                type="date"
+                value={borrador.fechaRegistroDesde || ""}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    fechaRegistroDesde: event.target.value,
+                  }))
+                }
+                className="w-full h-9 rounded bg-gray-950 border border-gray-700 px-2"
+              />
+            </label>
+
+            <label className="space-y-1">
+              <span className="text-gray-400">
+                Registrado hasta
+              </span>
+              <input
+                type="date"
+                value={borrador.fechaRegistroHasta || ""}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    fechaRegistroHasta: event.target.value,
+                  }))
+                }
+                className="w-full h-9 rounded bg-gray-950 border border-gray-700 px-2"
+              />
+            </label>
+
+            <label className="flex items-center gap-2 sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={Boolean(borrador.soloSeguimiento)}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    soloSeguimiento: event.target.checked,
+                  }))
+                }
+                className="accent-yellow-400"
+              />
+              <span className="text-gray-300">
+                Solo los que requieren seguimiento
+              </span>
+            </label>
+
+            <label className="flex items-center gap-2 sm:col-span-2">
+              <input
+                type="checkbox"
+                checked={Boolean(
+                  borrador.soloSeguimientoVencido,
+                )}
+                onChange={(event) =>
+                  setBorrador((actual) => ({
+                    ...actual,
+                    soloSeguimientoVencido:
+                      event.target.checked,
+                  }))
+                }
+                className="accent-red-400"
+              />
+              <span className="text-gray-300">
+                Solo seguimientos vencidos
+              </span>
+            </label>
+
+            <div className="sm:col-span-2 flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={limpiarFiltros}
+                className="px-3 py-2 rounded-lg border border-gray-700 text-gray-300"
+              >
+                Limpiar
+              </button>
+
+              <button
+                type="button"
+                onClick={aplicarFiltros}
+                className="px-3 py-2 rounded-lg bg-yellow-400 text-black font-bold"
+              >
+                Aplicar filtros
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-3 space-y-2 max-h-[calc(100vh-250px)] overflow-y-auto">
+        {cargando ? (
+          <div className="py-12 text-center text-gray-500">
+            Cargando interesados...
+          </div>
+        ) : interesados.length === 0 ? (
+          <div className="py-12 text-center text-gray-500">
+            No encontramos interesados con estos filtros.
+          </div>
+        ) : (
+          interesados.map((interesado) => {
+            const seleccionadoAhora =
+              seleccionado?.id === interesado.id;
+
+            return (
+              <button
+                type="button"
+                key={interesado.id}
+                onClick={() => setSeleccionado(interesado)}
+                className={`w-full text-left rounded-xl border p-3 transition ${
+                  seleccionadoAhora
+                    ? "border-yellow-400 bg-yellow-400/5"
+                    : "border-gray-800 bg-gray-900/70 hover:border-gray-600"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm text-white truncate">
+                      {interesado.nombre || "Cliente WhatsApp"}
+                    </div>
+
+                    <div className="text-xs text-gray-500 mt-0.5">
+                      {interesado.telefono ||
+                        interesado.identificadorExterno ||
+                        "Sin teléfono"}
+                    </div>
+                  </div>
+
+                  <span
+                    className={`shrink-0 px-2 py-1 rounded-full border text-[10px] font-bold uppercase ${estadoClass(
+                      interesado,
+                    )}`}
+                  >
+                    {interesado.sinRespuesta
+                      ? "Sin respuesta"
+                      : estadoLabel(
+                          interesado.estadoGestion ||
+                            interesado.estadoConsulta,
+                        )}
+                  </span>
+                </div>
+
+                <div className="mt-3 text-sm">
+                  <div className="font-semibold text-yellow-300 truncate">
+                    {interesado.marcaInteres ||
+                    interesado.modeloInteres
+                      ? `${interesado.marcaInteres || ""} ${
+                          interesado.modeloInteres || ""
+                        }`.trim()
+                      : interesado.productoInteres ||
+                        "Consulta sin modelo definido"}
+                  </div>
+
+                  {interesado.codigoReferencia && (
+                    <div className="text-[11px] text-gray-500 mt-0.5">
+                      Ref. {interesado.codigoReferencia}
+                    </div>
+                  )}
+                </div>
+
+                {(interesado.ultimoMensajeCliente ||
+                  interesado.ultimaRespuesta) && (
+                  <div className="mt-3 rounded-lg bg-black/20 p-2">
+                    {interesado.ultimoMensajeCliente && (
+                      <p className="text-xs text-gray-300 line-clamp-2">
+                        <span className="text-gray-500">
+                          Cliente:
+                        </span>{" "}
+                        {interesado.ultimoMensajeCliente}
+                      </p>
+                    )}
+
+                    {interesado.ultimaRespuesta && (
+                      <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                        <span>Panambí:</span>{" "}
+                        {interesado.ultimaRespuesta}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+                  <span className="inline-flex items-center gap-1 text-gray-500">
+                    <MessageCircleMore size={12} />
+                    {interesado.cantidadInteracciones || 0} mensajes
+                  </span>
+
+                  <span className="inline-flex items-center gap-1 text-gray-500">
+                    <Clock3 size={12} />
+                    {fechaHora(
+                      interesado.fechaUltimaInteraccion ||
+                        interesado.fechaRegistro,
+                    )}
+                  </span>
+
+                  {interesado.requiereSeguimiento && (
+                    <span
+                      className={`font-semibold ${
+                        interesado.seguimientoVencido
+                          ? "text-red-300"
+                          : "text-yellow-300"
+                      }`}
+                    >
+                      Seguimiento{" "}
+                      {interesado.seguimientoVencido
+                        ? "vencido"
+                        : fechaCorta(
+                            interesado.fechaProximoContacto,
+                          )}
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <div className="p-3 border-t border-gray-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2 text-gray-400">
+          <span>Mostrar</span>
+
+          <select
+            value={aplicados.registrosPorPagina}
+            onChange={(event) => {
+              const cantidad = Number(event.target.value);
+
+              setBorrador((actual) => ({
+                ...actual,
+                registrosPorPagina: cantidad,
+                numeroPagina: 1,
+              }));
+
+              setAplicados((actual) => ({
+                ...actual,
+                registrosPorPagina: cantidad,
+                numeroPagina: 1,
+              }));
+            }}
+            className="bg-gray-900 border border-gray-700 rounded px-2 py-1"
           >
             <option value={5}>5</option>
             <option value={10}>10</option>
             <option value={20}>20</option>
+            <option value={50}>50</option>
           </select>
         </div>
 
-        <div className="flex items-center gap-4">
-          <span>
-            Página {filtros.numeroPagina} de {totalPaginas} — Total:{" "}
-            {totalRegistros}
+        <div className="flex items-center justify-between sm:justify-end gap-3">
+          <span className="text-gray-500">
+            Página {aplicados.numeroPagina} de {totalPaginas}
           </span>
-          <div className="flex gap-2">
+
+          <div className="flex gap-1">
             <button
+              type="button"
               onClick={() =>
-                setFiltros((p) => ({
-                  ...p,
-                  numeroPagina: Math.max(1, p.numeroPagina - 1),
-                }))
+                cambiarPagina(aplicados.numeroPagina - 1)
               }
-              disabled={filtros.numeroPagina <= 1}
-              className="p-2 rounded bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-40 transition"
+              disabled={aplicados.numeroPagina <= 1}
+              className="h-8 w-8 rounded bg-gray-900 border border-gray-700 grid place-items-center disabled:opacity-30"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={15} />
             </button>
+
             <button
+              type="button"
               onClick={() =>
-                setFiltros((p) => ({
-                  ...p,
-                  numeroPagina: Math.min(totalPaginas, p.numeroPagina + 1),
-                }))
+                cambiarPagina(aplicados.numeroPagina + 1)
               }
-              disabled={filtros.numeroPagina >= totalPaginas}
-              className="p-2 rounded bg-yellow-500 text-black hover:bg-yellow-400 disabled:opacity-40 transition"
+              disabled={
+                aplicados.numeroPagina >= totalPaginas
+              }
+              className="h-8 w-8 rounded bg-gray-900 border border-gray-700 grid place-items-center disabled:opacity-30"
             >
-              <ChevronRight size={16} />
+              <ChevronRight size={15} />
             </button>
           </div>
         </div>

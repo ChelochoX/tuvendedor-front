@@ -8,6 +8,8 @@ import React, {
 
 import Swal from "sweetalert2";
 
+import { useNavigate } from "react-router-dom";
+
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import SearchIcon from "@mui/icons-material/Search";
@@ -31,8 +33,15 @@ import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import HistoryIcon from "@mui/icons-material/History";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import GroupsIcon from "@mui/icons-material/Groups";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import MarkUnreadChatAltIcon from "@mui/icons-material/MarkUnreadChatAlt";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import Panel from "./Panel";
+
+import { obtenerResumenInteresados } from "../../api/clientesService";
+import { InteresadosResumen } from "../../types/clientes";
 
 import {
   cambiarEstadoSolicitudCreditoMoto,
@@ -236,8 +245,26 @@ const sonarAlerta = () => {
   }
 };
 
+const resumenInteresadosVacio: InteresadosResumen = {
+  totalActivos: 0,
+  nuevosDelDia: 0,
+  pendientesSeguimiento: 0,
+  seguimientosVencidos: 0,
+  sinRespuesta: 0,
+  consultando: 0,
+  cotizados: 0,
+  creditoEnProceso: 0,
+  contadoEnProceso: 0,
+  derivadosHumano: 0,
+};
+
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const [resumenInteresados, setResumenInteresados] =
+    useState<InteresadosResumen>(resumenInteresadosVacio);
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>("TODAS");
   const [buscar, setBuscar] = useState("");
   const [busquedaAplicada, setBusquedaAplicada] = useState("");
@@ -282,6 +309,18 @@ const Dashboard: React.FC = () => {
 
         setCreditos(dataCredito);
         setContados(dataContado);
+
+        try {
+          const resumenCRM =
+            await obtenerResumenInteresados(fecha);
+
+          setResumenInteresados(resumenCRM);
+        } catch (errorResumen) {
+          console.warn(
+            "No se pudo actualizar el resumen de interesados.",
+            errorResumen,
+          );
+        }
 
         const pendientesActuales = dataContado.filter(
           (item) => item.estadoControl === "PENDIENTE_CONTACTO",
@@ -828,6 +867,62 @@ const Dashboard: React.FC = () => {
               Actualizar
             </button>
           </div>
+
+          <section className="mb-5 rounded-2xl border border-gray-800 bg-gray-900 p-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-4">
+              <div>
+                <div className="text-xs uppercase tracking-[0.15em] font-bold text-yellow-400/80">
+                  Oportunidades comerciales
+                </div>
+                <div className="text-sm text-gray-400 mt-1">
+                  Contactos que consultaron por WhatsApp y necesitan seguimiento, aunque todavía no hayan iniciado una compra.
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate("/clientes/cargar")}
+                className="px-4 py-2 rounded-lg border border-yellow-400/40 bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-300 font-bold text-sm inline-flex items-center justify-center gap-2"
+              >
+                <GroupsIcon fontSize="small" />
+                Ver interesados y seguimiento
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+              <ResumenCard
+                label="Nuevos del día"
+                value={resumenInteresados.nuevosDelDia}
+                icon={<GroupsIcon />}
+                className="text-sky-300"
+              />
+
+              <ResumenCard
+                label="Seguimientos pendientes"
+                value={resumenInteresados.pendientesSeguimiento}
+                icon={<ScheduleIcon />}
+                className="text-yellow-300"
+              />
+
+              <ResumenCard
+                label="Seguimientos vencidos"
+                value={resumenInteresados.seguimientosVencidos}
+                icon={<WarningAmberIcon />}
+                className="text-orange-300"
+              />
+
+              <ResumenCard
+                label="Sin respuesta"
+                value={resumenInteresados.sinRespuesta}
+                icon={<MarkUnreadChatAltIcon />}
+                className="text-red-300"
+              />
+            </div>
+
+            <div className="mt-3 text-xs text-gray-500">
+              Activos: {resumenInteresados.totalActivos} · Cotizados: {resumenInteresados.cotizados} · Crédito en proceso: {resumenInteresados.creditoEnProceso} · Contado en proceso: {resumenInteresados.contadoEnProceso}
+            </div>
+          </section>
 
           <div className="mb-5 flex flex-wrap items-center justify-center gap-2">
             <button

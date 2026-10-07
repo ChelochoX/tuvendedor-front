@@ -1,8 +1,13 @@
+// src/pages/clientes/Panel.tsx
+
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
 
 import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import GroupsIcon from "@mui/icons-material/Groups";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import StoreIcon from "@mui/icons-material/Store";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
@@ -28,19 +33,27 @@ const Panel: React.FC = () => {
         </h2>
 
         <button
-          onClick={() => navigate("/clientes/dashboard")}
-          className={itemClass("/clientes/dashboard")}
+          onClick={() =>
+            navigate("/clientes/dashboard")
+          }
+          className={itemClass(
+            "/clientes/dashboard",
+          )}
         >
           <AssignmentTurnedInIcon fontSize="small" />
           Solicitudes de venta
         </button>
 
         <button
-          onClick={() => navigate("/clientes/cargar")}
-          className={itemClass("/clientes/cargar")}
+          onClick={() =>
+            navigate("/clientes/cargar")
+          }
+          className={itemClass(
+            "/clientes/cargar",
+          )}
         >
-          <PersonAddIcon fontSize="small" />
-          Registrar cliente
+          <GroupsIcon fontSize="small" />
+          Interesados / seguimiento
         </button>
 
         <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">
@@ -48,32 +61,50 @@ const Panel: React.FC = () => {
         </h2>
 
         <button
-          onClick={() => navigate("/clientes/marcas")}
-          className={itemClass("/clientes/marcas")}
+          onClick={() =>
+            navigate("/clientes/marcas")
+          }
+          className={itemClass(
+            "/clientes/marcas",
+          )}
         >
           <StoreIcon fontSize="small" />
           Marcas
         </button>
 
         <button
-          onClick={() => navigate("/clientes/modelos")}
-          className={itemClass("/clientes/modelos")}
+          onClick={() =>
+            navigate("/clientes/modelos")
+          }
+          className={itemClass(
+            "/clientes/modelos",
+          )}
         >
           <CategoryIcon fontSize="small" />
           Modelos
         </button>
 
         <button
-          onClick={() => navigate("/clientes/precios")}
-          className={itemClass("/clientes/precios")}
+          onClick={() =>
+            navigate("/clientes/precios")
+          }
+          className={itemClass(
+            "/clientes/precios",
+          )}
         >
           <LocalOfferIcon fontSize="small" />
           Precios
         </button>
 
         <button
-          onClick={() => navigate("/clientes/descuentos-contado")}
-          className={itemClass("/clientes/descuentos-contado")}
+          onClick={() =>
+            navigate(
+              "/clientes/descuentos-contado",
+            )
+          }
+          className={itemClass(
+            "/clientes/descuentos-contado",
+          )}
         >
           <PercentIcon fontSize="small" />
           Descuentos contado

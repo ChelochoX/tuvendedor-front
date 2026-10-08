@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
-  MessageCircleMore,
   Search,
   SlidersHorizontal,
 } from "lucide-react";
@@ -36,7 +35,7 @@ const filtrosIniciales: FiltroInteresadosRequest = {
   fechaProximoContactoDesde: "",
   fechaProximoContactoHasta: "",
   numeroPagina: 1,
-  registrosPorPagina: 10,
+  registrosPorPagina: 20,
 };
 
 const fechaCorta = (fecha?: string | null) => {
@@ -74,6 +73,29 @@ const fechaHora = (fecha?: string | null) => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const esConsultaDeHoy = (interesado: Interesado) => {
+  const fecha =
+    interesado.fechaUltimoMensajeCliente || interesado.fechaUltimaInteraccion;
+
+  if (!fecha) {
+    return false;
+  }
+
+  const valor = new Date(fecha);
+
+  if (Number.isNaN(valor.getTime())) {
+    return false;
+  }
+
+  const hoy = new Date();
+
+  return (
+    valor.getFullYear() === hoy.getFullYear() &&
+    valor.getMonth() === hoy.getMonth() &&
+    valor.getDate() === hoy.getDate()
+  );
 };
 
 const estadoLabel = (estado?: string | null) => {
@@ -493,30 +515,57 @@ const ListarInteresados: React.FC<Props> = ({
           interesados.map((interesado) => {
             const seleccionadoAhora = seleccionado?.id === interesado.id;
 
+            const consultaHoy = esConsultaDeHoy(interesado);
+
+            const fechaActividad =
+              interesado.fechaUltimoMensajeCliente ||
+              interesado.fechaUltimaInteraccion ||
+              interesado.fechaRegistro;
+
             return (
               <button
                 type="button"
                 key={interesado.id}
                 onClick={() => setSeleccionado(interesado)}
-                className={`w-full text-left rounded-xl border p-3 transition ${
-                  seleccionadoAhora
-                    ? "border-yellow-400 bg-yellow-400/5"
-                    : "border-gray-800 bg-gray-900/70 hover:border-gray-600"
+                className={`relative w-full overflow-hidden text-left rounded-xl border px-3 py-2.5 transition-all ${
+                  consultaHoy
+                    ? seleccionadoAhora
+                      ? "border-emerald-300 bg-emerald-950/55 shadow-[0_0_0_1px_rgba(110,231,183,0.14)]"
+                      : "border-emerald-500/45 bg-gradient-to-r from-emerald-950/45 via-gray-900/90 to-gray-900/80 hover:border-emerald-400/70"
+                    : seleccionadoAhora
+                      ? "border-yellow-400 bg-yellow-400/5"
+                      : "border-gray-800 bg-gray-900/70 hover:border-gray-600"
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
+                {consultaHoy && (
+                  <span className="absolute inset-y-0 left-0 w-1 bg-emerald-400/80" />
+                )}
+
+                <div className="flex items-start justify-between gap-2 pl-0.5">
                   <div className="min-w-0">
-                    <div className="font-bold text-sm text-white truncate">
-                      {interesado.nombre || "Cliente WhatsApp"}
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="font-bold text-sm text-white truncate">
+                        {interesado.nombre || "Cliente WhatsApp"}
+                      </div>
+
+                      {consultaHoy && (
+                        <span className="shrink-0 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-2 py-0.5 text-[9px] font-extrabold tracking-wide text-emerald-300">
+                          HOY
+                        </span>
+                      )}
                     </div>
 
-                    <div className="text-xs text-gray-500 mt-0.5">
+                    <div
+                      className={`text-[11px] mt-0.5 ${
+                        consultaHoy ? "text-emerald-200/70" : "text-gray-500"
+                      }`}
+                    >
                       {interesado.telefono || "Número pendiente de resolver"}
                     </div>
                   </div>
 
                   <span
-                    className={`shrink-0 px-2 py-1 rounded-full border text-[10px] font-bold uppercase ${estadoClass(
+                    className={`shrink-0 px-2 py-1 rounded-full border text-[9px] font-bold uppercase ${estadoClass(
                       interesado,
                     )}`}
                   >
@@ -528,58 +577,42 @@ const ListarInteresados: React.FC<Props> = ({
                   </span>
                 </div>
 
-                <div className="mt-3 text-sm">
-                  <div className="font-semibold text-yellow-300 truncate">
-                    {interesado.marcaInteres || interesado.modeloInteres
-                      ? `${interesado.marcaInteres || ""} ${
-                          interesado.modeloInteres || ""
-                        }`.trim()
-                      : interesado.productoInteres ||
-                        "Consulta sin modelo definido"}
+                <div className="mt-2 flex items-end justify-between gap-3 pl-0.5">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-[12px] text-yellow-300 truncate">
+                      {interesado.marcaInteres || interesado.modeloInteres
+                        ? `${interesado.marcaInteres || ""} ${
+                            interesado.modeloInteres || ""
+                          }`.trim()
+                        : interesado.productoInteres ||
+                          "Consulta sin modelo definido"}
+                    </div>
+
+                    {interesado.codigoReferencia && (
+                      <div className="text-[10px] text-gray-600 mt-0.5 truncate">
+                        Ref. {interesado.codigoReferencia}
+                      </div>
+                    )}
                   </div>
 
-                  {interesado.codigoReferencia && (
-                    <div className="text-[11px] text-gray-500 mt-0.5">
-                      Ref. {interesado.codigoReferencia}
+                  <div className="shrink-0 text-right">
+                    <div
+                      className={`inline-flex items-center gap-1 text-[10px] ${
+                        consultaHoy
+                          ? "font-semibold text-emerald-300"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <Clock3 size={11} />
+                      {fechaHora(fechaActividad)}
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {(interesado.ultimoMensajeCliente ||
-                  interesado.ultimaRespuesta) && (
-                  <div className="mt-3 rounded-lg bg-black/20 p-2">
-                    {interesado.ultimoMensajeCliente && (
-                      <p className="text-xs text-gray-300 line-clamp-2">
-                        <span className="text-gray-500">Cliente:</span>{" "}
-                        {interesado.ultimoMensajeCliente}
-                      </p>
-                    )}
-
-                    {interesado.ultimaRespuesta && (
-                      <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                        <span>Panambí:</span> {interesado.ultimaRespuesta}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-                  <span className="inline-flex items-center gap-1 text-gray-500">
-                    <MessageCircleMore size={12} />
-                    {interesado.cantidadInteracciones || 0} mensajes
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 text-gray-500">
-                    <Clock3 size={12} />
-                    {fechaHora(
-                      interesado.fechaUltimaInteraccion ||
-                        interesado.fechaRegistro,
-                    )}
-                  </span>
-
-                  {interesado.requiereSeguimiento && (
+                {interesado.requiereSeguimiento && (
+                  <div className="mt-1.5 pl-0.5">
                     <span
-                      className={`font-semibold ${
+                      className={`text-[10px] font-semibold ${
                         interesado.seguimientoVencido
                           ? "text-red-300"
                           : "text-yellow-300"
@@ -590,8 +623,8 @@ const ListarInteresados: React.FC<Props> = ({
                         ? "vencido"
                         : fechaCorta(interesado.fechaProximoContacto)}
                     </span>
-                  )}
-                </div>
+                  </div>
+                )}
               </button>
             );
           })

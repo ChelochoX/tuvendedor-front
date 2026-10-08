@@ -468,6 +468,14 @@ const FormularioInteresado: React.FC<Props> = ({
                     </a>
                   )}
 
+                  <a
+                    href="#editar-datos-cliente"
+                    className="px-3 py-2 rounded-lg border border-yellow-400/40 bg-yellow-400/10 text-yellow-300 text-sm font-semibold inline-flex items-center gap-2"
+                  >
+                    <Edit3 size={16} />
+                    Editar datos
+                  </a>
+
                   <button
                     type="button"
                     onClick={limpiarFormulario}
@@ -480,11 +488,13 @@ const FormularioInteresado: React.FC<Props> = ({
 
               <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-px bg-gray-800">
                 <InfoMini
-                  label="Teléfono"
+                  label="Teléfono / ID"
                   value={
                     detalle?.interesado.telefono ||
                     seleccionado.telefono ||
-                    "Número pendiente de resolver"
+                    detalle?.interesado.identificadorExterno ||
+                    seleccionado.identificadorExterno ||
+                    "—"
                   }
                 />
 
@@ -737,8 +747,11 @@ const FormularioInteresado: React.FC<Props> = ({
               )}
             </section>
 
-            <section className="rounded-2xl border border-gray-800 bg-gray-900 p-4">
-              <details>
+            <section
+              id="editar-datos-cliente"
+              className="rounded-2xl border border-gray-800 bg-gray-900 p-4 scroll-mt-4"
+            >
+              <details open>
                 <summary className="cursor-pointer list-none flex items-center gap-2 font-bold">
                   <Edit3 size={17} className="text-gray-400" />
                   Editar datos del cliente

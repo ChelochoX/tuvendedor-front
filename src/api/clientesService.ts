@@ -9,6 +9,7 @@ import {
   InteresadoDetalle,
   InteresadoRequest,
   InteresadosResumen,
+  SincronizacionWhatsAppResultado,
   Seguimiento,
   SeguimientoRequest,
 } from "../types/clientes";
@@ -203,6 +204,28 @@ export const obtenerResumenInteresados = async (
 
   return extraerData<InteresadosResumen>(response.data);
 };
+
+
+export const sincronizarWhatsAppDia = async (
+  fecha: string,
+): Promise<SincronizacionWhatsAppResultado> => {
+  const response = await instance.post<
+    ApiResponse<SincronizacionWhatsAppResultado>
+  >(
+    `${API_URL}/sincronizar-whatsapp-dia`,
+    null,
+    {
+      params: {
+        fecha,
+      },
+    },
+  );
+
+  return extraerData<SincronizacionWhatsAppResultado>(
+    response.data,
+  );
+};
+
 
 export const actualizarSeguimientoInteresado = async (
   idInteresado: number,

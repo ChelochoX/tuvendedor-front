@@ -164,6 +164,7 @@ export interface InteresadoDetalle {
 export interface InteresadosResumen {
   totalActivos: number;
   nuevosDelDia: number;
+  interaccionesDelDia: number;
   pendientesSeguimiento: number;
   seguimientosVencidos: number;
   sinRespuesta: number;
@@ -185,3 +186,15 @@ export interface ActualizarSeguimientoInteresadoRequest {
 // Alias conservados por compatibilidad con imports viejos.
 export type InteresadoDto = Interesado;
 export type SeguimientoDto = Seguimiento;
+
+
+export interface SincronizacionWhatsAppResultado {
+  fecha: string;
+  chatsEncontrados: number;
+  procesados: number;
+  nuevos: number;
+  actualizados: number;
+  conTelefonoReal: number;
+  sinTelefonoReal: number;
+  errores: number;
+}

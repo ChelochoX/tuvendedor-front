@@ -33,6 +33,10 @@ import {
   Seguimiento,
 } from "../../types/clientes";
 
+import {
+  formatearFechaHoraServidorParaguay,
+} from "../../utils/fechaServidor";
+
 interface Props {
   seleccionado: Interesado | null;
   setSeleccionado: (i: Interesado | null) => void;
@@ -89,6 +93,9 @@ const fechaHora = (fecha?: string | null) => {
     minute: "2-digit",
   });
 };
+
+const fechaHoraServidor = (fecha?: string | null) =>
+  formatearFechaHoraServidorParaguay(fecha);
 
 const aInputFechaHora = (fecha?: string | null) => {
   if (!fecha) {
@@ -435,7 +442,7 @@ const FormularioInteresado: React.FC<Props> = ({
 
                     <span>
                       Última interacción:{" "}
-                      {fechaHora(
+                      {fechaHoraServidor(
                         detalle?.interesado.fechaUltimaInteraccion ||
                           seleccionado.fechaUltimaInteraccion,
                       )}
@@ -646,7 +653,7 @@ const FormularioInteresado: React.FC<Props> = ({
                         <div className="text-xs text-gray-500 mt-2">
                           {consulta.tipoConsulta?.replaceAll("_", " ") ||
                             "Consulta"}{" "}
-                          · {fechaHora(consulta.fechaUltimaConsulta)}
+                          · {fechaHoraServidor(consulta.fechaUltimaConsulta)}
                         </div>
 
                         {consulta.ultimoMensajeCliente && (
@@ -704,7 +711,7 @@ const FormularioInteresado: React.FC<Props> = ({
                             </div>
 
                             <div className="text-[10px] opacity-50 mt-1 text-right">
-                              {fechaHora(mensaje.fecha)}
+                              {fechaHoraServidor(mensaje.fecha)}
                             </div>
                           </div>
                         </div>
@@ -735,7 +742,7 @@ const FormularioInteresado: React.FC<Props> = ({
                         </p>
 
                         <div className="text-xs text-gray-500 mt-1">
-                          {fechaHora(item.fecha)}
+                          {fechaHoraServidor(item.fecha)}
                           {item.usuario ? ` · ${item.usuario}` : ""}
                         </div>
                       </div>

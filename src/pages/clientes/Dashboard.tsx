@@ -40,6 +40,11 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import Panel from "./Panel";
 
+import {
+  fechaUtcServidorEnMilisegundos,
+  formatearFechaHoraServidorParaguay,
+} from "../../utils/fechaServidor";
+
 import { obtenerResumenInteresados } from "../../api/clientesService";
 import { InteresadosResumen } from "../../types/clientes";
 
@@ -135,25 +140,8 @@ const formatearFechaSelector = (fecha: Date) => {
   return `${dia} · ${corta}`;
 };
 
-const formatearFecha = (fecha?: string | null) => {
-  if (!fecha) {
-    return "—";
-  }
-
-  const valor = new Date(fecha);
-
-  if (Number.isNaN(valor.getTime())) {
-    return "—";
-  }
-
-  return valor.toLocaleString("es-PY", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const formatearFecha = (fecha?: string | null) =>
+  formatearFechaHoraServidorParaguay(fecha);
 
 const campo = (valor?: string | number | null) =>
   valor === null || valor === undefined || valor === "" ? "—" : String(valor);
@@ -311,8 +299,7 @@ const Dashboard: React.FC = () => {
         setContados(dataContado);
 
         try {
-          const resumenCRM =
-            await obtenerResumenInteresados(fecha);
+          const resumenCRM = await obtenerResumenInteresados(fecha);
 
           setResumenInteresados(resumenCRM);
         } catch (errorResumen) {
@@ -413,8 +400,8 @@ const Dashboard: React.FC = () => {
       }
 
       return (
-        new Date(b.data.fechaRecepcion).getTime() -
-        new Date(a.data.fechaRecepcion).getTime()
+        fechaUtcServidorEnMilisegundos(b.data.fechaRecepcion) -
+        fechaUtcServidorEnMilisegundos(a.data.fechaRecepcion)
       );
     });
 
@@ -875,7 +862,8 @@ const Dashboard: React.FC = () => {
                   Oportunidades comerciales
                 </div>
                 <div className="text-sm text-gray-400 mt-1">
-                  Contactos que consultaron por WhatsApp y necesitan seguimiento, aunque todavía no hayan iniciado una compra.
+                  Contactos que consultaron por WhatsApp y necesitan
+                  seguimiento, aunque todavía no hayan iniciado una compra.
                 </div>
               </div>
 
@@ -920,7 +908,10 @@ const Dashboard: React.FC = () => {
             </div>
 
             <div className="mt-3 text-xs text-gray-500">
-              Activos: {resumenInteresados.totalActivos} · Cotizados: {resumenInteresados.cotizados} · Crédito en proceso: {resumenInteresados.creditoEnProceso} · Contado en proceso: {resumenInteresados.contadoEnProceso}
+              Activos: {resumenInteresados.totalActivos} · Cotizados:{" "}
+              {resumenInteresados.cotizados} · Crédito en proceso:{" "}
+              {resumenInteresados.creditoEnProceso} · Contado en proceso:{" "}
+              {resumenInteresados.contadoEnProceso}
             </div>
           </section>
 

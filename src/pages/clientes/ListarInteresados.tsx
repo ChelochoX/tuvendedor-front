@@ -15,6 +15,11 @@ import {
 import { obtenerInteresados } from "../../api/clientesService";
 import { FiltroInteresadosRequest, Interesado } from "../../types/clientes";
 
+import {
+  esFechaServidorDeHoyEnParaguay,
+  formatearFechaHoraServidorParaguay,
+} from "../../utils/fechaServidor";
+
 interface Props {
   seleccionado: Interesado | null;
   setSeleccionado: (i: Interesado | null) => void;
@@ -56,46 +61,14 @@ const fechaCorta = (fecha?: string | null) => {
   });
 };
 
-const fechaHora = (fecha?: string | null) => {
-  if (!fecha) {
-    return "—";
-  }
-
-  const valor = new Date(fecha);
-
-  if (Number.isNaN(valor.getTime())) {
-    return "—";
-  }
-
-  return valor.toLocaleString("es-PY", {
-    day: "2-digit",
-    month: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
+const fechaHora = (fecha?: string | null) =>
+  formatearFechaHoraServidorParaguay(fecha, false);
 
 const esConsultaDeHoy = (interesado: Interesado) => {
   const fecha =
     interesado.fechaUltimoMensajeCliente || interesado.fechaUltimaInteraccion;
 
-  if (!fecha) {
-    return false;
-  }
-
-  const valor = new Date(fecha);
-
-  if (Number.isNaN(valor.getTime())) {
-    return false;
-  }
-
-  const hoy = new Date();
-
-  return (
-    valor.getFullYear() === hoy.getFullYear() &&
-    valor.getMonth() === hoy.getMonth() &&
-    valor.getDate() === hoy.getDate()
-  );
+  return esFechaServidorDeHoyEnParaguay(fecha);
 };
 
 const estadoLabel = (estado?: string | null) => {

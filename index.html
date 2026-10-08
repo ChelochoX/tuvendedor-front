@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <!-- Google Tag Manager -->
     <script>
@@ -9,39 +9,142 @@
           "gtm.start": new Date().getTime(),
           event: "gtm.js",
         });
+
         var f = d.getElementsByTagName(s)[0],
           j = d.createElement(s),
           dl = l != "dataLayer" ? "&l=" + l : "";
+
         j.async = true;
         j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl;
+
         f.parentNode.insertBefore(j, f);
       })(window, document, "script", "dataLayer", "GTM-MSR7K7PM");
     </script>
     <!-- End Google Tag Manager -->
 
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+
     <title>TuVendedor Marketplace</title>
 
-    <link rel="icon" href="/logoTuVendedor.png" />
+    <meta
+      name="description"
+      content="TuVendedor Marketplace. Encontrá productos, motos, inmuebles y oportunidades publicadas en TuVendedor."
+    />
 
-    <!-- Meta Pixel Code -->
+    <link
+      rel="canonical"
+      href="https://www.tuvendedor.com.py/"
+    />
+
+    <!-- Favicon -->
+    <link
+      rel="icon"
+      href="/logoTuVendedor.png"
+    />
+
+    <!-- ====================================================== -->
+    <!-- OPEN GRAPH - WHATSAPP / FACEBOOK / TELEGRAM            -->
+    <!-- ====================================================== -->
+
+    <meta
+      property="og:type"
+      content="website"
+    />
+
+    <meta
+      property="og:site_name"
+      content="TuVendedor Marketplace"
+    />
+
+    <meta
+      property="og:title"
+      content="TuVendedor Marketplace"
+    />
+
+    <meta
+      property="og:description"
+      content="Tu mejor opción en ventas. Descubrí productos y oportunidades en TuVendedor."
+    />
+
+    <meta
+      property="og:url"
+      content="https://www.tuvendedor.com.py/"
+    />
+
+    <meta
+      property="og:image"
+      content="https://www.tuvendedor.com.py/TuVendedor_logo_HD.jpg"
+    />
+
+    <meta
+      property="og:image:secure_url"
+      content="https://www.tuvendedor.com.py/TuVendedor_logo_HD.jpg"
+    />
+
+    <meta
+      property="og:image:type"
+      content="image/jpeg"
+    />
+
+    <meta
+      property="og:image:alt"
+      content="TuVendedor - Tu mejor opción en ventas"
+    />
+
+    <!-- ====================================================== -->
+    <!-- TWITTER / X                                            -->
+    <!-- ====================================================== -->
+
+    <meta
+      name="twitter:card"
+      content="summary_large_image"
+    />
+
+    <meta
+      name="twitter:title"
+      content="TuVendedor Marketplace"
+    />
+
+    <meta
+      name="twitter:description"
+      content="Tu mejor opción en ventas. Descubrí productos y oportunidades en TuVendedor."
+    />
+
+    <meta
+      name="twitter:image"
+      content="https://www.tuvendedor.com.py/TuVendedor_logo_HD.jpg"
+    />
+
+    <!-- ====================================================== -->
+    <!-- META PIXEL                                             -->
+    <!-- ====================================================== -->
+
     <script>
       !(function (f, b, e, v, n, t, s) {
         if (f.fbq) return;
+
         n = f.fbq = function () {
           n.callMethod
             ? n.callMethod.apply(n, arguments)
             : n.queue.push(arguments);
         };
+
         if (!f._fbq) f._fbq = n;
+
         n.push = n;
         n.loaded = !0;
         n.version = "2.0";
         n.queue = [];
+
         t = b.createElement(e);
         t.async = !0;
         t.src = v;
+
         s = b.getElementsByTagName(e)[0];
         s.parentNode.insertBefore(t, s);
       })(
@@ -69,6 +172,10 @@
     <!-- End Google Tag Manager (noscript) -->
 
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+
+    <script
+      type="module"
+      src="/src/main.tsx"
+    ></script>
   </body>
 </html>

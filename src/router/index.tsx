@@ -34,6 +34,10 @@ const DashboardComercial = lazy(() => import("pages/admin/DashboardComercial"));
 // Clientes
 const Dashboard = lazy(() => import("pages/clientes/Dashboard"));
 
+const SeguimientoWhatsapp = lazy(
+  () => import("pages/clientes/SeguimientoWhatsapp"),
+);
+
 const CargaClientes = lazy(() => import("pages/clientes/CargaClientes"));
 
 const GestionMarcas = lazy(() => import("pages/clientes/GestionMarcas"));
@@ -66,6 +70,11 @@ const RoutesHandler = () => (
       <Route path="/clientes/dashboard" element={<Dashboard />} />
 
       <Route path="/clientes/cargar" element={<CargaClientes />} />
+
+      <Route
+        path="/clientes/seguimientos-automaticos"
+        element={<SeguimientoWhatsapp />}
+      />
 
       <Route path="/clientes/marcas" element={<GestionMarcas />} />
 

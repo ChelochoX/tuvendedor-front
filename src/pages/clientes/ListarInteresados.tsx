@@ -64,12 +64,8 @@ const fechaCorta = (fecha?: string | null) => {
 const fechaHora = (fecha?: string | null) =>
   formatearFechaHoraServidorParaguay(fecha, false);
 
-const esConsultaDeHoy = (interesado: Interesado) => {
-  const fecha =
-    interesado.fechaUltimoMensajeCliente || interesado.fechaUltimaInteraccion;
-
-  return esFechaServidorDeHoyEnParaguay(fecha);
-};
+const esConsultaDeHoy = (interesado: Interesado) =>
+  esFechaServidorDeHoyEnParaguay(interesado.fechaUltimoMensajeCliente);
 
 const estadoLabel = (estado?: string | null) => {
   switch (estado) {

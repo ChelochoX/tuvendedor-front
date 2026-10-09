@@ -1,6 +1,6 @@
 import axiosInstance from "./axiosInstance";
 
-export type ModoSeguimiento = "SIMULACION" | "REAL";
+export type ModoSeguimiento = "SIMULACION" | "ACTIVO";
 export type UnidadDemora = "MINUTO" | "HORA" | "DIA";
 
 export interface ReglaSeguimiento {
@@ -42,21 +42,16 @@ interface Respuesta<T> {
 const RUTA = "/clientes/seguimiento-whatsapp";
 
 function extraer<T>(respuesta: Respuesta<T>): T {
-  const resultado = respuesta as Respuesta<T> & {
+  const r = respuesta as Respuesta<T> & {
     Success?: boolean;
     Data?: T;
     Message?: string;
   };
-
-  const success = resultado.Success ?? resultado.success;
-  const data = resultado.Data ?? resultado.data;
-  const message = resultado.Message ?? resultado.message;
-
-  if (success !== true) {
-    throw new Error(message || "Operación rechazada por el servidor.");
-  }
-
-  return data;
+  if ((r.Success ?? r.success) !== true)
+    throw new Error(
+      r.Message ?? r.message ?? "Operación rechazada por el servidor.",
+    );
+  return (r.Data ?? r.data) as T;
 }
 export async function obtenerConfiguracionSeguimiento() {
   const { data } = await axiosInstance.get<Respuesta<ConfiguracionSeguimiento>>(
@@ -84,4 +79,37 @@ export async function procesarSeguimientosAhora() {
     `${RUTA}/procesar-ahora`,
   );
   return extraer(data);
+}
+
+export interface EstadoPruebaWhatsapp {
+  estado: string;
+  detalle: string;
+  enviados: number;
+  total: number;
+  proximo: string | null;
+  idOrigen?: number;
+  cliente?: string;
+  producto?: string;
+}
+export async function iniciarPruebaWhatsapp(
+  telefono: string,
+  intervaloMinutos: number,
+  idEnvio: number,
+  consentimientoConfirmado: boolean,
+) {
+  const { data } = await axiosInstance.post(
+    `${RUTA}/prueba-controlada/iniciar`,
+    { telefono, intervaloMinutos, idEnvio, consentimientoConfirmado },
+  );
+  return extraer<EstadoPruebaWhatsapp>(data);
+}
+export async function estadoPruebaWhatsapp() {
+  const { data } = await axiosInstance.get(`${RUTA}/prueba-controlada/estado`);
+  return extraer<EstadoPruebaWhatsapp>(data);
+}
+export async function cancelarPruebaWhatsapp() {
+  const { data } = await axiosInstance.post(
+    `${RUTA}/prueba-controlada/cancelar`,
+  );
+  return extraer<EstadoPruebaWhatsapp>(data);
 }

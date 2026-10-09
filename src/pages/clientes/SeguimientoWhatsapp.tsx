@@ -6,6 +6,7 @@ import {
   ConfiguracionSeguimiento, EnvioSeguimiento, ReglaSeguimiento, UnidadDemora,
   guardarConfiguracionSeguimiento, obtenerConfiguracionSeguimiento,
   obtenerEnviosSeguimiento, procesarSeguimientosAhora,
+  iniciarPruebaWhatsapp, estadoPruebaWhatsapp, cancelarPruebaWhatsapp, EstadoPruebaWhatsapp,
 } from "../../api/seguimientoWhatsappService";
 import "./SeguimientoWhatsapp.css";
 
@@ -27,6 +28,20 @@ const mensajeError = (e: unknown) => {
 
 const SeguimientoWhatsapp: React.FC = () => {
   const navigate = useNavigate();
+  const [telefonoPrueba, setTelefonoPrueba] = useState("");
+  const [consentimientoPrueba, setConsentimientoPrueba] = useState(false);
+  const [idEnvioPrueba, setIdEnvioPrueba] = useState<number | null>(null);
+  const [intervaloPrueba, setIntervaloPrueba] = useState(5);
+  const [estadoPrueba, setEstadoPrueba] = useState<EstadoPruebaWhatsapp | null>(null);
+  const [trabajandoPrueba, setTrabajandoPrueba] = useState(false);
+  const consultarPrueba = async () => { try { setEstadoPrueba(await estadoPruebaWhatsapp()); } catch(e) { setAviso({tipo:"error",texto:mensajeError(e)}); } };
+  const iniciarPrueba = async () => {
+    if (!origenPrueba || !window.confirm(`Se usarán los datos REALES de ${origenPrueba.cliente} (${origenPrueba.productoInteres}) para enviar hasta 3 mensajes SOLO al ${telefonoPrueba}. ¿Confirmás?`)) return;
+    setTrabajandoPrueba(true);
+    try { setEstadoPrueba(await iniciarPruebaWhatsapp(telefonoPrueba, intervaloPrueba, origenPrueba.id, consentimientoPrueba)); setAviso({tipo:"success", texto:"Prueba iniciada. Consultá el estado para ver los envíos."}); }
+    catch(e) { setAviso({tipo:"error",texto:mensajeError(e)}); }
+    finally {setTrabajandoPrueba(false);}
+  };
   const [config, setConfig] = useState<ConfiguracionSeguimiento | null>(null);
   const [envios, setEnvios] = useState<EnvioSeguimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -63,7 +78,7 @@ const SeguimientoWhatsapp: React.FC = () => {
     if (Number(config.separacionEnviosMinutos) < 1 || reglas.some(r => r.demoraValor < 1 || !r.mensaje.trim())) {
       setAviso({ tipo: "error", texto: "Revisá la separación, los tiempos y el texto de todos los mensajes." }); return;
     }
-    if (config.activo && config.modoEnvio === "REAL" && !window.confirm("ATENCIÓN: vas a activar envíos reales por WhatsApp. ¿Confirmás?")) return;
+    if (config.activo && config.modoEnvio === "ACTIVO" && !window.confirm("ATENCIÓN: vas a activar envíos reales por WhatsApp. ¿Confirmás?")) return;
     setTrabajando(true);
     try {
       const guardada = await guardarConfiguracionSeguimiento({ ...config,
@@ -82,7 +97,7 @@ const SeguimientoWhatsapp: React.FC = () => {
     if (trabajando || !config) return;
     if (editado) { setAviso({ tipo: "error", texto: "Guardá primero los cambios pendientes." }); return; }
     if (!config.activo) { setAviso({ tipo: "error", texto: "Activá el motor y guardá los cambios para procesar." }); return; }
-    if (config.modoEnvio === "REAL" && !window.confirm("MODO REAL: se pueden enviar WhatsApp a clientes. ¿Ejecutar ahora?")) return;
+    if (config.modoEnvio === "ACTIVO" && !window.confirm("MODO REAL: se pueden enviar WhatsApp a clientes. ¿Ejecutar ahora?")) return;
     setTrabajando(true);
     try {
       const cola = await procesarSeguimientosAhora();setEnvios(cola);setPestana("cola");
@@ -92,6 +107,7 @@ const SeguimientoWhatsapp: React.FC = () => {
   };
   const resumen = useMemo(() => ({ total: envios.length, pendientes: envios.filter(x => x.estado === "PENDIENTE").length,
     enviados: envios.filter(x => x.estado === "ENVIADO").length, errores: envios.filter(x => x.estado === "ERROR").length }), [envios]);
+  const origenPrueba = envios.find(e => e.id === idEnvioPrueba && e.estado === "PENDIENTE" && e.productoInteres && e.mensaje);
   const visibles = useMemo(() => envios.filter(x => (filtro === "TODOS" || x.estado === filtro) &&
     `${x.cliente} ${x.telefono} ${x.productoInteres || ""}`.toLowerCase().includes(buscar.toLowerCase())), [envios, filtro, buscar]);
 
@@ -110,8 +126,25 @@ const SeguimientoWhatsapp: React.FC = () => {
         <div className="sw-head"><div><div className="sw-eyebrow">TU VENDEDOR</div><h1>Panel de seguimientos</h1>
           <p>Contactá con respeto a quienes consultaron por una moto y no continuaron.</p></div>
           <div className="sw-head-actions"><span className={`sw-chip ${config.modoEnvio === "SIMULACION" ? "sw-test" : "sw-live"}`}>
-            {config.modoEnvio === "SIMULACION" ? "Simulación · sin envíos" : "Modo REAL"}</span>
+            {config.modoEnvio === "SIMULACION" ? "Simulación · sin envíos" : "Modo producción"}</span>
             <button className="sw-btn sw-outline" disabled={trabajando || editado} onClick={() => void cargar()}><RefreshCw size={14} className="inline"/> Actualizar</button></div></div>
+        <section className="sw-panel" style={{marginBottom:16, borderColor:"#ca8a04"}}>
+          <div className="sw-section-header"><div><h2>Prueba controlada · número elegido en pantalla</h2><p>Seleccioná un registro REAL de la cola. Panambí usará el modelo y mensaje guardados, pero enviará únicamente al teléfono de prueba.</p></div></div>
+          <div className="sw-form-grid">
+            <label>Número destinatario de prueba (595... sin +)<input value={telefonoPrueba} onChange={e=>setTelefonoPrueba(e.target.value)} placeholder="5959XXXXXXXX" /></label>
+            <label>Conversación real de origen<select value={idEnvioPrueba ?? ""} onChange={e=>setIdEnvioPrueba(e.target.value ? Number(e.target.value) : null)}>
+              <option value="">Seleccionar un seguimiento PENDIENTE…</option>
+              {envios.filter(e=>e.estado === "PENDIENTE" && e.productoInteres && e.mensaje).map(e=><option key={e.id} value={e.id}>#{e.id} · {e.cliente} · {e.productoInteres} · paso {e.numeroSeguimiento}</option>)}
+            </select></label>
+            <label>Intervalo entre mensajes<select value={intervaloPrueba} onChange={e=>setIntervaloPrueba(Number(e.target.value))}><option value={1}>1 minuto</option><option value={5}>5 minutos</option><option value={10}>10 minutos</option></select></label>
+          </div>
+          <label className="sw-toggle" style={{display:"flex",gap:8,alignItems:"center",marginTop:12}}><input type="checkbox" checked={consentimientoPrueba} onChange={e=>setConsentimientoPrueba(e.target.checked)}/> Confirmo que controlo este número o que su titular autorizó recibir los mensajes de prueba.</label>
+          <p className="sw-hint">Requiere motor apagado y modo SIMULACIÓN. Primero generá la cola con simulación; luego apagá el motor y elegí un registro PENDIENTE. La prueba NO modifica el contacto original ni lo marca como contactado. El estado de la prueba es temporal (memoria del backend).</p>
+          <div className="sw-bottom"><span>Origen: {origenPrueba ? `${origenPrueba.cliente} · ${origenPrueba.productoInteres}` : "No seleccionado"}<br/>Estado: {estadoPrueba?.estado ?? "Sin consultar"} · {estadoPrueba?.enviados ?? 0}/{estadoPrueba?.total ?? 0} · {estadoPrueba?.detalle ?? ""} {estadoPrueba?.proximo ? `· Próximo: ${fechaPantalla(estadoPrueba.proximo)}` : ""}</span>
+            <div><button className="sw-btn sw-outline" onClick={()=>void consultarPrueba()}>Ver estado</button>
+            <button className="sw-btn sw-outline" onClick={()=>void cancelarPruebaWhatsapp().then(setEstadoPrueba).catch(e=>setAviso({tipo:"error",texto:mensajeError(e)}))}>Cancelar prueba</button>
+            <button className="sw-btn" disabled={trabajandoPrueba || !/^5959\d{8}$/.test(telefonoPrueba) || !origenPrueba || !consentimientoPrueba || config.activo || config.modoEnvio!=="SIMULACION"} onClick={()=>void iniciarPrueba()}>Enviar secuencia de prueba</button></div></div>
+        </section>
         <div className="sw-stats"><div><span>Registros en cola (hasta 200)</span><strong>{resumen.total}</strong></div><div><span>Pendientes</span><strong>{resumen.pendientes}</strong></div>
           <div><span>Enviados</span><strong>{resumen.enviados}</strong></div><div><span>Errores</span><strong>{resumen.errores}</strong></div></div>
         <nav className="sw-tabs"><button className={pestana === "config" ? "active" : ""} onClick={() => setPestana("config")}><Settings2 size={15} className="inline"/> Configuración</button>
@@ -120,7 +153,7 @@ const SeguimientoWhatsapp: React.FC = () => {
           <section className="sw-panel"><div className="sw-section-header"><div><h2>Control general</h2><p>Probá con simulación antes de activar mensajes reales.</p></div>
             <label className="sw-toggle"><input type="checkbox" checked={config.activo} onChange={e => cambiar("activo", e.target.checked)}/>{config.activo ? "Motor activo" : "Motor apagado"}</label></div>
             <div className="sw-form-grid">
-              <label>Modo de envío<select value={config.modoEnvio} onChange={e => cambiar("modoEnvio", e.target.value as "SIMULACION" | "REAL")}><option value="SIMULACION">Simulación (sin enviar)</option><option value="REAL">Real (envía WhatsApp)</option></select></label>
+              <label>Modo de envío<select value={config.modoEnvio} onChange={e => cambiar("modoEnvio", e.target.value as "SIMULACION" | "ACTIVO")}><option value="SIMULACION">Simulación (sin enviar)</option><option value="ACTIVO">Producción (envía WhatsApp)</option></select></label>
               <label>Separación entre clientes (minutos)<input type="number" min="1" value={config.separacionEnviosMinutos} onChange={e => cambiar("separacionEnviosMinutos", Number(e.target.value))}/></label>
               <label>Horario desde<input type="time" value={hora(config.horaInicio)} onChange={e => cambiar("horaInicio", e.target.value)}/></label>
               <label>Horario hasta<input type="time" value={hora(config.horaFin)} onChange={e => cambiar("horaFin", e.target.value)}/></label>

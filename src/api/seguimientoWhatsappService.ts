@@ -35,7 +35,7 @@ export interface EnvioSeguimiento {
   motivoCancelacion?: string | null;
 }
 interface Respuesta<T> { success: boolean; message?: string; data: T; }
-const RUTA = "/api/clientes/seguimiento-whatsapp";
+const RUTA = "/clientes/seguimiento-whatsapp";
 
 function extraer<T>(respuesta: Respuesta<T>): T {
   if (!respuesta.success) throw new Error(respuesta.message || "Operación rechazada por el servidor.");

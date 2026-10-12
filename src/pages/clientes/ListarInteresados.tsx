@@ -297,88 +297,22 @@ const ListarInteresados: React.FC<Props> = ({
           </button>
         </form>
 
-        <div
-          className="flex gap-2 mt-3 overflow-x-auto pb-2"
-          aria-label="Filtros rápidos por etapa comercial"
-        >
-          {(
-            [
-              {
-                valor: "",
-                etiqueta: "Todos",
-                color: "yellow",
-                sinRespuesta: false,
-              },
-              {
-                valor: "",
-                etiqueta: "Sin respuesta",
-                color: "red",
-                sinRespuesta: true,
-              },
-              {
-                valor: "CONSULTANDO",
-                etiqueta: "Consultando",
-                color: "emerald",
-                sinRespuesta: false,
-              },
-              {
-                valor: "COTIZADO",
-                etiqueta: "Cotizados",
-                color: "sky",
-                sinRespuesta: false,
-              },
-              {
-                valor: "CREDITO_EN_PROCESO",
-                etiqueta: "Crédito",
-                color: "amber",
-                sinRespuesta: false,
-              },
-              {
-                valor: "CONTADO_EN_PROCESO",
-                etiqueta: "Contado",
-                color: "orange",
-                sinRespuesta: false,
-              },
-              {
-                valor: "PENDIENTE_ASESOR",
-                etiqueta: "Pendiente asesor",
-                color: "purple",
-                sinRespuesta: false,
-              },
-              {
-                valor: "DERIVADO_HUMANO",
-                etiqueta: "Atención humana",
-                color: "violet",
-                sinRespuesta: false,
-              },
-              {
-                valor: "ESPERANDO_MODELO",
-                etiqueta: "Esperando modelo",
-                color: "indigo",
-                sinRespuesta: false,
-              },
-              {
-                valor: "CONSULTA_PROMO",
-                etiqueta: "Promociones",
-                color: "cyan",
-                sinRespuesta: false,
-              },
-              {
-                valor: "CERRADO",
-                etiqueta: "Cerrados",
-                color: "rose",
-                sinRespuesta: false,
-              },
-              {
-                valor: "REGISTRADO",
-                etiqueta: "Registrados",
-                color: "slate",
-                sinRespuesta: false,
-              },
-            ] as const
-          ).map((item) => {
-            const activo =
-              aplicados.soloSinRespuesta === item.sinRespuesta &&
+        <div className="flex gap-2 mt-3 overflow-x-auto pb-2" aria-label="Filtros rápidos por etapa comercial">
+          {([
+            { valor: "", etiqueta: "Todos", color: "yellow", sinRespuesta: false },
+            { valor: "", etiqueta: "Sin respuesta", color: "red", sinRespuesta: true },
+            { valor: "CONSULTANDO", etiqueta: "Consultando", color: "emerald", sinRespuesta: false },
+            { valor: "COTIZADO", etiqueta: "Cotizados", color: "sky", sinRespuesta: false },
+            { valor: "CREDITO_EN_PROCESO", etiqueta: "Crédito", color: "amber", sinRespuesta: false },
+            { valor: "CONTADO_EN_PROCESO", etiqueta: "Contado", color: "orange", sinRespuesta: false },
+            { valor: "PENDIENTE_ASESOR", etiqueta: "Pendiente asesor", color: "purple", sinRespuesta: false },
+            { valor: "DERIVADO_HUMANO", etiqueta: "Atención humana", color: "violet", sinRespuesta: false },
+            { valor: "ESPERANDO_MODELO", etiqueta: "Esperando modelo", color: "indigo", sinRespuesta: false },
+            { valor: "CONSULTA_PROMO", etiqueta: "Promociones", color: "cyan", sinRespuesta: false },
+            { valor: "CERRADO", etiqueta: "Cerrados", color: "rose", sinRespuesta: false },
+            { valor: "REGISTRADO", etiqueta: "Registrados", color: "slate", sinRespuesta: false },
+          ] as const).map(item => {
+            const activo = aplicados.soloSinRespuesta === item.sinRespuesta &&
               aplicados.estadoConsulta === item.valor;
             const claseActiva: Record<string, string> = {
               yellow: "bg-yellow-400 border-yellow-400 text-gray-950",
@@ -394,25 +328,16 @@ const ListarInteresados: React.FC<Props> = ({
               rose: "bg-rose-400 border-rose-400 text-gray-950",
               slate: "bg-slate-300 border-slate-300 text-gray-950",
             };
-            return (
-              <button
-                key={`${item.valor}-${item.sinRespuesta}`}
-                type="button"
-                aria-pressed={activo}
-                onClick={() =>
-                  aplicarEstadoRapido(item.valor, item.sinRespuesta)
-                }
-                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${activo ? claseActiva[item.color] : "border-gray-700 bg-gray-900/75 text-gray-300 hover:border-yellow-400/60 hover:text-white"}`}
-              >
-                {item.etiqueta}
-              </button>
-            );
+            return <button
+              key={`${item.valor}-${item.sinRespuesta}`}
+              type="button"
+              aria-pressed={activo}
+              onClick={() => aplicarEstadoRapido(item.valor, item.sinRespuesta)}
+              className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full border text-xs font-semibold transition-colors ${activo ? claseActiva[item.color] : "border-gray-700 bg-gray-900/75 text-gray-300 hover:border-yellow-400/60 hover:text-white"}`}
+            >{item.etiqueta}</button>;
           })}
         </div>
-        <p className="mt-1 text-[10px] text-gray-500">
-          Las etapas reflejan el estado comercial registrado en el CRM; no son
-          los estados de envío de WhatsApp.
-        </p>
+        <p className="mt-1 text-[10px] text-gray-500">Las etapas reflejan el estado comercial registrado en el CRM; no son los estados de envío de WhatsApp.</p>
 
         {mostrarFiltros && (
           <div className="mt-3 p-3 rounded-xl border border-gray-800 bg-gray-900/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -607,10 +532,7 @@ const ListarInteresados: React.FC<Props> = ({
                       ? "Cerrado"
                       : interesado.sinRespuesta
                         ? "Sin respuesta"
-                        : estadoLabel(
-                            interesado.estadoGestion ||
-                              interesado.estadoConsulta,
-                          )}
+                        : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta)}
                   </span>
                 </div>
 
@@ -646,16 +568,11 @@ const ListarInteresados: React.FC<Props> = ({
                   </div>
                 </div>
 
-                {interesado.estadoConsulta === "CERRADO" &&
-                  interesado.motivoSeguimiento && (
-                    <div
-                      className="mt-2 pl-0.5 text-[10px] text-rose-200/80 truncate"
-                      title={interesado.motivoSeguimiento}
-                    >
-                      Motivo:{" "}
-                      {interesado.motivoSeguimiento.replaceAll("_", " ")}
-                    </div>
-                  )}
+                {interesado.estadoConsulta === "CERRADO" && interesado.motivoSeguimiento && (
+                  <div className="mt-2 pl-0.5 text-[10px] text-rose-200/80 truncate" title={interesado.motivoSeguimiento}>
+                    Motivo: {interesado.motivoSeguimiento.replaceAll("_", " ")}
+                  </div>
+                )}
                 {interesado.requiereSeguimiento && (
                   <div className="mt-1.5 pl-0.5">
                     <span

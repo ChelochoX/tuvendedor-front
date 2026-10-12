@@ -326,11 +326,12 @@ export const cambiarModoAtencionWhatsapp = async (
     { modo },
   );
   const valor = extraerData<any>(response.data);
-  const modo = valor?.modo ?? valor?.Modo;
-  if (modo !== "IA" && modo !== "HUMANO")
+  const modoRecibido = valor?.modo ?? valor?.Modo;
+  if (modoRecibido !== "IA" && modoRecibido !== "HUMANO") {
     throw new Error("El backend no devolvió un modo válido.");
+  }
   return {
-    modo,
+    modo: modoRecibido,
     idConversacion: valor?.idConversacion ?? valor?.IdConversacion ?? 0,
   };
 };

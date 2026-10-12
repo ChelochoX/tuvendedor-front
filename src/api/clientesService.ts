@@ -141,25 +141,16 @@ export const obtenerInteresados = async (
   const data = extraerData<any>(response.data) ?? {};
 
   return {
-    totalRegistros:
-      data.totalRegistros ??
-      data.TotalRegistros ??
-      0,
+    totalRegistros: data.totalRegistros ?? data.TotalRegistros ?? 0,
 
-    paginaActual:
-      data.paginaActual ??
-      data.PaginaActual ??
-      1,
+    paginaActual: data.paginaActual ?? data.PaginaActual ?? 1,
 
     registrosPorPagina:
       data.registrosPorPagina ??
       data.RegistrosPorPagina ??
       filtros.registrosPorPagina,
 
-    items:
-      data.items ??
-      data.Items ??
-      [],
+    items: data.items ?? data.Items ?? [],
   };
 };
 
@@ -205,27 +196,19 @@ export const obtenerResumenInteresados = async (
   return extraerData<InteresadosResumen>(response.data);
 };
 
-
 export const sincronizarWhatsAppDia = async (
   fecha: string,
 ): Promise<SincronizacionWhatsAppResultado> => {
   const response = await instance.post<
     ApiResponse<SincronizacionWhatsAppResultado>
-  >(
-    `${API_URL}/sincronizar-whatsapp-dia`,
-    null,
-    {
-      params: {
-        fecha,
-      },
+  >(`${API_URL}/sincronizar-whatsapp-dia`, null, {
+    params: {
+      fecha,
     },
-  );
+  });
 
-  return extraerData<SincronizacionWhatsAppResultado>(
-    response.data,
-  );
+  return extraerData<SincronizacionWhatsAppResultado>(response.data);
 };
-
 
 export const actualizarSeguimientoInteresado = async (
   idInteresado: number,
@@ -237,8 +220,7 @@ export const actualizarSeguimientoInteresado = async (
   );
 
   const success =
-    (response.data as any)?.Success ??
-    (response.data as any)?.success;
+    (response.data as any)?.Success ?? (response.data as any)?.success;
 
   if (success === false) {
     throw new Error(
@@ -275,10 +257,7 @@ export const actualizarInteresado = async (
   }
 
   if (interesado.fechaProximoContacto) {
-    formData.append(
-      "FechaProximoContacto",
-      interesado.fechaProximoContacto,
-    );
+    formData.append("FechaProximoContacto", interesado.fechaProximoContacto);
   }
 
   if (interesado.descripcion) {
@@ -286,17 +265,11 @@ export const actualizarInteresado = async (
   }
 
   formData.append("AportaIPS", String(interesado.aportaIPS));
-  formData.append(
-    "CantidadAportes",
-    String(interesado.cantidadAportes || 0),
-  );
+  formData.append("CantidadAportes", String(interesado.cantidadAportes || 0));
   formData.append("Estado", interesado.estado || "Activo");
 
   if (interesado.archivoConversacion) {
-    formData.append(
-      "ArchivoConversacion",
-      interesado.archivoConversacion,
-    );
+    formData.append("ArchivoConversacion", interesado.archivoConversacion);
   }
 
   const response = await instance.put<ApiResponse<any>>(
@@ -310,8 +283,7 @@ export const actualizarInteresado = async (
   );
 
   const success =
-    (response.data as any)?.Success ??
-    (response.data as any)?.success;
+    (response.data as any)?.Success ?? (response.data as any)?.success;
 
   if (success === false) {
     throw new Error(
@@ -322,4 +294,43 @@ export const actualizarInteresado = async (
   }
 
   return (response.data as any)?.Data ?? (response.data as any)?.data;
+};
+
+// Handoff explícito y persistente, no altera NoContactarWhatsapp.
+export type ModoAtencionWhatsapp = "IA" | "HUMANO";
+export interface EstadoAtencionWhatsapp {
+  modo: ModoAtencionWhatsapp;
+  idConversacion: number;
+}
+export const obtenerModoAtencionWhatsapp = async (
+  idInteresado: number,
+): Promise<EstadoAtencionWhatsapp> => {
+  const response = await instance.get<ApiResponse<EstadoAtencionWhatsapp>>(
+    `${API_URL}/modo-atencion/${idInteresado}`,
+  );
+  const valor = extraerData<any>(response.data);
+  const modo = valor?.modo ?? valor?.Modo;
+  if (modo !== "IA" && modo !== "HUMANO")
+    throw new Error("El backend no devolvió un modo válido.");
+  return {
+    modo,
+    idConversacion: valor?.idConversacion ?? valor?.IdConversacion ?? 0,
+  };
+};
+export const cambiarModoAtencionWhatsapp = async (
+  idInteresado: number,
+  modo: ModoAtencionWhatsapp,
+): Promise<EstadoAtencionWhatsapp> => {
+  const response = await instance.put<ApiResponse<EstadoAtencionWhatsapp>>(
+    `${API_URL}/modo-atencion/${idInteresado}`,
+    { modo },
+  );
+  const valor = extraerData<any>(response.data);
+  const modo = valor?.modo ?? valor?.Modo;
+  if (modo !== "IA" && modo !== "HUMANO")
+    throw new Error("El backend no devolvió un modo válido.");
+  return {
+    modo,
+    idConversacion: valor?.idConversacion ?? valor?.IdConversacion ?? 0,
+  };
 };

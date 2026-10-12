@@ -6,6 +6,9 @@ import Swal from "sweetalert2";
 
 import {
   CalendarClock,
+  Bot,
+  Handshake,
+  ShieldCheck,
   CheckCircle2,
   ClipboardList,
   Clock3,
@@ -20,6 +23,9 @@ import {
 
 import {
   actualizarInteresado,
+  cambiarModoAtencionWhatsapp,
+  obtenerModoAtencionWhatsapp,
+  ModoAtencionWhatsapp,
   actualizarSeguimientoInteresado,
   obtenerDetalleInteresado,
   obtenerMensajeErrorClientes,
@@ -33,9 +39,7 @@ import {
   Seguimiento,
 } from "../../types/clientes";
 
-import {
-  formatearFechaHoraServidorParaguay,
-} from "../../utils/fechaServidor";
+import { formatearFechaHoraServidorParaguay } from "../../utils/fechaServidor";
 
 interface Props {
   seleccionado: Interesado | null;
@@ -147,6 +151,10 @@ const FormularioInteresado: React.FC<Props> = ({
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
 
   const [guardando, setGuardando] = useState(false);
+  const [modoAtencion, setModoAtencion] = useState<ModoAtencionWhatsapp | null>(
+    null,
+  );
+  const [cambiandoAtencion, setCambiandoAtencion] = useState(false);
 
   const [formInteresado, setFormInteresado] =
     useState<Partial<Interesado>>(formularioVacio());
@@ -165,7 +173,11 @@ const FormularioInteresado: React.FC<Props> = ({
     setCargandoDetalle(true);
 
     try {
-      const data = await obtenerDetalleInteresado(idInteresado);
+      const [data, modo] = await Promise.all([
+        obtenerDetalleInteresado(idInteresado),
+        obtenerModoAtencionWhatsapp(idInteresado).catch(() => null),
+      ]);
+      setModoAtencion(modo?.modo ?? null);
 
       setDetalle(data);
       setSeguimientos(data.seguimientos || []);
@@ -208,6 +220,7 @@ const FormularioInteresado: React.FC<Props> = ({
     }
 
     setDetalle(null);
+    setModoAtencion(null);
     setSeguimientos([]);
     setFormInteresado(formularioVacio());
     setFechaSeguimiento("");
@@ -356,6 +369,52 @@ const FormularioInteresado: React.FC<Props> = ({
     }
   };
 
+  const cambiarAtencion = async (modo: ModoAtencionWhatsapp) => {
+    if (!seleccionado || cambiandoAtencion) return;
+    const activarHumano = modo === "HUMANO";
+    const confirmacion = await Swal.fire({
+      icon: "question",
+      title: activarHumano ? "¿Tomar atención humana?" : "¿Devolver a Panambí?",
+      text: activarHumano
+        ? "Panambí dejará de responder en este chat y se cancelarán sus seguimientos automáticos pendientes. Podrás conversar personalmente desde WhatsApp."
+        : "Panambí podrá responder nuevas consultas en este chat. Los seguimientos cancelados no se reactivarán automáticamente.",
+      showCancelButton: true,
+      confirmButtonText: activarHumano
+        ? "Sí, atender personalmente"
+        : "Sí, reanudar IA",
+      cancelButtonText: "Volver",
+      confirmButtonColor: activarHumano ? "#facc15" : "#14b8a6",
+    });
+    if (!confirmacion.isConfirmed) return;
+    setCambiandoAtencion(true);
+    try {
+      const actualizado = await cambiarModoAtencionWhatsapp(
+        seleccionado.id,
+        modo,
+      );
+      setModoAtencion(actualizado.modo);
+      setRecargarLista(true);
+      await cargarDetalle(seleccionado.id);
+      await Swal.fire({
+        icon: "success",
+        title: activarHumano ? "Atención humana activada" : "Panambí reanudado",
+        text: activarHumano
+          ? "El bot guardará silencio en este chat hasta que lo devuelvas a IA."
+          : "El chat vuelve a IA; no se reactivaron seguimientos anteriores.",
+        timer: 2400,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      await Swal.fire(
+        "No se pudo cambiar el modo",
+        obtenerMensajeErrorClientes(error),
+        "error",
+      );
+    } finally {
+      setCambiandoAtencion(false);
+    }
+  };
+
   if (seleccionado && cargandoDetalle && !detalle) {
     return (
       <main className="flex-1 min-w-0 p-6 grid place-items-center bg-gray-950">
@@ -475,6 +534,40 @@ const FormularioInteresado: React.FC<Props> = ({
                     </a>
                   )}
 
+                  {(detalle?.interesado.idConversacion ||
+                    seleccionado.idConversacion) && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void cambiarAtencion(
+                          modoAtencion === "HUMANO" ? "IA" : "HUMANO",
+                        )
+                      }
+                      disabled={cambiandoAtencion || modoAtencion === null}
+                      title={
+                        modoAtencion === "HUMANO"
+                          ? "Reanudar respuestas de Panambí"
+                          : "Silenciar Panambí en esta conversación"
+                      }
+                      className={`px-3 py-2 rounded-lg border text-sm font-extrabold inline-flex items-center gap-2 transition-colors disabled:opacity-50 ${
+                        modoAtencion === "HUMANO"
+                          ? "border-teal-400/60 bg-teal-500/15 text-teal-200 hover:bg-teal-500/25"
+                          : "border-yellow-400/60 bg-yellow-400/15 text-yellow-200 hover:bg-yellow-400/25"
+                      }`}
+                    >
+                      {modoAtencion === "HUMANO" ? (
+                        <Bot size={16} />
+                      ) : (
+                        <Handshake size={16} />
+                      )}
+                      {cambiandoAtencion
+                        ? "Cambiando…"
+                        : modoAtencion === "HUMANO"
+                          ? "Devolver a Panambí"
+                          : "Tomar atención humana"}
+                    </button>
+                  )}
+
                   <a
                     href="#editar-datos-cliente"
                     className="px-3 py-2 rounded-lg border border-yellow-400/40 bg-yellow-400/10 text-yellow-300 text-sm font-semibold inline-flex items-center gap-2"
@@ -508,10 +601,13 @@ const FormularioInteresado: React.FC<Props> = ({
                 <InfoMini
                   label="Etapa"
                   value={estadoLabel(
-                    (detalle?.interesado.estadoConsulta || seleccionado.estadoConsulta) === "CERRADO"
+                    (detalle?.interesado.estadoConsulta ||
+                      seleccionado.estadoConsulta) === "CERRADO"
                       ? "CERRADO"
-                      : detalle?.interesado.estadoGestion || detalle?.interesado.estadoConsulta ||
-                        seleccionado.estadoGestion || seleccionado.estadoConsulta,
+                      : detalle?.interesado.estadoGestion ||
+                          detalle?.interesado.estadoConsulta ||
+                          seleccionado.estadoGestion ||
+                          seleccionado.estadoConsulta,
                   )}
                 />
 
@@ -536,38 +632,106 @@ const FormularioInteresado: React.FC<Props> = ({
 
             <section className="rounded-2xl border border-sky-500/25 bg-gradient-to-r from-sky-950/40 via-gray-900 to-gray-900 p-4 md:p-5">
               <div className="flex items-start gap-3">
-                <MessageCircleMore size={18} className="text-sky-300 mt-0.5 shrink-0"/>
+                <MessageCircleMore
+                  size={18}
+                  className="text-sky-300 mt-0.5 shrink-0"
+                />
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-white">Decisión comercial registrada</h3>
-                  <p className="text-xs text-slate-400 mt-1">Esta información se conserva en el CRM y es distinta del estado técnico de los envíos automáticos.</p>
+                  <h3 className="font-bold text-white">
+                    Decisión comercial registrada
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Esta información se conserva en el CRM y es distinta del
+                    estado técnico de los envíos automáticos.
+                  </p>
                   <div className="grid sm:grid-cols-2 gap-3 mt-4">
                     <div className="rounded-xl bg-gray-950/65 border border-gray-700/70 px-3 py-3">
-                      <span className="block text-[11px] text-slate-400">Estado de la oportunidad</span>
+                      <span className="block text-[11px] text-slate-400">
+                        Estado de la oportunidad
+                      </span>
                       <strong className="block mt-1 text-sm text-sky-200">
-                        {estadoLabel((detalle?.interesado.estadoConsulta || seleccionado.estadoConsulta) === "CERRADO" ? "CERRADO" : detalle?.interesado.estadoConsulta || seleccionado.estadoConsulta)}
+                        {estadoLabel(
+                          (detalle?.interesado.estadoConsulta ||
+                            seleccionado.estadoConsulta) === "CERRADO"
+                            ? "CERRADO"
+                            : detalle?.interesado.estadoConsulta ||
+                                seleccionado.estadoConsulta,
+                        )}
                       </strong>
                     </div>
                     <div className="rounded-xl bg-gray-950/65 border border-gray-700/70 px-3 py-3">
-                      <span className="block text-[11px] text-slate-400">Seguimiento CRM</span>
-                      <strong className={`block mt-1 text-sm ${detalle?.interesado.requiereSeguimiento ? "text-emerald-300" : "text-slate-300"}`}>
-                        {detalle?.interesado.requiereSeguimiento ? "Habilitado" : "No habilitado"}
+                      <span className="block text-[11px] text-slate-400">
+                        Seguimiento CRM
+                      </span>
+                      <strong
+                        className={`block mt-1 text-sm ${detalle?.interesado.requiereSeguimiento ? "text-emerald-300" : "text-slate-300"}`}
+                      >
+                        {detalle?.interesado.requiereSeguimiento
+                          ? "Habilitado"
+                          : "No habilitado"}
                       </strong>
                     </div>
                   </div>
-                  {(detalle?.interesado.motivoSeguimiento || seleccionado.motivoSeguimiento) && (
+                  {(detalle?.interesado.motivoSeguimiento ||
+                    seleccionado.motivoSeguimiento) && (
                     <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-3">
-                      <span className="block text-[11px] text-amber-200">Motivo / decisión guardada</span>
+                      <span className="block text-[11px] text-amber-200">
+                        Motivo / decisión guardada
+                      </span>
                       <strong className="block mt-1 text-sm font-semibold text-white break-words">
-                        {(detalle?.interesado.motivoSeguimiento || seleccionado.motivoSeguimiento || "").replaceAll("_", " ")}
+                        {(
+                          detalle?.interesado.motivoSeguimiento ||
+                          seleccionado.motivoSeguimiento ||
+                          ""
+                        ).replaceAll("_", " ")}
                       </strong>
                     </div>
                   )}
-                  {(detalle?.interesado.estadoConsulta || seleccionado.estadoConsulta) === "CERRADO" && (
-                    <div className="mt-3 text-xs text-rose-200/90">Oportunidad cerrada. No debe reactivarse un seguimiento automático por una negativa del cliente.</div>
+                  {(detalle?.interesado.estadoConsulta ||
+                    seleccionado.estadoConsulta) === "CERRADO" && (
+                    <div className="mt-3 text-xs text-rose-200/90">
+                      Oportunidad cerrada. No debe reactivarse un seguimiento
+                      automático por una negativa del cliente.
+                    </div>
                   )}
                 </div>
               </div>
             </section>
+
+            {(detalle?.interesado.idConversacion ||
+              seleccionado.idConversacion) && (
+              <div
+                className={`rounded-xl border px-4 py-3 flex gap-3 items-start text-sm ${
+                  modoAtencion === "HUMANO"
+                    ? "bg-yellow-500/10 border-yellow-400/35 text-yellow-200"
+                    : modoAtencion === "IA"
+                      ? "bg-sky-500/10 border-sky-400/25 text-sky-200"
+                      : "bg-red-500/10 border-red-400/30 text-red-200"
+                }`}
+              >
+                {modoAtencion === "HUMANO" ? (
+                  <ShieldCheck size={19} className="shrink-0" />
+                ) : (
+                  <Bot size={19} className="shrink-0" />
+                )}
+                <div>
+                  <strong>
+                    {modoAtencion === "HUMANO"
+                      ? "Atención humana · Panambí en silencio"
+                      : modoAtencion === "IA"
+                        ? "Atención automática · Panambí habilitado"
+                        : "No se pudo verificar el modo actual"}
+                  </strong>
+                  <p className="text-xs opacity-80 mt-1">
+                    {modoAtencion === "HUMANO"
+                      ? "Podés responder personalmente desde WhatsApp. Este chat no volverá solo a IA por tiempo o por mensajes del cliente. Los seguimientos pendientes se cancelaron."
+                      : modoAtencion === "IA"
+                        ? "El bot puede responder consultas nuevas; las reglas de seguimientos siguen su propia configuración."
+                        : "Actualizá la pantalla y verificá que el backend esté desplegado antes de cambiar la atención."}
+                  </p>
+                </div>
+              </div>
+            )}
 
             <section className="rounded-2xl border border-yellow-400/25 bg-yellow-400/[0.04] p-4 md:p-5">
               <div className="flex items-center gap-2 mb-4">
@@ -1050,21 +1214,24 @@ const InfoMini: React.FC<{
 const EstadoBadge: React.FC<{
   interesado: Interesado;
 }> = ({ interesado }) => {
-  const esSinRespuesta = interesado.sinRespuesta && interesado.estadoConsulta !== "CERRADO";
+  const esSinRespuesta =
+    interesado.sinRespuesta && interesado.estadoConsulta !== "CERRADO";
 
-  const texto = interesado.estadoConsulta === "CERRADO"
-    ? "Cerrado"
-    : esSinRespuesta
-      ? "Sin respuesta"
-      : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta);
+  const texto =
+    interesado.estadoConsulta === "CERRADO"
+      ? "Cerrado"
+      : esSinRespuesta
+        ? "Sin respuesta"
+        : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta);
 
-  const clase = interesado.estadoConsulta === "CERRADO"
-    ? "border-rose-400/40 bg-rose-400/10 text-rose-200"
-    : esSinRespuesta
-      ? "border-red-400/40 bg-red-400/10 text-red-300"
-    : interesado.seguimientoVencido
-      ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
-      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  const clase =
+    interesado.estadoConsulta === "CERRADO"
+      ? "border-rose-400/40 bg-rose-400/10 text-rose-200"
+      : esSinRespuesta
+        ? "border-red-400/40 bg-red-400/10 text-red-300"
+        : interesado.seguimientoVencido
+          ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
+          : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
 
   return (
     <span

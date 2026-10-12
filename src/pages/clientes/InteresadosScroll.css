@@ -1,0 +1,6 @@
+/* TuVendedor · scrollbar discreto para interesados y filtros. */
+.tv-scroll-yellow { scrollbar-width: thin; scrollbar-color: #eab308 #0b1424; }
+.tv-scroll-yellow::-webkit-scrollbar { width: 5px; height: 4px; }
+.tv-scroll-yellow::-webkit-scrollbar-track { background: #0b1424; border-radius: 20px; }
+.tv-scroll-yellow::-webkit-scrollbar-thumb { background: #eab308; border-radius: 20px; }
+.tv-scroll-yellow::-webkit-scrollbar-thumb:hover { background: #fde047; }

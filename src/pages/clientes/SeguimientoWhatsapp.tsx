@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
-import { ArrowLeft, RefreshCw, Settings2, ClipboardList } from "lucide-react";
+import {
+  ArrowLeft, RefreshCw, Settings2, ClipboardList, FlaskConical, Clock3,
+  Send, CircleAlert, CheckCircle2, Ban, Search, Info, AlertTriangle,
+  ShieldCheck, Power, CalendarDays, MessageSquareText, Play, X,
+} from "lucide-react";
 import {
   ConfiguracionSeguimiento, EnvioSeguimiento, ReglaSeguimiento, UnidadDemora,
   guardarConfiguracionSeguimiento, obtenerConfiguracionSeguimiento,
@@ -10,48 +14,47 @@ import {
 } from "../../api/seguimientoWhatsappService";
 import "./SeguimientoWhatsapp.css";
 
+type Pestana = "config" | "cola" | "prueba";
+type Aviso = { tipo: "error" | "success"; texto: string };
+
 const fechaLocal = (valor: string | null) => valor ? valor.slice(0, 10) : "";
 const hora = (valor: string) => (valor || "08:00").slice(0, 5);
-const fechaPantalla = (valor: string) => {
+const fechaPantalla = (valor?: string | null) => {
   if (!valor) return "—";
-  const d = new Date(valor);
-  return isNaN(d.getTime()) ? valor : d.toLocaleString("es-PY", { dateStyle: "short", timeStyle: "short" });
+  const fecha = new Date(valor);
+  return Number.isNaN(fecha.getTime()) ? valor : fecha.toLocaleString("es-PY", { dateStyle: "short", timeStyle: "short" });
 };
 const nuevoPaso = (orden: number): ReglaSeguimiento => ({
   orden, demoraValor: 1, demoraUnidad: "DIA", activo: true,
   mensaje: "Hola{saludo} 😊 ¿Seguís interesado en la {moto}? Si querés, vemos esta opción u otras motos que te puedan gustar.",
 });
-const mensajeError = (e: unknown) => {
-  if (e instanceof AxiosError) return (e.response?.data as { message?: string } | undefined)?.message || e.message;
+const mensajeError = (e: unknown): string => {
+  if (e instanceof AxiosError) {
+    const data = e.response?.data as { message?: string; Message?: string } | undefined;
+    return data?.Message || data?.message || e.message;
+  }
   return e instanceof Error ? e.message : "Ocurrió un error inesperado.";
 };
 
 const SeguimientoWhatsapp: React.FC = () => {
   const navigate = useNavigate();
+  const [config, setConfig] = useState<ConfiguracionSeguimiento | null>(null);
+  const [envios, setEnvios] = useState<EnvioSeguimiento[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [trabajando, setTrabajando] = useState(false);
+  const [editado, setEditado] = useState(false);
+  const [pestana, setPestana] = useState<Pestana>("config");
+  const [filtro, setFiltro] = useState("TODOS");
+  const [buscar, setBuscar] = useState("");
+  const [aviso, setAviso] = useState<Aviso | null>(null);
+  const [vistaPrevia, setVistaPrevia] = useState<EnvioSeguimiento | null>(null);
+
   const [telefonoPrueba, setTelefonoPrueba] = useState("");
   const [consentimientoPrueba, setConsentimientoPrueba] = useState(false);
   const [idEnvioPrueba, setIdEnvioPrueba] = useState<number | null>(null);
   const [intervaloPrueba, setIntervaloPrueba] = useState(5);
   const [estadoPrueba, setEstadoPrueba] = useState<EstadoPruebaWhatsapp | null>(null);
   const [trabajandoPrueba, setTrabajandoPrueba] = useState(false);
-  const consultarPrueba = async () => { try { setEstadoPrueba(await estadoPruebaWhatsapp()); } catch(e) { setAviso({tipo:"error",texto:mensajeError(e)}); } };
-  const iniciarPrueba = async () => {
-    if (!origenPrueba || !window.confirm(`Se usarán los datos REALES de ${origenPrueba.cliente} (${origenPrueba.productoInteres}) para enviar hasta 3 mensajes SOLO al ${telefonoPrueba}. ¿Confirmás?`)) return;
-    setTrabajandoPrueba(true);
-    try { setEstadoPrueba(await iniciarPruebaWhatsapp(telefonoPrueba, intervaloPrueba, origenPrueba.id, consentimientoPrueba)); setAviso({tipo:"success", texto:"Prueba iniciada. Consultá el estado para ver los envíos."}); }
-    catch(e) { setAviso({tipo:"error",texto:mensajeError(e)}); }
-    finally {setTrabajandoPrueba(false);}
-  };
-  const [config, setConfig] = useState<ConfiguracionSeguimiento | null>(null);
-  const [envios, setEnvios] = useState<EnvioSeguimiento[]>([]);
-  const [cargando, setCargando] = useState(true);
-  const [trabajando, setTrabajando] = useState(false);
-  const [editado, setEditado] = useState(false);
-  const [pestana, setPestana] = useState<"config" | "cola">("config");
-  const [filtro, setFiltro] = useState("TODOS");
-  const [buscar, setBuscar] = useState("");
-  const [aviso, setAviso] = useState<{ tipo: "error" | "success"; texto: string } | null>(null);
-  const [vistaPrevia, setVistaPrevia] = useState<EnvioSeguimiento | null>(null);
 
   const cargar = useCallback(async (inicial = false) => {
     if (inicial) setCargando(true);
@@ -59,137 +62,303 @@ const SeguimientoWhatsapp: React.FC = () => {
       const [conf, cola] = await Promise.all([obtenerConfiguracionSeguimiento(), obtenerEnviosSeguimiento()]);
       if (inicial || !editado) setConfig(conf);
       setEnvios(cola);
-    } catch (e) { setAviso({ tipo: "error", texto: mensajeError(e) }); }
-    finally { setCargando(false); }
+    } catch (e) {
+      setAviso({ tipo: "error", texto: mensajeError(e) });
+    } finally {
+      setCargando(false);
+    }
   }, [editado]);
+
   useEffect(() => { void cargar(true); /* carga inicial */ }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const cambiar = <K extends keyof ConfiguracionSeguimiento>(clave: K, valor: ConfiguracionSeguimiento[K]) => {
-    setConfig(c => c ? { ...c, [clave]: valor } : c);
+    setConfig(anterior => anterior ? { ...anterior, [clave]: valor } : anterior);
     setEditado(true);
   };
   const cambiarPaso = <K extends keyof ReglaSeguimiento>(indice: number, clave: K, valor: ReglaSeguimiento[K]) => {
     if (!config) return;
-    cambiar("reglas", config.reglas.map((paso, n) => n === indice ? { ...paso, [clave]: valor } : paso));
+    cambiar("reglas", config.reglas.map((paso, i) => i === indice ? { ...paso, [clave]: valor } : paso));
   };
+
   const guardar = async () => {
     if (!config || trabajando) return;
     const reglas = config.reglas.map((paso, i) => ({ ...paso, orden: i + 1, demoraValor: Number(paso.demoraValor) }));
     if (Number(config.separacionEnviosMinutos) < 1 || reglas.some(r => r.demoraValor < 1 || !r.mensaje.trim())) {
-      setAviso({ tipo: "error", texto: "Revisá la separación, los tiempos y el texto de todos los mensajes." }); return;
+      setAviso({ tipo: "error", texto: "Revisá la separación, los tiempos y el texto de todos los mensajes." });
+      return;
     }
-    if (config.activo && config.modoEnvio === "ACTIVO" && !window.confirm("ATENCIÓN: vas a activar envíos reales por WhatsApp. ¿Confirmás?")) return;
+    if (config.activo && config.modoEnvio === "ACTIVO" && !window.confirm(
+      "PRODUCCIÓN REAL: al guardar con el motor encendido, Panambí puede enviar WhatsApp a clientes elegibles según las fechas programadas. ¿Confirmás?"
+    )) return;
     setTrabajando(true);
     try {
-      const guardada = await guardarConfiguracionSeguimiento({ ...config,
-        horaInicio: `${hora(config.horaInicio)}:00`, horaFin: `${hora(config.horaFin)}:00`,
+      const guardada = await guardarConfiguracionSeguimiento({
+        ...config,
+        horaInicio: `${hora(config.horaInicio)}:00`,
+        horaFin: `${hora(config.horaFin)}:00`,
         fechaDesdeElegibilidad: config.fechaDesdeElegibilidad ? `${fechaLocal(config.fechaDesdeElegibilidad)}T00:00:00` : null,
         separacionEnviosMinutos: Number(config.separacionEnviosMinutos),
         minutosReintentoTecnico: Number(config.minutosReintentoTecnico),
-        maximoReintentosTecnicos: Number(config.maximoReintentosTecnicos), reglas,
+        maximoReintentosTecnicos: Number(config.maximoReintentosTecnicos),
+        reglas,
       });
-      setConfig(guardada); setEditado(false);
-      setAviso({ tipo: "success", texto: "Configuración guardada correctamente." });
-    } catch (e) { setAviso({ tipo: "error", texto: mensajeError(e) }); }
-    finally { setTrabajando(false); }
+      setConfig(guardada);
+      setEditado(false);
+      setEnvios(await obtenerEnviosSeguimiento());
+      setAviso({ tipo: "success", texto: "Configuración guardada y cola actualizada correctamente." });
+    } catch (e) {
+      setAviso({ tipo: "error", texto: mensajeError(e) });
+    } finally {
+      setTrabajando(false);
+    }
   };
+
   const procesar = async () => {
     if (trabajando || !config) return;
-    if (editado) { setAviso({ tipo: "error", texto: "Guardá primero los cambios pendientes." }); return; }
-    if (!config.activo) { setAviso({ tipo: "error", texto: "Activá el motor y guardá los cambios para procesar." }); return; }
-    if (config.modoEnvio === "ACTIVO" && !window.confirm("MODO REAL: se pueden enviar WhatsApp a clientes. ¿Ejecutar ahora?")) return;
+    if (editado) {
+      setAviso({ tipo: "error", texto: "Guardá primero los cambios pendientes." });
+      return;
+    }
+    if (!config.activo) {
+      setAviso({ tipo: "error", texto: "Para ejecutar un ciclo manual, el motor debe estar activado y su configuración guardada." });
+      return;
+    }
+    if (config.modoEnvio === "ACTIVO" && !window.confirm(
+      "REVISIÓN MANUAL EN PRODUCCIÓN: puede enviar AHORA un WhatsApp real si existe un seguimiento vencido y elegible. No reinicia pasos ni adelanta fechas. ¿Ejecutar?"
+    )) return;
     setTrabajando(true);
     try {
-      const cola = await procesarSeguimientosAhora();setEnvios(cola);setPestana("cola");
-      setAviso({ tipo: "success", texto: config.modoEnvio === "SIMULACION" ? "Ciclo procesado en simulación. No se enviaron mensajes." : "Ciclo ejecutado. Revisá la cola." });
-    } catch (e) { setAviso({ tipo: "error", texto: mensajeError(e) }); }
-    finally { setTrabajando(false); }
+      const cola = await procesarSeguimientosAhora();
+      setEnvios(cola);
+      setPestana("cola");
+      setAviso({ tipo: "success", texto: config.modoEnvio === "SIMULACION" ?
+        "Revisión realizada en simulación. No se enviaron mensajes comerciales." :
+        "Revisión manual ejecutada. Consultá los estados en la cola." });
+    } catch (e) {
+      setAviso({ tipo: "error", texto: mensajeError(e) });
+    } finally {
+      setTrabajando(false);
+    }
   };
-  const resumen = useMemo(() => ({ total: envios.length, pendientes: envios.filter(x => x.estado === "PENDIENTE").length,
-    enviados: envios.filter(x => x.estado === "ENVIADO").length, errores: envios.filter(x => x.estado === "ERROR").length }), [envios]);
-  const origenPrueba = envios.find(e => e.id === idEnvioPrueba && e.estado === "PENDIENTE" && e.productoInteres && e.mensaje);
-  const visibles = useMemo(() => envios.filter(x => (filtro === "TODOS" || x.estado === filtro) &&
-    `${x.cliente} ${x.telefono} ${x.productoInteres || ""}`.toLowerCase().includes(buscar.toLowerCase())), [envios, filtro, buscar]);
 
-  return <div className="min-h-screen bg-gray-950 text-white">
-    <header className="border-b border-gray-800 bg-gray-950 px-4 py-4">
-      <div className="mx-auto max-w-[1700px] flex items-center gap-3">
-        <button title="Volver a interesados" onClick={() => navigate("/clientes/cargar")} className="rounded-lg border border-gray-700 p-2 hover:border-yellow-400"><ArrowLeft size={18}/></button>
-        <div><div className="text-xs font-bold tracking-widest text-yellow-400">GESTIÓN DE CLIENTES · PANAMBÍ</div>
-          <h1 className="text-xl font-bold">Seguimientos automáticos de WhatsApp</h1></div>
+  const consultarPrueba = async () => {
+    try { setEstadoPrueba(await estadoPruebaWhatsapp()); }
+    catch (e) { setAviso({ tipo: "error", texto: mensajeError(e) }); }
+  };
+  const cancelarPrueba = async () => {
+    try { setEstadoPrueba(await cancelarPruebaWhatsapp()); }
+    catch (e) { setAviso({ tipo: "error", texto: mensajeError(e) }); }
+  };
+  const resumen = useMemo(() => ({
+    total: envios.length,
+    pendientes: envios.filter(x => x.estado === "PENDIENTE").length,
+    enviados: envios.filter(x => x.estado === "ENVIADO").length,
+    errores: envios.filter(x => x.estado === "ERROR").length,
+    cancelados: envios.filter(x => x.estado === "CANCELADO").length,
+  }), [envios]);
+  const origenPrueba = envios.find(e => e.id === idEnvioPrueba && e.estado === "PENDIENTE" && e.productoInteres && e.mensaje);
+  const disponiblesPrueba = envios.filter(e => e.estado === "PENDIENTE" && e.productoInteres && e.mensaje);
+  const pruebaPermitida = Boolean(config && !config.activo && config.modoEnvio === "SIMULACION");
+  const iniciarPrueba = async () => {
+    if (!origenPrueba || !pruebaPermitida || !window.confirm(
+      `Se utilizarán datos REALES de ${origenPrueba.cliente} (${origenPrueba.productoInteres}), pero se enviarán hasta 3 mensajes SOLO al ${telefonoPrueba}. ¿Confirmás?`
+    )) return;
+    setTrabajandoPrueba(true);
+    try {
+      setEstadoPrueba(await iniciarPruebaWhatsapp(telefonoPrueba, intervaloPrueba, origenPrueba.id, consentimientoPrueba));
+      setAviso({ tipo: "success", texto: "Prueba iniciada. Consultá «Ver estado» para supervisarla." });
+    } catch (e) {
+      setAviso({ tipo: "error", texto: mensajeError(e) });
+    } finally {
+      setTrabajandoPrueba(false);
+    }
+  };
+  const visibles = useMemo(() => envios.filter(x =>
+    (filtro === "TODOS" || x.estado === filtro) &&
+    `${x.cliente} ${x.telefono} ${x.productoInteres || ""}`.toLowerCase().includes(buscar.toLowerCase())
+  ), [envios, filtro, buscar]);
+  const estadoMotor = !config?.activo ? "Motor apagado" : config.modoEnvio === "ACTIVO" ? "Envíos reales activos" : "Simulación activa";
+
+  return <div className="sw-page">
+    <header className="sw-global-header">
+      <div className="sw-global-content">
+        <button type="button" title="Volver a interesados" aria-label="Volver a interesados" onClick={() => navigate("/clientes/cargar")} className="sw-back"><ArrowLeft size={18}/></button>
+        <div><span className="sw-brand">TU VENDEDOR · PANAMBÍ</span><h1>Seguimientos automáticos</h1></div>
       </div>
     </header>
-    <div className="sw-shell">
-      {aviso && <div className={`sw-alert sw-${aviso.tipo}`} role="status">{aviso.texto}<button onClick={() => setAviso(null)} aria-label="Cerrar">×</button></div>}
-      {cargando && !config ? <div className="sw-panel">Cargando configuración…</div> : !config ?
-        <div className="sw-panel">No se pudo cargar la configuración. <button className="sw-btn sw-outline" onClick={() => void cargar(true)}>Reintentar</button></div> : <>
-        <div className="sw-head"><div><div className="sw-eyebrow">TU VENDEDOR</div><h1>Panel de seguimientos</h1>
-          <p>Contactá con respeto a quienes consultaron por una moto y no continuaron.</p></div>
-          <div className="sw-head-actions"><span className={`sw-chip ${config.modoEnvio === "SIMULACION" ? "sw-test" : "sw-live"}`}>
-            {config.modoEnvio === "SIMULACION" ? "Simulación · sin envíos" : "Modo producción"}</span>
-            <button className="sw-btn sw-outline" disabled={trabajando || editado} onClick={() => void cargar()}><RefreshCw size={14} className="inline"/> Actualizar</button></div></div>
-        <section className="sw-panel" style={{marginBottom:16, borderColor:"#ca8a04"}}>
-          <div className="sw-section-header"><div><h2>Prueba controlada · número elegido en pantalla</h2><p>Seleccioná un registro REAL de la cola. Panambí usará el modelo y mensaje guardados, pero enviará únicamente al teléfono de prueba.</p></div></div>
-          <div className="sw-form-grid">
-            <label>Número destinatario de prueba (595... sin +)<input value={telefonoPrueba} onChange={e=>setTelefonoPrueba(e.target.value)} placeholder="5959XXXXXXXX" /></label>
-            <label>Conversación real de origen<select value={idEnvioPrueba ?? ""} onChange={e=>setIdEnvioPrueba(e.target.value ? Number(e.target.value) : null)}>
-              <option value="">Seleccionar un seguimiento PENDIENTE…</option>
-              {envios.filter(e=>e.estado === "PENDIENTE" && e.productoInteres && e.mensaje).map(e=><option key={e.id} value={e.id}>#{e.id} · {e.cliente} · {e.productoInteres} · paso {e.numeroSeguimiento}</option>)}
-            </select></label>
-            <label>Intervalo entre mensajes<select value={intervaloPrueba} onChange={e=>setIntervaloPrueba(Number(e.target.value))}><option value={1}>1 minuto</option><option value={5}>5 minutos</option><option value={10}>10 minutos</option></select></label>
+    <main className="sw-shell">
+      {aviso && <div className={`sw-alert sw-${aviso.tipo}`} role="status">
+        {aviso.tipo === "success" ? <CheckCircle2 size={19}/> : <CircleAlert size={19}/>}
+        <span>{aviso.texto}</span>
+        <button type="button" onClick={() => setAviso(null)} aria-label="Cerrar aviso"><X size={16}/></button>
+      </div>}
+      {cargando && !config ? <section className="sw-panel">Cargando configuración…</section> : !config ?
+        <section className="sw-panel">No se pudo cargar la configuración. <button type="button" className="sw-btn sw-outline" onClick={() => void cargar(true)}>Reintentar</button></section> : <>
+        <div className="sw-head">
+          <div>
+            <div className="sw-eyebrow">CENTRO DE OPERACIONES · WHATSAPP</div>
+            <h2>Panel de seguimientos</h2>
+            <p>Gestioná oportunidades de motos, controlá los envíos y mantené las pruebas separadas.</p>
           </div>
-          <label className="sw-toggle" style={{display:"flex",gap:8,alignItems:"center",marginTop:12}}><input type="checkbox" checked={consentimientoPrueba} onChange={e=>setConsentimientoPrueba(e.target.checked)}/> Confirmo que controlo este número o que su titular autorizó recibir los mensajes de prueba.</label>
-          <p className="sw-hint">Requiere motor apagado y modo SIMULACIÓN. Primero generá la cola con simulación; luego apagá el motor y elegí un registro PENDIENTE. La prueba NO modifica el contacto original ni lo marca como contactado. El estado de la prueba es temporal (memoria del backend).</p>
-          <div className="sw-bottom"><span>Origen: {origenPrueba ? `${origenPrueba.cliente} · ${origenPrueba.productoInteres}` : "No seleccionado"}<br/>Estado: {estadoPrueba?.estado ?? "Sin consultar"} · {estadoPrueba?.enviados ?? 0}/{estadoPrueba?.total ?? 0} · {estadoPrueba?.detalle ?? ""} {estadoPrueba?.proximo ? `· Próximo: ${fechaPantalla(estadoPrueba.proximo)}` : ""}</span>
-            <div><button className="sw-btn sw-outline" onClick={()=>void consultarPrueba()}>Ver estado</button>
-            <button className="sw-btn sw-outline" onClick={()=>void cancelarPruebaWhatsapp().then(setEstadoPrueba).catch(e=>setAviso({tipo:"error",texto:mensajeError(e)}))}>Cancelar prueba</button>
-            <button className="sw-btn" disabled={trabajandoPrueba || !/^5959\d{8}$/.test(telefonoPrueba) || !origenPrueba || !consentimientoPrueba || config.activo || config.modoEnvio!=="SIMULACION"} onClick={()=>void iniciarPrueba()}>Enviar secuencia de prueba</button></div></div>
-        </section>
-        <div className="sw-stats"><div><span>Registros en cola (hasta 200)</span><strong>{resumen.total}</strong></div><div><span>Pendientes</span><strong>{resumen.pendientes}</strong></div>
-          <div><span>Enviados</span><strong>{resumen.enviados}</strong></div><div><span>Errores</span><strong>{resumen.errores}</strong></div></div>
-        <nav className="sw-tabs"><button className={pestana === "config" ? "active" : ""} onClick={() => setPestana("config")}><Settings2 size={15} className="inline"/> Configuración</button>
-          <button className={pestana === "cola" ? "active" : ""} onClick={() => setPestana("cola")}><ClipboardList size={15} className="inline"/> Cola y auditoría ({resumen.total})</button></nav>
-        {pestana === "config" ? <>
-          <section className="sw-panel"><div className="sw-section-header"><div><h2>Control general</h2><p>Probá con simulación antes de activar mensajes reales.</p></div>
-            <label className="sw-toggle"><input type="checkbox" checked={config.activo} onChange={e => cambiar("activo", e.target.checked)}/>{config.activo ? "Motor activo" : "Motor apagado"}</label></div>
-            <div className="sw-form-grid">
-              <label>Modo de envío<select value={config.modoEnvio} onChange={e => cambiar("modoEnvio", e.target.value as "SIMULACION" | "ACTIVO")}><option value="SIMULACION">Simulación (sin enviar)</option><option value="ACTIVO">Producción (envía WhatsApp)</option></select></label>
-              <label>Separación entre clientes (minutos)<input type="number" min="1" value={config.separacionEnviosMinutos} onChange={e => cambiar("separacionEnviosMinutos", Number(e.target.value))}/></label>
-              <label>Horario desde<input type="time" value={hora(config.horaInicio)} onChange={e => cambiar("horaInicio", e.target.value)}/></label>
-              <label>Horario hasta<input type="time" value={hora(config.horaFin)} onChange={e => cambiar("horaFin", e.target.value)}/></label>
-              <label>Considerar conversaciones desde<input type="date" value={fechaLocal(config.fechaDesdeElegibilidad)} onChange={e => cambiar("fechaDesdeElegibilidad", e.target.value ? `${e.target.value}T00:00:00` : null)}/></label>
-              <label>Reintento técnico (minutos)<input type="number" min="1" value={config.minutosReintentoTecnico} onChange={e => cambiar("minutosReintentoTecnico", Number(e.target.value))}/></label>
-              <label>Máximo de reintentos<input type="number" min="1" value={config.maximoReintentosTecnicos} onChange={e => cambiar("maximoReintentosTecnicos", Number(e.target.value))}/></label>
-            </div><p className="sw-hint">La separación entre clientes NO es la frecuencia para insistirle a una misma persona. Mantené SIMULACIÓN durante las pruebas.</p></section>
-          <section className="sw-panel"><div className="sw-section-header"><div><h2>Mensajes y tiempos</h2><p>Variables disponibles: <code>{"{saludo}"}</code> y <code>{"{moto}"}</code>.</p></div>
-            <button className="sw-btn sw-outline" onClick={() => cambiar("reglas", [...config.reglas, nuevoPaso(config.reglas.length + 1)])}>+ Agregar paso</button></div>
-            <div className="sw-rules">{config.reglas.map((paso, indice) => <div className="sw-rule" key={paso.id || indice}>
-              <div className="sw-rule-top"><strong>Seguimiento {indice + 1}</strong><label className="sw-toggle"><input type="checkbox" checked={paso.activo} onChange={e => cambiarPaso(indice, "activo", e.target.checked)}/> Activo</label></div>
-              <div className="sw-rule-fields"><label>Esperar<input type="number" min="1" value={paso.demoraValor} onChange={e => cambiarPaso(indice, "demoraValor", Number(e.target.value))}/></label>
-                <label>Unidad<select value={paso.demoraUnidad} onChange={e => cambiarPaso(indice, "demoraUnidad", e.target.value as UnidadDemora)}><option value="MINUTO">Minutos</option><option value="HORA">Horas</option><option value="DIA">Días</option></select></label></div>
-              <label className="sw-message-label">Mensaje<textarea rows={4} value={paso.mensaje} onChange={e => cambiarPaso(indice, "mensaje", e.target.value)}/></label>
-              <div className="sw-rule-footer"><small>Se aplicará a los clientes elegibles.</small><button className="sw-link sw-danger-text" disabled={config.reglas.length < 2} onClick={() => cambiar("reglas", config.reglas.filter((_, i) => i !== indice))}>Eliminar paso</button></div>
-            </div>)}</div></section>
-          <div className="sw-bottom"><span>{editado ? "Tenés cambios sin guardar." : "Configuración sincronizada con el backend."}</span><div>
-            <button className="sw-btn sw-outline" disabled={trabajando || editado || !config.activo} onClick={() => void procesar()}>Procesar ahora</button>
-            <button className="sw-btn sw-primary" disabled={trabajando || !editado} onClick={() => void guardar()}>{trabajando ? "Procesando…" : "Guardar configuración"}</button>
-          </div></div>
-        </> : <section className="sw-panel"><div className="sw-section-header"><div><h2>Cola de mensajes</h2><p>Historial de mensajes programados y sus resultados.</p></div>
-          <button className="sw-btn sw-primary" disabled={trabajando || editado || !config.activo} onClick={() => void procesar()}>Procesar ahora</button></div>
-          <div className="sw-filters"><input placeholder="Buscar cliente, teléfono o moto" value={buscar} onChange={e => setBuscar(e.target.value)}/>
-            <select value={filtro} onChange={e => setFiltro(e.target.value)}>{["TODOS","PENDIENTE","PROCESANDO","ENVIADO","ERROR","CANCELADO"].map(x => <option key={x} value={x}>{x}</option>)}</select></div>
-          <div className="sw-table-scroll"><table><thead><tr><th>Cliente / moto</th><th>Paso</th><th>Programado</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
-            {visibles.map(item => <tr key={item.id}><td><b>{item.cliente || "Sin nombre"}</b><small>{item.telefono} · {item.productoInteres || "Moto sin especificar"}</small></td><td>#{item.numeroSeguimiento}</td><td>{fechaPantalla(item.programadoPara)}</td><td><span className={`sw-status sw-status-${item.estado.toLowerCase()}`}>{item.estado}</span></td>
-              <td><button className="sw-link" onClick={() => setVistaPrevia(item)}>Ver mensaje</button></td></tr>)}
-            {visibles.length === 0 && <tr><td colSpan={5} className="sw-empty">No hay registros para mostrar.</td></tr>}
-          </tbody></table></div></section>}
-        {vistaPrevia && <div className="sw-modal-backdrop" onClick={() => setVistaPrevia(null)}><div role="dialog" aria-modal="true" aria-label="Detalle del mensaje" className="sw-modal" onClick={e => e.stopPropagation()}>
-          <div><strong>Detalle del mensaje</strong><button onClick={() => setVistaPrevia(null)} aria-label="Cerrar">×</button></div><p>{vistaPrevia.mensaje}
+          <div className="sw-head-actions">
+            <span className={`sw-chip ${!config.activo ? "sw-off" : config.modoEnvio === "SIMULACION" ? "sw-test" : "sw-live"}`}>
+              <span className="sw-chip-dot"/>{estadoMotor}
+            </span>
+            <button type="button" className="sw-btn sw-outline" disabled={trabajando || editado} onClick={() => void cargar()} title={editado ? "Guardá o descartá tus cambios antes de actualizar" : "Actualizar datos sin ejecutar envíos"}>
+              <RefreshCw size={16}/> Actualizar datos
+            </button>
+          </div>
+        </div>
 
-Estado: {vistaPrevia.estado}{vistaPrevia.ultimoError ? `\nError: ${vistaPrevia.ultimoError}` : ""}{vistaPrevia.motivoCancelacion ? `\nCancelación: ${vistaPrevia.motivoCancelacion}` : ""}</p>
-          <button className="sw-btn sw-primary" onClick={() => setVistaPrevia(null)}>Cerrar</button></div></div>}
+        <div className="sw-stats" aria-label="Resumen de la cola, hasta 200 registros">
+          <div className="sw-stat sw-stat-total"><ClipboardList size={19}/><span>Registros en cola <small>(hasta 200)</small></span><strong>{resumen.total}</strong></div>
+          <div className="sw-stat sw-stat-pending"><Clock3 size={19}/><span>Pendientes</span><strong>{resumen.pendientes}</strong></div>
+          <div className="sw-stat sw-stat-sent"><Send size={19}/><span>Enviados</span><strong>{resumen.enviados}</strong></div>
+          <div className="sw-stat sw-stat-cancel"><Ban size={19}/><span>Cancelados</span><strong>{resumen.cancelados}</strong></div>
+          <div className="sw-stat sw-stat-error"><CircleAlert size={19}/><span>Errores</span><strong>{resumen.errores}</strong></div>
+        </div>
+
+        <nav className="sw-tabs" aria-label="Secciones de seguimiento" role="tablist">
+          <button id="sw-tab-config" type="button" role="tab" aria-selected={pestana === "config"} aria-controls="sw-tab-content" className={pestana === "config" ? "active" : ""} onClick={() => setPestana("config")}><Settings2 size={18}/> Configuración</button>
+          <button id="sw-tab-cola" type="button" role="tab" aria-selected={pestana === "cola"} aria-controls="sw-tab-content" className={pestana === "cola" ? "active" : ""} onClick={() => setPestana("cola")}><ClipboardList size={18}/> Cola y auditoría <span>{resumen.total}</span></button>
+          <button id="sw-tab-prueba" type="button" role="tab" aria-selected={pestana === "prueba"} aria-controls="sw-tab-content" className={pestana === "prueba" ? "active" : ""} onClick={() => setPestana("prueba")}><FlaskConical size={18}/> Prueba controlada</button>
+        </nav>
+
+        <div id="sw-tab-content" role="tabpanel" aria-labelledby={`sw-tab-${pestana}`}>
+          {pestana === "config" && <>
+            <section className="sw-panel sw-config-panel">
+              <div className="sw-section-header"><div className="sw-section-heading"><span className="sw-icon-block sw-icon-blue"><Settings2 size={20}/></span><div><h3>Control general</h3><p>Estado del motor, horarios y límites de envío.</p></div></div></div>
+              <div className="sw-operation-grid">
+                <div className={`sw-engine-card ${config.activo ? "on" : ""}`}>
+                  <div className="sw-engine-card-top"><Power size={22}/><span>ESTADO DEL MOTOR</span></div>
+                  <strong>{estadoMotor}</strong>
+                  <p>{config.activo ? "Panambí procesa automáticamente las consultas elegibles." : "No se ejecutan ciclos automáticos de seguimiento."}</p>
+                  <label className="sw-switch-row">
+                    <span>{config.activo ? "Encendido" : "Apagado"}</span>
+                    <input aria-label="Motor activo" type="checkbox" checked={config.activo} onChange={e => cambiar("activo", e.target.checked)}/>
+                    <span className="sw-switch-track" aria-hidden="true"/>
+                  </label>
+                </div>
+                <div className="sw-settings-grid">
+                  <label className="sw-field sw-field-wide">Modo de envío
+                    <select value={config.modoEnvio} onChange={e => cambiar("modoEnvio", e.target.value as "SIMULACION" | "ACTIVO")}>
+                      <option value="SIMULACION">Simulación (sin enviar)</option>
+                      <option value="ACTIVO">Producción (envía WhatsApp)</option>
+                    </select>
+                  </label>
+                  <label className="sw-field">Desde (horario)
+                    <input type="time" value={hora(config.horaInicio)} onChange={e => cambiar("horaInicio", e.target.value)}/>
+                  </label>
+                  <label className="sw-field">Hasta (horario)
+                    <input type="time" value={hora(config.horaFin)} onChange={e => cambiar("horaFin", e.target.value)}/>
+                  </label>
+                  <label className="sw-field sw-field-wide"><span>Conversaciones desde <CalendarDays size={14}/></span>
+                    <input type="date" value={fechaLocal(config.fechaDesdeElegibilidad)} onChange={e => cambiar("fechaDesdeElegibilidad", e.target.value ? `${e.target.value}T00:00:00` : null)}/>
+                  </label>
+                  <label className="sw-field">Separación entre envíos (min)
+                    <input type="number" min="1" max="1440" value={config.separacionEnviosMinutos} onChange={e => cambiar("separacionEnviosMinutos", Number(e.target.value))}/>
+                  </label>
+                  <label className="sw-field">Reintento técnico (min)
+                    <input type="number" min="1" max="1440" value={config.minutosReintentoTecnico} onChange={e => cambiar("minutosReintentoTecnico", Number(e.target.value))}/>
+                  </label>
+                  <label className="sw-field">Máximo de reintentos
+                    <input type="number" min="1" max="10" value={config.maximoReintentosTecnicos} onChange={e => cambiar("maximoReintentosTecnicos", Number(e.target.value))}/>
+                  </label>
+                </div>
+              </div>
+              <div className={`sw-context-note ${config.activo && config.modoEnvio === "ACTIVO" ? "sw-note-warning" : ""}`}>
+                <Info size={17}/>
+                <span>{config.activo && config.modoEnvio === "ACTIVO" ?
+                  "Producción encendida: un seguimiento vencido y elegible puede enviarse automáticamente. Para detener envíos nuevos, apagá el motor y guardá." :
+                  "La separación entre envíos es entre clientes; la frecuencia para volver a contactar a una persona se define en los pasos de abajo."}</span>
+              </div>
+            </section>
+
+            <section className="sw-panel sw-rules-panel">
+              <div className="sw-section-header"><div className="sw-section-heading"><span className="sw-icon-block sw-icon-purple"><MessageSquareText size={21}/></span><div><h3>Mensajes y tiempos</h3><p>Secuencia automática. Variables disponibles: <code>{"{saludo}"}</code> y <code>{"{moto}"}</code>.</p></div></div>
+                <button type="button" className="sw-btn sw-outline" onClick={() => cambiar("reglas", [...config.reglas, nuevoPaso(config.reglas.length + 1)])}>+ Agregar paso</button>
+              </div>
+              <div className="sw-rules">{config.reglas.map((paso, indice) => <div className="sw-rule" key={paso.id || indice}>
+                <div className="sw-rule-top"><div><span className="sw-rule-index">{indice + 1}</span><strong>Seguimiento {indice + 1}</strong></div>
+                  <label className="sw-toggle"><input type="checkbox" checked={paso.activo} onChange={e => cambiarPaso(indice, "activo", e.target.checked)}/> Activo</label>
+                </div>
+                <div className="sw-rule-fields">
+                  <label className="sw-field">Esperar<input type="number" min="1" value={paso.demoraValor} onChange={e => cambiarPaso(indice, "demoraValor", Number(e.target.value))}/></label>
+                  <label className="sw-field">Unidad<select value={paso.demoraUnidad} onChange={e => cambiarPaso(indice, "demoraUnidad", e.target.value as UnidadDemora)}><option value="MINUTO">Minutos</option><option value="HORA">Horas</option><option value="DIA">Días</option></select></label>
+                </div>
+                <label className="sw-field sw-message-label">Texto del mensaje<textarea rows={4} maxLength={1000} value={paso.mensaje} onChange={e => cambiarPaso(indice, "mensaje", e.target.value)}/></label>
+                <div className="sw-rule-footer"><small>{indice === 0 ? "Desde la última consulta del cliente." : "Después del seguimiento anterior."}</small>
+                  <button type="button" className="sw-link sw-danger-text" disabled={config.reglas.length < 2} onClick={() => cambiar("reglas", config.reglas.filter((_, i) => i !== indice))}>Eliminar paso</button></div>
+              </div>)}</div>
+            </section>
+            <div className="sw-action-bar"><div className="sw-save-status">
+              {editado ? <><CircleAlert size={17}/> Tenés cambios sin guardar.</> : <><CheckCircle2 size={17}/> Configuración sincronizada con el backend.</>}
+            </div><button type="button" className="sw-btn sw-primary" disabled={trabajando || !editado} onClick={() => void guardar()}>{trabajando ? "Guardando…" : "Guardar configuración"}</button></div>
+          </>}
+
+          {pestana === "cola" && <section className="sw-panel sw-queue-panel">
+            <div className="sw-section-header sw-queue-header"><div className="sw-section-heading"><span className="sw-icon-block sw-icon-teal"><ClipboardList size={21}/></span><div><h3>Cola y auditoría</h3><p>Historial de hasta 200 mensajes. Cada fila identifica el seguimiento y su estado.</p></div></div>
+              <button type="button" className="sw-btn sw-manual" disabled={trabajando || editado || !config.activo} onClick={() => void procesar()}><Play size={15}/>{trabajando ? "Procesando…" : "Ejecutar revisión manual"}</button></div>
+            <div className={`sw-context-note ${config.activo && config.modoEnvio === "ACTIVO" ? "sw-note-warning" : ""}`}>
+              <AlertTriangle size={17}/><span>El motor activo revisa automáticamente la cola. No necesitás ejecutar la revisión manual. {config.activo && config.modoEnvio === "ACTIVO" ? "En producción, este botón puede enviar un WhatsApp real si hay un pendiente vencido y elegible." : "En simulación no se envían mensajes comerciales."}</span>
+            </div>
+            <div className="sw-filters"><label className="sw-search"><Search size={18}/><input aria-label="Buscar cliente, teléfono o moto" placeholder="Buscar cliente, teléfono o moto…" value={buscar} onChange={e => setBuscar(e.target.value)}/></label>
+              <label className="sw-filter-select"><span>Estado</span><select value={filtro} onChange={e => setFiltro(e.target.value)}>{["TODOS", "PENDIENTE", "PROCESANDO", "ENVIADO", "ERROR", "CANCELADO"].map(x => <option key={x} value={x}>{x === "TODOS" ? "Todos los estados" : x}</option>)}</select></label>
+              <span className="sw-filter-count">Mostrando {visibles.length} de {envios.length}</span></div>
+            <div className="sw-table-scroll"><table><thead><tr><th>Cliente / moto</th><th>Paso</th><th>Programado</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+              {visibles.map(item => <tr key={item.id}><td><b>{item.cliente || "Sin nombre"}</b><small>{item.telefono} · {item.productoInteres || "Moto sin especificar"}</small></td><td><span className="sw-step-pill">#{item.numeroSeguimiento}</span></td><td>{fechaPantalla(item.programadoPara)}</td><td><span className={`sw-status sw-status-${item.estado.toLowerCase()}`}>{item.estado}</span></td>
+                <td><button type="button" className="sw-link" onClick={() => setVistaPrevia(item)}>Ver mensaje</button></td></tr>)}
+              {visibles.length === 0 && <tr><td colSpan={5} className="sw-empty">No hay registros con estos filtros.</td></tr>}
+            </tbody></table></div>
+          </section>}
+
+          {pestana === "prueba" && <section className="sw-panel sw-test-panel">
+            <div className="sw-section-header"><div className="sw-section-heading"><span className="sw-icon-block sw-icon-violet"><FlaskConical size={21}/></span><div><h3>Prueba controlada</h3><p>Seleccioná una conversación real como origen. Los mensajes se envían únicamente al número autorizado de prueba.</p></div></div>
+              <span className="sw-lab-tag">ENTORNO DE PRUEBAS</span></div>
+            <div className={`sw-context-note ${pruebaPermitida ? "sw-note-success" : "sw-note-warning"}`}>
+              {pruebaPermitida ? <ShieldCheck size={19}/> : <AlertTriangle size={19}/>}
+              <span>{pruebaPermitida ? "Listo para pruebas: motor apagado y modo Simulación. La prueba no cambia los datos comerciales del cliente de origen." :
+                "Para iniciar una prueba controlada, apagá el motor y guardá el modo Simulación en la pestaña Configuración."}</span>
+            </div>
+            <div className="sw-test-fields">
+              <label className="sw-field">Número destinatario (595… sin +)
+                <input inputMode="tel" value={telefonoPrueba} onChange={e => setTelefonoPrueba(e.target.value.trim())} placeholder="5959XXXXXXXX"/>
+              </label>
+              <label className="sw-field">Conversación real de origen
+                <select value={idEnvioPrueba ?? ""} onChange={e => setIdEnvioPrueba(e.target.value ? Number(e.target.value) : null)}>
+                  <option value="">Seleccionar seguimiento PENDIENTE…</option>
+                  {disponiblesPrueba.map(e => <option key={e.id} value={e.id}>#{e.id} · {e.cliente} · {e.productoInteres} · paso {e.numeroSeguimiento}</option>)}
+                </select>
+              </label>
+              <label className="sw-field">Intervalo entre mensajes
+                <select value={intervaloPrueba} onChange={e => setIntervaloPrueba(Number(e.target.value))}><option value={1}>1 minuto</option><option value={5}>5 minutos</option><option value={10}>10 minutos</option></select>
+              </label>
+            </div>
+            <label className="sw-confirm"><input type="checkbox" checked={consentimientoPrueba} onChange={e => setConsentimientoPrueba(e.target.checked)}/>
+              Confirmo que controlo este número o que su titular autorizó recibir los mensajes de prueba.</label>
+            <div className="sw-test-summary"><div><span>CONVERSACIÓN DE ORIGEN</span><strong>{origenPrueba ? `${origenPrueba.cliente} · ${origenPrueba.productoInteres}` : "Sin seleccionar"}</strong></div>
+              <div><span>ESTADO DE LA PRUEBA</span><strong>{estadoPrueba?.estado ?? "Sin consultar"} · {estadoPrueba?.enviados ?? 0}/{estadoPrueba?.total ?? 0}</strong><small>{estadoPrueba?.detalle || ""} {estadoPrueba?.proximo ? `· Próximo: ${fechaPantalla(estadoPrueba.proximo)}` : ""}</small></div></div>
+            <div className="sw-test-actions"><div className="sw-test-footnote"><Info size={15}/> El estado de la prueba es temporal (memoria del backend).</div>
+              <div className="sw-action-buttons"><button type="button" className="sw-btn sw-outline" onClick={() => void consultarPrueba()}><RefreshCw size={15}/> Ver estado</button>
+                <button type="button" className="sw-btn sw-danger-outline" onClick={() => void cancelarPrueba()}><X size={15}/> Cancelar prueba</button>
+                <button type="button" className="sw-btn sw-test-send" disabled={trabajandoPrueba || !/^5959\d{8}$/.test(telefonoPrueba) || !origenPrueba || !consentimientoPrueba || !pruebaPermitida} onClick={() => void iniciarPrueba()}><Send size={16}/>{trabajandoPrueba ? "Iniciando…" : "Enviar secuencia de prueba"}</button></div>
+            </div>
+          </section>}
+        </div>
+
+        {vistaPrevia && <div className="sw-modal-backdrop" onClick={() => setVistaPrevia(null)}>
+          <div role="dialog" aria-modal="true" aria-label="Detalle del mensaje" className="sw-modal" onClick={e => e.stopPropagation()}>
+            <div className="sw-modal-header"><strong>Detalle del seguimiento #{vistaPrevia.numeroSeguimiento}</strong><button type="button" onClick={() => setVistaPrevia(null)} aria-label="Cerrar"><X size={20}/></button></div>
+            <div className="sw-modal-meta"><strong>{vistaPrevia.cliente}</strong><span>{vistaPrevia.productoInteres || "Moto sin especificar"}</span><span className={`sw-status sw-status-${vistaPrevia.estado.toLowerCase()}`}>{vistaPrevia.estado}</span></div>
+            <p>{vistaPrevia.mensaje}</p>
+            {vistaPrevia.ultimoError && <div className="sw-modal-note"><strong>Error técnico:</strong> {vistaPrevia.ultimoError}</div>}
+            {vistaPrevia.motivoCancelacion && <div className="sw-modal-note"><strong>Motivo de cancelación:</strong> {vistaPrevia.motivoCancelacion}</div>}
+            <button type="button" className="sw-btn sw-primary" onClick={() => setVistaPrevia(null)}>Cerrar detalle</button>
+          </div>
+        </div>}
       </>}
-    </div>
+    </main>
   </div>;
 };
+
 export default SeguimientoWhatsapp;

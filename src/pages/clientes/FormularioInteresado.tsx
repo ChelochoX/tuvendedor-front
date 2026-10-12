@@ -33,9 +33,7 @@ import {
   Seguimiento,
 } from "../../types/clientes";
 
-import {
-  formatearFechaHoraServidorParaguay,
-} from "../../utils/fechaServidor";
+import { formatearFechaHoraServidorParaguay } from "../../utils/fechaServidor";
 
 interface Props {
   seleccionado: Interesado | null;
@@ -508,10 +506,13 @@ const FormularioInteresado: React.FC<Props> = ({
                 <InfoMini
                   label="Etapa"
                   value={estadoLabel(
-                    detalle?.interesado.estadoGestion ||
-                      detalle?.interesado.estadoConsulta ||
-                      seleccionado.estadoGestion ||
-                      seleccionado.estadoConsulta,
+                    (detalle?.interesado.estadoConsulta ||
+                      seleccionado.estadoConsulta) === "CERRADO"
+                      ? "CERRADO"
+                      : detalle?.interesado.estadoGestion ||
+                          detalle?.interesado.estadoConsulta ||
+                          seleccionado.estadoGestion ||
+                          seleccionado.estadoConsulta,
                   )}
                 />
 
@@ -531,6 +532,74 @@ const FormularioInteresado: React.FC<Props> = ({
                       0,
                   )}
                 />
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-sky-500/25 bg-gradient-to-r from-sky-950/40 via-gray-900 to-gray-900 p-4 md:p-5">
+              <div className="flex items-start gap-3">
+                <MessageCircleMore
+                  size={18}
+                  className="text-sky-300 mt-0.5 shrink-0"
+                />
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-white">
+                    Decisión comercial registrada
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Esta información se conserva en el CRM y es distinta del
+                    estado técnico de los envíos automáticos.
+                  </p>
+                  <div className="grid sm:grid-cols-2 gap-3 mt-4">
+                    <div className="rounded-xl bg-gray-950/65 border border-gray-700/70 px-3 py-3">
+                      <span className="block text-[11px] text-slate-400">
+                        Estado de la oportunidad
+                      </span>
+                      <strong className="block mt-1 text-sm text-sky-200">
+                        {estadoLabel(
+                          (detalle?.interesado.estadoConsulta ||
+                            seleccionado.estadoConsulta) === "CERRADO"
+                            ? "CERRADO"
+                            : detalle?.interesado.estadoConsulta ||
+                                seleccionado.estadoConsulta,
+                        )}
+                      </strong>
+                    </div>
+                    <div className="rounded-xl bg-gray-950/65 border border-gray-700/70 px-3 py-3">
+                      <span className="block text-[11px] text-slate-400">
+                        Seguimiento CRM
+                      </span>
+                      <strong
+                        className={`block mt-1 text-sm ${detalle?.interesado.requiereSeguimiento ? "text-emerald-300" : "text-slate-300"}`}
+                      >
+                        {detalle?.interesado.requiereSeguimiento
+                          ? "Habilitado"
+                          : "No habilitado"}
+                      </strong>
+                    </div>
+                  </div>
+                  {(detalle?.interesado.motivoSeguimiento ||
+                    seleccionado.motivoSeguimiento) && (
+                    <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/[0.06] px-3 py-3">
+                      <span className="block text-[11px] text-amber-200">
+                        Motivo / decisión guardada
+                      </span>
+                      <strong className="block mt-1 text-sm font-semibold text-white break-words">
+                        {(
+                          detalle?.interesado.motivoSeguimiento ||
+                          seleccionado.motivoSeguimiento ||
+                          ""
+                        ).replaceAll("_", " ")}
+                      </strong>
+                    </div>
+                  )}
+                  {(detalle?.interesado.estadoConsulta ||
+                    seleccionado.estadoConsulta) === "CERRADO" && (
+                    <div className="mt-3 text-xs text-rose-200/90">
+                      Oportunidad cerrada. No debe reactivarse un seguimiento
+                      automático por una negativa del cliente.
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 
@@ -1015,17 +1084,24 @@ const InfoMini: React.FC<{
 const EstadoBadge: React.FC<{
   interesado: Interesado;
 }> = ({ interesado }) => {
-  const esSinRespuesta = interesado.sinRespuesta;
+  const esSinRespuesta =
+    interesado.sinRespuesta && interesado.estadoConsulta !== "CERRADO";
 
-  const texto = esSinRespuesta
-    ? "Sin respuesta"
-    : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta);
+  const texto =
+    interesado.estadoConsulta === "CERRADO"
+      ? "Cerrado"
+      : esSinRespuesta
+        ? "Sin respuesta"
+        : estadoLabel(interesado.estadoGestion || interesado.estadoConsulta);
 
-  const clase = esSinRespuesta
-    ? "border-red-400/40 bg-red-400/10 text-red-300"
-    : interesado.seguimientoVencido
-      ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
-      : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
+  const clase =
+    interesado.estadoConsulta === "CERRADO"
+      ? "border-rose-400/40 bg-rose-400/10 text-rose-200"
+      : esSinRespuesta
+        ? "border-red-400/40 bg-red-400/10 text-red-300"
+        : interesado.seguimientoVencido
+          ? "border-orange-400/40 bg-orange-400/10 text-orange-300"
+          : "border-emerald-400/30 bg-emerald-400/10 text-emerald-300";
 
   return (
     <span

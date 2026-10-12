@@ -24,11 +24,13 @@ export interface ConfiguracionSeguimiento {
 }
 export interface EnvioSeguimiento {
   id: number;
+  idInteresado: number;
   cliente: string;
   telefono: string;
   productoInteres?: string | null;
   numeroSeguimiento: number;
   programadoPara: string;
+  fechaEnvio?: string | null;
   estado: string;
   mensaje: string;
   ultimoError?: string | null;

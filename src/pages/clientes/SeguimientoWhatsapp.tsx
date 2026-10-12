@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
@@ -12,6 +12,8 @@ import {
   obtenerEnviosSeguimiento, procesarSeguimientosAhora,
   iniciarPruebaWhatsapp, estadoPruebaWhatsapp, cancelarPruebaWhatsapp, EstadoPruebaWhatsapp,
 } from "../../api/seguimientoWhatsappService";
+import { obtenerDetalleInteresado, obtenerInteresados } from "../../api/clientesService";
+import type { Interesado, InteresadoDetalle, FiltroInteresadosRequest } from "../../types/clientes";
 import "./SeguimientoWhatsapp.css";
 
 type Pestana = "config" | "cola" | "prueba";
@@ -36,6 +38,33 @@ const mensajeError = (e: unknown): string => {
   return e instanceof Error ? e.message : "Ocurrió un error inesperado.";
 };
 
+const estadosComerciales = [
+  ["TODOS", "Todas las etapas"],
+  ["CONSULTANDO", "Consultando"],
+  ["COTIZADO", "Cotizado"],
+  ["SIN_RESPUESTA", "Sin respuesta"],
+  ["CREDITO_EN_PROCESO", "Crédito en proceso"],
+  ["CONTADO_EN_PROCESO", "Contado en proceso"],
+  ["PENDIENTE_ASESOR", "Pendiente de asesor"],
+  ["DERIVADO_HUMANO", "Atención humana"],
+  ["ESPERANDO_MODELO", "Esperando modelo"],
+  ["CONSULTA_PROMO", "Consultó promoción"],
+  ["CERRADO", "Cerrado"],
+  ["REGISTRADO", "Registrado"],
+  ["SIN_ESTADO", "Sin etapa disponible"],
+] as const;
+
+const etapaCliente = (cliente?: Interesado | null): string => {
+  if (!cliente) return "SIN_ESTADO";
+  if (cliente.estadoConsulta === "CERRADO") return "CERRADO";
+  if (cliente.sinRespuesta) return "SIN_RESPUESTA";
+  return cliente.estadoGestion || cliente.estadoConsulta || "SIN_ESTADO";
+};
+const etiquetaEtapa = (estado?: string | null) =>
+  estadosComerciales.find(([valor]) => valor === estado)?.[1] ||
+  estado?.replaceAll("_", " ") || "Sin etapa";
+const claseEtapa = (etapa: string) => `sw-etapa sw-etapa-${etapa.toLowerCase().replace(/[^a-z0-9_-]/g, "")}`;
+
 const SeguimientoWhatsapp: React.FC = () => {
   const navigate = useNavigate();
   const [config, setConfig] = useState<ConfiguracionSeguimiento | null>(null);
@@ -48,6 +77,14 @@ const SeguimientoWhatsapp: React.FC = () => {
   const [buscar, setBuscar] = useState("");
   const [aviso, setAviso] = useState<Aviso | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<EnvioSeguimiento | null>(null);
+  const [detalleCliente, setDetalleCliente] = useState<InteresadoDetalle | null>(null);
+  const detalleSolicitudRef = useRef(0);
+  const [cargandoDetalle, setCargandoDetalle] = useState(false);
+  const [errorDetalle, setErrorDetalle] = useState<string | null>(null);
+  const [crm, setCrm] = useState<Record<number, Interesado>>({});
+  const [crmCargando, setCrmCargando] = useState(false);
+  const [crmAviso, setCrmAviso] = useState("");
+  const [filtroEtapa, setFiltroEtapa] = useState("TODOS");
 
   const [telefonoPrueba, setTelefonoPrueba] = useState("");
   const [consentimientoPrueba, setConsentimientoPrueba] = useState(false);
@@ -70,6 +107,60 @@ const SeguimientoWhatsapp: React.FC = () => {
   }, [editado]);
 
   useEffect(() => { void cargar(true); /* carga inicial */ }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Consulta los estados CRM usando el endpoint EXISTENTE y su paginación.
+  // La cola sigue funcionando aunque el CRM no esté disponible.
+  const cargarEtapasCrm = useCallback(async () => {
+    setCrmCargando(true);
+    setCrmAviso("");
+    try {
+      const base: FiltroInteresadosRequest = {
+        nombre: "", estado: "", origen: "", estadoConsulta: "",
+        soloSeguimiento: false, soloSinRespuesta: false, soloSeguimientoVencido: false,
+        numeroPagina: 1, registrosPorPagina: 100,
+      };
+      const primerLote = await obtenerInteresados(base);
+      const paginas = Math.ceil(primerLote.totalRegistros / 100);
+      const maxPaginas = Math.min(10, paginas);
+      const interesados = [...primerLote.items];
+      for (let pagina = 2; pagina <= maxPaginas; pagina++) {
+        const siguientes = await obtenerInteresados({ ...base, numeroPagina: pagina });
+        interesados.push(...siguientes.items);
+      }
+      setCrm(Object.fromEntries(interesados.map(item => [item.id, item])));
+      if (paginas > maxPaginas) {
+        setCrmAviso(`Se consultaron ${interesados.length} de ${primerLote.totalRegistros} clientes. Las etapas no cargadas aparecen como «Sin etapa disponible».`);
+      }
+    } catch (error) {
+      setCrmAviso(`No se pudieron consultar las etapas comerciales: ${mensajeError(error)}. La cola de envíos sigue disponible.`);
+    } finally { setCrmCargando(false); }
+  }, []);
+
+  useEffect(() => {
+    if (pestana === "cola") void cargarEtapasCrm();
+  }, [pestana, cargarEtapasCrm]);
+
+  const abrirDetalle = async (item: EnvioSeguimiento) => {
+    const solicitud = ++detalleSolicitudRef.current;
+    setVistaPrevia(item);
+    setDetalleCliente(null);
+    setErrorDetalle(null);
+    setCargandoDetalle(true);
+    try {
+      const resultado = await obtenerDetalleInteresado(item.idInteresado);
+      if (detalleSolicitudRef.current === solicitud) setDetalleCliente(resultado);
+    } catch (error) {
+      if (detalleSolicitudRef.current === solicitud) setErrorDetalle(mensajeError(error));
+    } finally {
+      if (detalleSolicitudRef.current === solicitud) setCargandoDetalle(false);
+    }
+  };
+  const cerrarDetalle = () => {
+    detalleSolicitudRef.current++;
+    setVistaPrevia(null);
+    setDetalleCliente(null);
+    setErrorDetalle(null);
+  };
 
   const cambiar = <K extends keyof ConfiguracionSeguimiento>(clave: K, valor: ConfiguracionSeguimiento[K]) => {
     setConfig(anterior => anterior ? { ...anterior, [clave]: valor } : anterior);
@@ -175,8 +266,9 @@ const SeguimientoWhatsapp: React.FC = () => {
   };
   const visibles = useMemo(() => envios.filter(x =>
     (filtro === "TODOS" || x.estado === filtro) &&
+    (filtroEtapa === "TODOS" || etapaCliente(crm[x.idInteresado]) === filtroEtapa) &&
     `${x.cliente} ${x.telefono} ${x.productoInteres || ""}`.toLowerCase().includes(buscar.toLowerCase())
-  ), [envios, filtro, buscar]);
+  ), [envios, filtro, filtroEtapa, crm, buscar]);
   const estadoMotor = !config?.activo ? "Motor apagado" : config.modoEnvio === "ACTIVO" ? "Envíos reales activos" : "Simulación activa";
 
   return <div className="sw-page">
@@ -204,7 +296,7 @@ const SeguimientoWhatsapp: React.FC = () => {
             <span className={`sw-chip ${!config.activo ? "sw-off" : config.modoEnvio === "SIMULACION" ? "sw-test" : "sw-live"}`}>
               <span className="sw-chip-dot"/>{estadoMotor}
             </span>
-            <button type="button" className="sw-btn sw-outline" disabled={trabajando || editado} onClick={() => void cargar()} title={editado ? "Guardá o descartá tus cambios antes de actualizar" : "Actualizar datos sin ejecutar envíos"}>
+            <button type="button" className="sw-btn sw-outline" disabled={trabajando || editado} onClick={() => { void cargar(); if (pestana === "cola") void cargarEtapasCrm(); }} title={editado ? "Guardá o descartá tus cambios antes de actualizar" : "Actualizar datos sin ejecutar envíos"}>
               <RefreshCw size={16}/> Actualizar datos
             </button>
           </div>
@@ -302,13 +394,17 @@ const SeguimientoWhatsapp: React.FC = () => {
             <div className={`sw-context-note ${config.activo && config.modoEnvio === "ACTIVO" ? "sw-note-warning" : ""}`}>
               <AlertTriangle size={17}/><span>El motor activo revisa automáticamente la cola. No necesitás ejecutar la revisión manual. {config.activo && config.modoEnvio === "ACTIVO" ? "En producción, este botón puede enviar un WhatsApp real si hay un pendiente vencido y elegible." : "En simulación no se envían mensajes comerciales."}</span>
             </div>
+            <div className="sw-filter-intro"><strong>Dos estados diferentes</strong><span>El estado del envío identifica qué hizo WhatsApp; la etapa comercial muestra cómo quedó registrada la conversación en el CRM.</span></div>
             <div className="sw-filters"><label className="sw-search"><Search size={18}/><input aria-label="Buscar cliente, teléfono o moto" placeholder="Buscar cliente, teléfono o moto…" value={buscar} onChange={e => setBuscar(e.target.value)}/></label>
-              <label className="sw-filter-select"><span>Estado</span><select value={filtro} onChange={e => setFiltro(e.target.value)}>{["TODOS", "PENDIENTE", "PROCESANDO", "ENVIADO", "ERROR", "CANCELADO"].map(x => <option key={x} value={x}>{x === "TODOS" ? "Todos los estados" : x}</option>)}</select></label>
-              <span className="sw-filter-count">Mostrando {visibles.length} de {envios.length}</span></div>
-            <div className="sw-table-scroll"><table><thead><tr><th>Cliente / moto</th><th>Paso</th><th>Programado</th><th>Estado</th><th>Detalle</th></tr></thead><tbody>
+              <label className="sw-filter-select"><span>Estado del envío</span><select value={filtro} onChange={e => setFiltro(e.target.value)}>{["TODOS", "PENDIENTE", "PROCESANDO", "ENVIADO", "ERROR", "CANCELADO"].map(x => <option key={x} value={x}>{x === "TODOS" ? "Todos los envíos" : x}</option>)}</select></label>
+              <label className="sw-filter-select"><span>Etapa comercial (CRM)</span><select value={filtroEtapa} onChange={e => setFiltroEtapa(e.target.value)}>{estadosComerciales.map(([valor, etiqueta]) => <option key={valor} value={valor}>{etiqueta}</option>)}</select></label>
+              <span className="sw-filter-count">{crmCargando ? "Leyendo CRM…" : `Mostrando ${visibles.length} de ${envios.length}`}</span></div>
+            {crmAviso && <div className="sw-crm-aviso" role="status"><Info size={15}/>{crmAviso}</div>}
+            <div className="sw-table-scroll"><table><thead><tr><th>Cliente / moto</th><th>Paso</th><th>Programado</th><th>Estado del envío</th><th>Etapa del cliente</th><th>Historial</th></tr></thead><tbody>
               {visibles.map(item => <tr key={item.id}><td><b>{item.cliente || "Sin nombre"}</b><small>{item.telefono} · {item.productoInteres || "Moto sin especificar"}</small></td><td><span className="sw-step-pill">#{item.numeroSeguimiento}</span></td><td>{fechaPantalla(item.programadoPara)}</td><td><span className={`sw-status sw-status-${item.estado.toLowerCase()}`}>{item.estado}</span></td>
-                <td><button type="button" className="sw-link" onClick={() => setVistaPrevia(item)}>Ver mensaje</button></td></tr>)}
-              {visibles.length === 0 && <tr><td colSpan={5} className="sw-empty">No hay registros con estos filtros.</td></tr>}
+                <td><span className={claseEtapa(etapaCliente(crm[item.idInteresado]))}>{etiquetaEtapa(etapaCliente(crm[item.idInteresado]))}</span></td>
+                <td><button type="button" className="sw-link" onClick={() => void abrirDetalle(item)}>Ver conversación</button></td></tr>)}
+              {visibles.length === 0 && <tr><td colSpan={6} className="sw-empty">No hay registros con estos filtros.</td></tr>}
             </tbody></table></div>
           </section>}
 
@@ -346,14 +442,32 @@ const SeguimientoWhatsapp: React.FC = () => {
           </section>}
         </div>
 
-        {vistaPrevia && <div className="sw-modal-backdrop" onClick={() => setVistaPrevia(null)}>
-          <div role="dialog" aria-modal="true" aria-label="Detalle del mensaje" className="sw-modal" onClick={e => e.stopPropagation()}>
-            <div className="sw-modal-header"><strong>Detalle del seguimiento #{vistaPrevia.numeroSeguimiento}</strong><button type="button" onClick={() => setVistaPrevia(null)} aria-label="Cerrar"><X size={20}/></button></div>
-            <div className="sw-modal-meta"><strong>{vistaPrevia.cliente}</strong><span>{vistaPrevia.productoInteres || "Moto sin especificar"}</span><span className={`sw-status sw-status-${vistaPrevia.estado.toLowerCase()}`}>{vistaPrevia.estado}</span></div>
-            <p>{vistaPrevia.mensaje}</p>
+        {vistaPrevia && <div className="sw-modal-backdrop" onClick={cerrarDetalle}>
+          <div role="dialog" aria-modal="true" aria-label="Conversación y seguimiento del cliente" className="sw-modal sw-modal-wide" onClick={e => e.stopPropagation()}>
+            <div className="sw-modal-header"><div><span className="sw-modal-kicker">Auditoría de Panambí</span><strong>Seguimiento #{vistaPrevia.numeroSeguimiento} · {vistaPrevia.cliente}</strong></div><button type="button" onClick={cerrarDetalle} aria-label="Cerrar"><X size={20}/></button></div>
+            <div className="sw-modal-meta"><span>{vistaPrevia.productoInteres || "Moto sin especificar"}</span><span className={`sw-status sw-status-${vistaPrevia.estado.toLowerCase()}`}>{vistaPrevia.estado}</span><span>Programado: {fechaPantalla(vistaPrevia.programadoPara)}</span>{vistaPrevia.fechaEnvio && <span>Enviado: {fechaPantalla(vistaPrevia.fechaEnvio)}</span>}</div>
+            <div className="sw-detail-section"><h4>Mensaje del seguimiento</h4><div className="sw-message-preview">{vistaPrevia.mensaje}</div></div>
             {vistaPrevia.ultimoError && <div className="sw-modal-note"><strong>Error técnico:</strong> {vistaPrevia.ultimoError}</div>}
             {vistaPrevia.motivoCancelacion && <div className="sw-modal-note"><strong>Motivo de cancelación:</strong> {vistaPrevia.motivoCancelacion}</div>}
-            <button type="button" className="sw-btn sw-primary" onClick={() => setVistaPrevia(null)}>Cerrar detalle</button>
+            <div className="sw-detail-section"><h4>Estado comercial y conversación registrada</h4>
+              {cargandoDetalle ? <div className="sw-detail-loading"><RefreshCw size={16} className="sw-rotate"/> Consultando historial del cliente…</div> : errorDetalle ?
+                <div className="sw-modal-note">No se pudo cargar el historial: {errorDetalle}</div> : detalleCliente ? <>
+                  <div className="sw-detail-grid">
+                    <div><span>Etapa comercial</span><strong><span className={claseEtapa(etapaCliente(detalleCliente.interesado))}>{etiquetaEtapa(etapaCliente(detalleCliente.interesado))}</span></strong></div>
+                    <div><span>Seguimiento CRM</span><strong>{detalleCliente.interesado.requiereSeguimiento ? "Habilitado" : "Sin seguimiento activo"}</strong></div>
+                    <div><span>Próximo contacto</span><strong>{fechaPantalla(detalleCliente.interesado.fechaProximoContacto)}</strong></div>
+                    <div><span>Motivo registrado</span><strong>{detalleCliente.interesado.motivoSeguimiento || "No especificado"}</strong></div>
+                  </div>
+                  <div className="sw-conversation-head">Últimos mensajes guardados en el CRM</div>
+                  <div className="sw-conversation-list">
+                    {(detalleCliente.ultimosMensajes || []).length ? detalleCliente.ultimosMensajes.map((mensaje, indice) => <div key={`${mensaje.fecha}-${indice}`} className={`sw-conversation-message ${mensaje.emisor?.toUpperCase() === "CLIENTE" ? "from-client" : "from-panambi"}`}>
+                      <div><strong>{mensaje.emisor?.toUpperCase() === "CLIENTE" ? "Cliente" : "Panambí / Sistema"}</strong><time>{fechaPantalla(mensaje.fecha)}</time></div>
+                      <div className="sw-conversation-text">{mensaje.mensaje}</div>
+                    </div>) : <div className="sw-detail-empty">Este contacto no tiene mensajes disponibles en el detalle del CRM.</div>}
+                  </div>
+                </> : <div className="sw-detail-empty">No se recibió el detalle del CRM.</div>}
+            </div>
+            <div className="sw-detail-footer"><span>Vista de solo lectura. No modifica el estado ni envía WhatsApp.</span><button type="button" className="sw-btn sw-primary" onClick={cerrarDetalle}>Cerrar detalle</button></div>
           </div>
         </div>}
       </>}

@@ -34,6 +34,8 @@ const DashboardComercial = lazy(() => import("pages/admin/DashboardComercial"));
 // Clientes
 const Dashboard = lazy(() => import("pages/clientes/Dashboard"));
 
+const CanalesWhatsapp = lazy(() => import("pages/clientes/CanalesWhatsapp"));
+
 const SeguimientoWhatsapp = lazy(
   () => import("pages/clientes/SeguimientoWhatsapp"),
 );
@@ -70,6 +72,8 @@ const RoutesHandler = () => (
       <Route path="/clientes/dashboard" element={<Dashboard />} />
 
       <Route path="/clientes/cargar" element={<CargaClientes />} />
+
+      <Route path="/clientes/canales-whatsapp" element={<CanalesWhatsapp />} />
 
       <Route
         path="/clientes/seguimientos-automaticos"

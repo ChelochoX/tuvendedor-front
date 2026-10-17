@@ -11,6 +11,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import CategoryIcon from "@mui/icons-material/Category";
 import PercentIcon from "@mui/icons-material/Percent";
 import AutoModeIcon from "@mui/icons-material/AutoMode";
+import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
@@ -52,6 +53,14 @@ const Panel: React.FC = () => {
         >
           <AutoModeIcon fontSize="small" />
           Seguimientos automáticos
+        </button>
+
+        <button
+          onClick={() => navigate("/clientes/canales-whatsapp")}
+          className={itemClass("/clientes/canales-whatsapp")}
+        >
+          <WhatsAppIcon fontSize="small" />
+          Canales de WhatsApp
         </button>
 
         <h2 className="text-yellow-400 font-bold text-lg px-4 mt-6 mb-3">

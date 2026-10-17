@@ -35,6 +35,7 @@ const DashboardComercial = lazy(() => import("pages/admin/DashboardComercial"));
 const Dashboard = lazy(() => import("pages/clientes/Dashboard"));
 
 const CanalesWhatsapp = lazy(() => import("pages/clientes/CanalesWhatsapp"));
+const PromptsPanambi = lazy(() => import("pages/clientes/PromptsPanambi"));
 
 const SeguimientoWhatsapp = lazy(
   () => import("pages/clientes/SeguimientoWhatsapp"),
@@ -74,6 +75,7 @@ const RoutesHandler = () => (
       <Route path="/clientes/cargar" element={<CargaClientes />} />
 
       <Route path="/clientes/canales-whatsapp" element={<CanalesWhatsapp />} />
+      <Route path="/clientes/prompts-panambi" element={<PromptsPanambi />} />
 
       <Route
         path="/clientes/seguimientos-automaticos"

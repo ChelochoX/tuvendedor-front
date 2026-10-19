@@ -33,6 +33,27 @@ type Filtro = "TODOS" | "EDITOR" | "LEGADO" | "PREDETERMINADO";
 type Orden = "TITULO" | "CODIGO";
 
 const ejemplos: Record<string, { cliente: string; aclaracion: string }> = {
+  DICCIONARIO_SOCIAL: {
+    cliente: "Mba'éichapa che amigo / ¿Qué tal César? / Bien y vos",
+    aclaracion:
+      "Una expresión por línea: TIPO|expresión. Tipos válidos: SALUDO, RESPUESTA_SOCIAL, AGRADECIMIENTO, DESPEDIDA, ACLARACION. Publicar modifica el reconocimiento en nuevos mensajes SIN desplegar backend.",
+  },
+  RESPUESTA_SOCIAL: {
+    cliente: "Bien, y vos?",
+    aclaracion: "Solo cortesía: no vender productos sin solicitud.",
+  },
+  RESPUESTA_AGRADECIMIENTO: {
+    cliente: "Aguyje",
+    aclaracion: "Agradecimiento cordial sin recomendaciones.",
+  },
+  RESPUESTA_DESPEDIDA: {
+    cliente: "Jajotopata",
+    aclaracion: "Cerrar de forma amable.",
+  },
+  RESPUESTA_ACLARACION: {
+    cliente: "No entendí",
+    aclaracion: "Solicitar explicación concreta.",
+  },
   MARKETPLACE_SALUDO: {
     cliente: "¿Qué opciones de terreno tenés por Areguá?",
     aclaracion:
@@ -95,7 +116,17 @@ const tipoPlantilla = (
   if (item.codigo.startsWith("CREDITO_")) return "credito";
   if (item.codigo.startsWith("MARKETPLACE_")) return "marketplace";
   if (item.codigo.startsWith("MOTO_")) return "moto";
-  if (item.codigo === "CONVERSACION_GENERAL" || item.codigo === "SALUDO_CASUAL")
+  if (
+    [
+      "CONVERSACION_GENERAL",
+      "SALUDO_CASUAL",
+      "DICCIONARIO_SOCIAL",
+      "RESPUESTA_SOCIAL",
+      "RESPUESTA_AGRADECIMIENTO",
+      "RESPUESTA_DESPEDIDA",
+      "RESPUESTA_ACLARACION",
+    ].includes(item.codigo)
+  )
     return "general";
   return "otra";
 };

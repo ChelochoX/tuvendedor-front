@@ -13,10 +13,13 @@ import PercentIcon from "@mui/icons-material/Percent";
 import AutoModeIcon from "@mui/icons-material/AutoMode";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import PsychologyIcon from "@mui/icons-material/Psychology";
+import TravelExploreIcon from "@mui/icons-material/TravelExplore";
+import { useUsuario } from "../../context/UsuarioContext";
 
 const Panel: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { esAdmin } = useUsuario();
 
   const itemClass = (ruta: string) =>
     `flex items-center gap-2 px-4 py-2 rounded transition-all ${
@@ -48,6 +51,16 @@ const Panel: React.FC = () => {
           Interesados / seguimiento
         </button>
 
+        {esAdmin && (
+          <button
+            onClick={() => navigate("/clientes/investigaciones")}
+            className={itemClass("/clientes/investigaciones")}
+          >
+            <TravelExploreIcon fontSize="small" />
+            Investigaciones de Drive
+          </button>
+        )}
+
         <button
           onClick={() => navigate("/clientes/seguimientos-automaticos")}
           className={itemClass("/clientes/seguimientos-automaticos")}
@@ -64,7 +77,10 @@ const Panel: React.FC = () => {
           Canales de WhatsApp
         </button>
 
-        <button onClick={() => navigate("/clientes/prompts-panambi")} className={itemClass("/clientes/prompts-panambi")}>
+        <button
+          onClick={() => navigate("/clientes/prompts-panambi")}
+          className={itemClass("/clientes/prompts-panambi")}
+        >
           <PsychologyIcon fontSize="small" />
           Prompts de Panambí
         </button>

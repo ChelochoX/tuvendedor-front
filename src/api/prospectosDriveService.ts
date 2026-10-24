@@ -58,12 +58,12 @@ export async function listarProspectosDrive(params: {
   pagina?: number;
   porPagina?: number;
 }): Promise<ListadoProspectosDrive> {
-  const { data } = await instance.get("/api/admin/prospectos", { params });
+  const { data } = await instance.get("/admin/prospectos", { params });
   return data.data ?? data.Data;
 }
 
 export async function sincronizarProspectosDrive(): Promise<ResumenImportacion> {
-  const { data } = await instance.post("/api/admin/prospectos/sincronizar");
+  const { data } = await instance.post("/admin/prospectos/sincronizar");
   return data.data ?? data.Data;
 }
 
@@ -73,7 +73,7 @@ export async function cambiarGestionProspecto(
   estadoGestion: EstadoProspecto,
   notasGestion: string,
 ): Promise<void> {
-  await instance.patch(`/api/admin/prospectos/${id}/gestion`, {
+  await instance.patch(`/admin/prospectos/${id}/gestion`, {
     estadoGestion,
     notasGestion,
   }, { params: { rubro } });

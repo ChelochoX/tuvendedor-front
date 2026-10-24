@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import {
-  ArrowLeft,
   CloudDownload,
   ClockAlert,
   MessageSquareOff,
@@ -12,11 +11,11 @@ import {
   UsersRound,
 } from "lucide-react";
 
-import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
 import ListarInteresados from "./ListarInteresados";
 import FormularioInteresado from "./FormularioInteresado";
+import BotonVolverPanel from "./components/BotonVolverPanel";
 
 import {
   obtenerMensajeErrorClientes,
@@ -54,8 +53,6 @@ const fechaApiHoy = () => {
 };
 
 const CargaClientes: React.FC = () => {
-  const navigate = useNavigate();
-
   const [seleccionado, setSeleccionado] = useState<Interesado | null>(null);
 
   const [recargarLista, setRecargarLista] = useState(false);
@@ -162,14 +159,7 @@ const CargaClientes: React.FC = () => {
         <div className="max-w-[1700px] mx-auto px-4 py-4">
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
             <div className="flex items-start gap-3">
-              <button
-                type="button"
-                onClick={() => navigate("/clientes/dashboard")}
-                className="mt-1 h-9 w-9 rounded-lg border border-gray-700 grid place-items-center text-yellow-300 hover:border-yellow-400"
-                title="Volver a solicitudes"
-              >
-                <ArrowLeft size={17} />
-              </button>
+              <BotonVolverPanel className="mt-1" />
 
               <div>
                 <div className="text-[10px] uppercase tracking-[0.18em] font-bold text-yellow-400/80">

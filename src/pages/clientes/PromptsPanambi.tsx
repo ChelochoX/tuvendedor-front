@@ -1,8 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   BookOpen,
   CheckCircle2,
   Clock3,
@@ -19,6 +17,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import BotonVolverPanel from "./components/BotonVolverPanel";
 import {
   listarPrompts,
   publicarPrompt,
@@ -394,21 +393,18 @@ const PromptsPanambi: React.FC = () => {
     <main className="min-h-screen bg-[#090e18] text-slate-100 px-4 py-6 sm:px-7">
       <div className="mx-auto max-w-[1480px] space-y-5">
         <header className="flex items-start justify-between gap-4 flex-wrap">
-          <div>
-            <Link
-              to="/clientes/dashboard"
-              className="inline-flex gap-2 items-center text-xs text-slate-400 hover:text-yellow-400 mb-3"
-            >
-              <ArrowLeft size={14} /> Panel de clientes
-            </Link>
-            <h1 className="text-2xl font-bold flex gap-3 items-center">
-              <Sparkles size={26} className="text-yellow-400" /> Prompts de
-              Panambí
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Editá instrucciones comerciales y publicalas sin modificar el
-              backend ni volver a desplegar.
-            </p>
+          <div className="flex min-w-0 items-start gap-3">
+            <BotonVolverPanel className="mt-0.5" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold flex gap-3 items-center">
+                <Sparkles size={26} className="text-yellow-400" /> Prompts de
+                Panambí
+              </h1>
+              <p className="text-sm text-slate-400 mt-1">
+                Editá instrucciones comerciales y publicalas sin modificar el
+                backend ni volver a desplegar.
+              </p>
+            </div>
           </div>
           <button
             type="button"

@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Bike,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   ExternalLink,
   FileSpreadsheet,
@@ -22,6 +21,7 @@ import {
   CalendarDays,
 } from "lucide-react";
 import Panel from "./Panel";
+import BotonVolverPanel from "./components/BotonVolverPanel";
 import { useUsuario } from "../../context/UsuarioContext";
 import {
   cambiarGestionProspecto,
@@ -214,10 +214,15 @@ function ModalProspecto({
             id="estado-gestion"
             value={estado}
             onChange={(e) => setEstado(e.target.value as EstadoProspecto)}
+            style={{ colorScheme: "dark" }}
             className="mt-2 w-full rounded-xl border border-slate-600 bg-[#0a1423] p-3 text-sm text-white focus:border-amber-400 focus:outline-none"
           >
             {ESTADOS.map((x) => (
-              <option key={x.valor} value={x.valor}>
+              <option
+                key={x.valor}
+                value={x.valor}
+                className="bg-[#101c2e] text-slate-100"
+              >
                 {x.texto}
               </option>
             ))}
@@ -269,8 +274,87 @@ function ModalProspecto({
   );
 }
 
+/** Menú propio: evita el desplegable blanco nativo de Windows/Chrome. */
+function FiltroEstadoProspectos({
+  valor,
+  alCambiar,
+}: {
+  valor: EstadoProspecto | "";
+  alCambiar: (estado: EstadoProspecto | "") => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const contenedor = useRef<HTMLDivElement>(null);
+  const opciones = [{ valor: "" as const, texto: "Todos" }, ...ESTADOS];
+
+  useEffect(() => {
+    if (!abierto) return;
+    const cerrarAlSalir = (evento: MouseEvent) => {
+      if (!contenedor.current?.contains(evento.target as Node))
+        setAbierto(false);
+    };
+    const cerrarConEscape = (evento: KeyboardEvent) => {
+      if (evento.key === "Escape") {
+        setAbierto(false);
+        contenedor.current?.querySelector<HTMLButtonElement>("button")?.focus();
+      }
+    };
+    document.addEventListener("mousedown", cerrarAlSalir);
+    document.addEventListener("keydown", cerrarConEscape);
+    return () => {
+      document.removeEventListener("mousedown", cerrarAlSalir);
+      document.removeEventListener("keydown", cerrarConEscape);
+    };
+  }, [abierto]);
+
+  const nombre =
+    opciones.find((item) => item.valor === valor)?.texto ?? "Todos";
+
+  return (
+    <div ref={contenedor} className="relative shrink-0">
+      <button
+        type="button"
+        aria-label="Filtrar por estado"
+        aria-haspopup="listbox"
+        aria-expanded={abierto}
+        onClick={() => setAbierto((anterior) => !anterior)}
+        className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-700 bg-[#0a1423] px-3 text-sm font-medium text-slate-100 transition-colors hover:border-amber-400/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-400"
+      >
+        <Filter size={17} className="text-amber-300" aria-hidden="true" />
+        <span>{nombre}</span>
+        <ChevronDown
+          size={16}
+          className={`text-slate-400 transition-transform ${abierto ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+      {abierto && (
+        <div
+          role="listbox"
+          aria-label="Estado comercial"
+          className="absolute right-0 top-full z-30 mt-2 min-w-[180px] overflow-hidden rounded-xl border border-slate-600 bg-[#101c2e] p-1.5 text-slate-100 shadow-2xl shadow-black/50"
+        >
+          {opciones.map((opcion) => (
+            <button
+              key={opcion.valor}
+              type="button"
+              role="option"
+              aria-selected={valor === opcion.valor}
+              onClick={() => {
+                alCambiar(opcion.valor);
+                setAbierto(false);
+              }}
+              className={`block w-full rounded-lg px-3 py-2.5 text-left text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400 ${valor === opcion.valor ? "bg-amber-400/15 font-semibold text-amber-300" : "text-slate-200 hover:bg-white/10"}`}
+            >
+              {opcion.texto}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ProspectosDrive() {
-  const navegar = useNavigate();
   const { esAdmin } = useUsuario();
   const [rubro, setRubro] = useState<RubroProspectos>("INMUEBLES");
   const [estado, setEstado] = useState<EstadoProspecto | "">("");
@@ -371,25 +455,21 @@ export default function ProspectosDrive() {
       <main className="mx-auto w-full min-w-0 max-w-7xl space-y-6 p-4 pb-24 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <button
-              type="button"
-              onClick={() => navegar("/clientes/dashboard")}
-              className="mb-4 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-amber-300"
-            >
-              <ArrowLeft size={16} /> Panel de clientes
-            </button>
-            <div className="flex items-center gap-3">
-              <span className="rounded-2xl bg-amber-400/10 p-3 text-amber-300">
-                <Sparkles size={26} />
-              </span>
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  Investigaciones comerciales
-                </h1>
-                <p className="mt-1 text-sm text-slate-400">
-                  Oportunidades detectadas en Drive, sin esperar al informe
-                  diario.
-                </p>
+            <div className="flex items-start gap-3">
+              <BotonVolverPanel className="mt-1" />
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="rounded-2xl bg-amber-400/10 p-3 text-amber-300">
+                  <Sparkles size={26} />
+                </span>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                    Investigaciones comerciales
+                  </h1>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Oportunidades detectadas en Drive, sin esperar al informe
+                    diario.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -540,25 +620,13 @@ export default function ProspectosDrive() {
                       className="w-full min-w-0 bg-transparent py-2.5 text-sm text-white outline-none placeholder:text-slate-500"
                     />
                   </label>
-                  <label className="flex items-center gap-2 rounded-xl border border-slate-700 bg-[#0a1423] px-3">
-                    <Filter size={17} className="text-slate-500" />
-                    <select
-                      aria-label="Filtrar por estado"
-                      value={estado}
-                      onChange={(e) => {
-                        setEstado(e.target.value as EstadoProspecto | "");
-                        setPagina(1);
-                      }}
-                      className="bg-transparent py-2.5 text-sm text-white outline-none"
-                    >
-                      <option value="">Todos</option>
-                      {ESTADOS.map((s) => (
-                        <option value={s.valor} key={s.valor}>
-                          {s.texto}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                  <FiltroEstadoProspectos
+                    valor={estado}
+                    alCambiar={(nuevo) => {
+                      setEstado(nuevo);
+                      setPagina(1);
+                    }}
+                  />
                 </div>
               </div>
               <div className="mt-5 overflow-x-auto">

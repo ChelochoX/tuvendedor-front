@@ -5,10 +5,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
-  ArrowLeft,
   RefreshCw,
   Settings2,
   ClipboardList,
@@ -52,6 +50,7 @@ import type {
   FiltroInteresadosRequest,
 } from "../../types/clientes";
 import "./SeguimientoWhatsapp.css";
+import BotonVolverPanel from "./components/BotonVolverPanel";
 
 type Pestana = "config" | "cola" | "prueba";
 type Aviso = { tipo: "error" | "success"; texto: string };
@@ -113,7 +112,6 @@ const claseEtapa = (etapa: string) =>
   `sw-etapa sw-etapa-${etapa.toLowerCase().replace(/[^a-z0-9_-]/g, "")}`;
 
 const SeguimientoWhatsapp: React.FC = () => {
-  const navigate = useNavigate();
   const [config, setConfig] = useState<ConfiguracionSeguimiento | null>(null);
   const [envios, setEnvios] = useState<EnvioSeguimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -446,15 +444,7 @@ const SeguimientoWhatsapp: React.FC = () => {
     <div className="sw-page">
       <header className="sw-global-header">
         <div className="sw-global-content">
-          <button
-            type="button"
-            title="Volver a interesados"
-            aria-label="Volver a interesados"
-            onClick={() => navigate("/clientes/cargar")}
-            className="sw-back"
-          >
-            <ArrowLeft size={18} />
-          </button>
+          <BotonVolverPanel />
           <div>
             <span className="sw-brand">TU VENDEDOR · PANAMBÍ</span>
             <h1>Seguimientos automáticos</h1>

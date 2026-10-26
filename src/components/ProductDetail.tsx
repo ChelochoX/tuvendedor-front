@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Typography,
@@ -225,6 +225,56 @@ const limpiarTituloParaVista = (titulo: string): string => {
     .replace(/^\s*publicaci[oó]n\s*/i, "")
     .replace(/\s+/g, " ")
     .trim();
+};
+
+/**
+ * Muestra el inicio de una descripción extensa junto al precio en escritorio
+ * y deja el texto restante debajo de la galería, sin ocultar información.
+ * En móvil se muestra siempre el texto completo dentro de la ficha principal.
+ */
+const dividirDescripcion = (
+  descripcion: string,
+  maximoCaracteres = 340,
+  maximoSaltosLinea = 7,
+): { principal: string; continuacion: string } => {
+  const texto = descripcion.trim();
+
+  if (
+    texto.length <= maximoCaracteres &&
+    (texto.match(/\n/g)?.length || 0) <= maximoSaltosLinea
+  ) {
+    return { principal: texto, continuacion: "" };
+  }
+
+  let limite = Math.min(texto.length, maximoCaracteres);
+  let saltos = 0;
+  for (let i = 0; i < limite; i += 1) {
+    if (texto[i] === "\n") {
+      saltos += 1;
+      if (saltos >= maximoSaltosLinea) {
+        limite = i + 1;
+        break;
+      }
+    }
+  }
+
+  if (limite >= texto.length) {
+    return { principal: texto, continuacion: "" };
+  }
+
+  // Preferir un límite de palabra; no cortar una frase a mitad de una palabra.
+  const fragmento = texto.slice(0, limite);
+  const ultimoEspacio = Math.max(
+    fragmento.lastIndexOf(" "),
+    fragmento.lastIndexOf("\n"),
+    fragmento.lastIndexOf("\t"),
+  );
+  const corte = ultimoEspacio > limite * 0.65 ? ultimoEspacio + 1 : limite;
+
+  return {
+    principal: texto.slice(0, corte).trimEnd(),
+    continuacion: texto.slice(corte).trimStart(),
+  };
 };
 
 const obtenerSlugVendedor = (producto: Producto): string => {
@@ -479,6 +529,13 @@ const ProductDetail: React.FC<Props> = ({
   const anchoMaximoCompacto = isMobile ? 420 : 760;
 
   const navigate = useNavigate();
+
+  const descripcionContinuacionRef = useRef<HTMLDivElement | null>(null);
+  const descripcionTexto = producto.descripcion?.trim() || "";
+  const descripcionDesktop = useMemo(
+    () => dividirDescripcion(descripcionTexto),
+    [descripcionTexto],
+  );
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [relacionadas, setRelacionadas] = useState<Producto[]>([]);
@@ -1087,50 +1144,109 @@ const ProductDetail: React.FC<Props> = ({
     </Box>
   );
 
-  const descripcionCard = producto.descripcion ? (
+  // Esta sección se reutiliza dentro de la ficha de precio (móvil y escritorio).
+  // Nunca aplica line-clamp: todo el texto está disponible.
+  const descripcionEnFicha = (texto: string, tieneContinuacion = false) =>
+    texto ? (
+      <Box
+        sx={{
+          mt: 1.4,
+          pt: 1.25,
+          borderTop: "1px solid rgba(250,204,21,0.18)",
+          minWidth: 0,
+        }}
+      >
+        <Typography
+          sx={{
+            color: "#facc15",
+            fontWeight: 900,
+            fontSize: isMobile ? "0.75rem" : "0.79rem",
+            mb: 0.7,
+          }}
+        >
+          Descripción
+        </Typography>
+
+        <Typography
+          component="div"
+          sx={{
+            color: "rgba(255,255,255,0.88)",
+            fontSize: isMobile ? "0.78rem" : "0.81rem",
+            lineHeight: 1.65,
+            textAlign: "justify",
+            textAlignLast: "left",
+            whiteSpace: "pre-wrap",
+            overflowWrap: "anywhere",
+            wordBreak: "normal",
+            hyphens: "auto",
+          }}
+        >
+          {texto}
+        </Typography>
+
+        {tieneContinuacion && (
+          <Button
+            onClick={() =>
+              descripcionContinuacionRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
+            endIcon={<KeyboardArrowDownRoundedIcon />}
+            sx={{
+              mt: 0.7,
+              px: 0,
+              color: "#facc15",
+              textTransform: "none",
+              fontSize: "0.76rem",
+              fontWeight: 850,
+              "&:hover": {
+                bgcolor: "transparent",
+                textDecoration: "underline",
+              },
+            }}
+          >
+            Seguir leyendo debajo de las fotos
+          </Button>
+        )}
+      </Box>
+    ) : null;
+
+  const descripcionContinuacionCard = descripcionDesktop.continuacion ? (
     <Box
+      ref={descripcionContinuacionRef}
       sx={{
         ...cardSx,
         borderRadius: 3,
-        p: isMobile ? 1.4 : 2,
-        width: "100%",
-        height: "auto",
-        minHeight: 0,
-        maxHeight: "none",
-        overflow: "visible",
+        p: 2,
+        scrollMarginTop: 24,
       }}
     >
       <Typography
         sx={{
-          color: "#fff",
-          fontSize: "0.9rem",
-          fontWeight: 950,
+          color: "#facc15",
+          fontSize: "0.88rem",
+          fontWeight: 900,
+          mb: 0.9,
         }}
       >
-        Descripción
+        Descripción · continuación
       </Typography>
-
       <Typography
         component="div"
         sx={{
-          mt: 0.9,
-          width: "100%",
-          height: "auto",
-          minHeight: 0,
-          maxHeight: "none",
-          overflow: "visible",
-          display: "block",
-          color: "rgba(255,255,255,0.82)",
-          fontSize: isMobile ? "0.76rem" : "0.84rem",
-          lineHeight: 1.6,
+          color: "rgba(255,255,255,0.88)",
+          fontSize: "0.85rem",
+          lineHeight: 1.7,
           whiteSpace: "pre-wrap",
+          textAlign: "justify",
+          textAlignLast: "left",
           overflowWrap: "anywhere",
-          wordBreak: "break-word",
-          WebkitLineClamp: "unset",
-          WebkitBoxOrient: "unset",
+          wordBreak: "normal",
+          hyphens: "auto",
         }}
       >
-        {producto.descripcion}
+        {descripcionDesktop.continuacion}
       </Typography>
     </Box>
   ) : null;
@@ -1548,19 +1664,16 @@ const ProductDetail: React.FC<Props> = ({
                       component="h2"
                       sx={{
                         color: "#fff",
-                        fontWeight: 950,
-                        lineHeight: 1.16,
-                        letterSpacing: "-0.025em",
-                        fontSize: "0.92rem",
-                        display: "block",
+                        fontWeight: 850,
+                        lineHeight: 1.3,
+                        letterSpacing: "-0.01em",
+                        fontSize: "0.84rem",
+                        textAlign: "justify",
+                        textAlignLast: "left",
                         width: "100%",
                         whiteSpace: "normal",
-                        overflow: "visible",
-                        textOverflow: "clip",
                         overflowWrap: "anywhere",
-                        wordBreak: "break-word",
-                        WebkitLineClamp: "unset",
-                        WebkitBoxOrient: "unset",
+                        wordBreak: "normal",
                       }}
                     >
                       {tituloProducto}
@@ -1603,6 +1716,9 @@ const ProductDetail: React.FC<Props> = ({
                   {precioPrincipalCard}
                   {cuotasCard}
                 </Box>
+
+                {/* Móvil: descripción completa junto al precio, antes del vendedor. */}
+                {descripcionEnFicha(descripcionTexto)}
               </Box>
             </Box>
 
@@ -1613,11 +1729,6 @@ const ProductDetail: React.FC<Props> = ({
 
             {/* Vendedor */}
             <Box sx={{ px: 1.2, pb: 1.2 }}>{vendedorCard}</Box>
-
-            {/* Descripcion */}
-            {descripcionCard && (
-              <Box sx={{ px: 1.2, pb: 1.2 }}>{descripcionCard}</Box>
-            )}
 
             {/* Relacionadas */}
             {relacionadasSection && (
@@ -1960,7 +2071,7 @@ const ProductDetail: React.FC<Props> = ({
             )}
 
             <Box mt={2} display="flex" flexDirection="column" gap={2}>
-              {descripcionCard}
+              {descripcionContinuacionCard}
               {relacionadasSection}
 
               <Box
@@ -2123,19 +2234,16 @@ const ProductDetail: React.FC<Props> = ({
                 component="h2"
                 sx={{
                   color: "#fff",
-                  fontWeight: 950,
-                  lineHeight: 1.08,
-                  letterSpacing: "-0.035em",
-                  fontSize: "clamp(1.18rem, 1.45vw, 1.55rem)",
-                  display: "block",
+                  fontWeight: 850,
+                  lineHeight: 1.32,
+                  letterSpacing: "-0.01em",
+                  fontSize: "clamp(0.96rem, 1.05vw, 1.08rem)",
+                  textAlign: "justify",
+                  textAlignLast: "left",
                   width: "100%",
                   whiteSpace: "normal",
-                  overflow: "visible",
-                  textOverflow: "clip",
                   overflowWrap: "anywhere",
-                  wordBreak: "break-word",
-                  WebkitLineClamp: "unset",
-                  WebkitBoxOrient: "unset",
+                  wordBreak: "normal",
                 }}
               >
                 {tituloProducto}
@@ -2167,6 +2275,13 @@ const ProductDetail: React.FC<Props> = ({
                 {precioPrincipalCard}
                 {cuotasCard}
               </Box>
+
+              {/* Escritorio: texto visible en el costado derecho.
+                  Si es extenso, continúa debajo de la galería sin recortes. */}
+              {descripcionEnFicha(
+                descripcionDesktop.principal,
+                Boolean(descripcionDesktop.continuacion),
+              )}
             </Box>
 
             {destacadosCard}

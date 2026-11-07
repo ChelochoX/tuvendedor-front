@@ -62,8 +62,23 @@ export async function listarProspectosDrive(params: {
   return data.data ?? data.Data;
 }
 
-export async function sincronizarProspectosDrive(): Promise<ResumenImportacion> {
+export type EstadoSincronizacionDrive = "inactivo" | "pendiente" | "ejecutando" | "completado" | "fallido";
+
+export interface EstadoTrabajoDrive {
+  estado: EstadoSincronizacionDrive;
+  inicioUtc: string | null;
+  finUtc: string | null;
+  error: string | null;
+  resultado: ResumenImportacion | null;
+}
+
+export async function sincronizarProspectosDrive(): Promise<EstadoTrabajoDrive> {
   const { data } = await instance.post("/admin/prospectos/sincronizar");
+  return data.data ?? data.Data;
+}
+
+export async function obtenerEstadoSincronizacionDrive(): Promise<EstadoTrabajoDrive> {
+  const { data } = await instance.get("/admin/prospectos/sincronizacion/estado");
   return data.data ?? data.Data;
 }
 

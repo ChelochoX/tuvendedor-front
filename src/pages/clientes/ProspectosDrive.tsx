@@ -26,8 +26,10 @@ import { useUsuario } from "../../context/UsuarioContext";
 import {
   cambiarGestionProspecto,
   listarProspectosDrive,
+  obtenerEstadoSincronizacionDrive,
   sincronizarProspectosDrive,
   type EstadoProspecto,
+  type EstadoTrabajoDrive,
   type ListadoProspectosDrive,
   type ProspectoDrive,
   type RubroProspectos,
@@ -367,8 +369,10 @@ export default function ProspectosDrive() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [aviso, setAviso] = useState("");
+  const [estadoTrabajo, setEstadoTrabajo] = useState<EstadoTrabajoDrive | null>(null);
   const [seleccionado, setSeleccionado] = useState<ProspectoDrive | null>(null);
   const porPagina = 20;
+  const ultimaFinalizacionProcesada = useRef<string | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -414,22 +418,64 @@ export default function ProspectosDrive() {
     return () => window.clearInterval(timer);
   }, [cargar]);
 
+  // El backend responde 202 al encolar; el resultado llega después por el endpoint de estado.
+  useEffect(() => {
+    if (!esAdmin) return;
+    let cancelado = false;
+    const consultar = async () => {
+      try {
+        const actual = await obtenerEstadoSincronizacionDrive();
+        if (cancelado) return;
+        setEstadoTrabajo((anterior) => {
+          // Evitar mostrar un resultado anterior como si fuera la ejecución actual.
+          if (anterior?.estado === "pendiente" && actual.estado === "inactivo") return anterior;
+          return actual;
+        });
+        if (actual.estado === "pendiente" || actual.estado === "ejecutando") {
+          setSincronizando(true);
+        } else {
+          setSincronizando(false);
+        }
+        if (actual.estado === "completado" && actual.finUtc &&
+            ultimaFinalizacionProcesada.current !== actual.finUtc) {
+          ultimaFinalizacionProcesada.current = actual.finUtc;
+          await cargar(true);
+        }
+      } catch {
+        // La carga del listado sigue funcionando aunque el estado no esté disponible.
+      }
+    };
+    void consultar();
+    const intervalo = window.setInterval(() => { void consultar(); }, 5000);
+    return () => { cancelado = true; window.clearInterval(intervalo); };
+  }, [esAdmin, cargar]);
+
   const sincronizar = async () => {
     setSincronizando(true);
     setAviso("");
     setError("");
     try {
-      const r = await sincronizarProspectosDrive();
-      setAviso(
-        `Drive actualizado: ${r.planillas} planillas · ${r.filasNuevas} nuevos · ${r.filasRepetidas} repetidos omitidos.`,
-      );
-      await cargar(true);
+      const trabajo = await sincronizarProspectosDrive();
+      setEstadoTrabajo(trabajo);
+      setAviso("Solicitud recibida. La sincronización se está procesando en segundo plano.");
     } catch (e) {
       setError(textoError(e));
-    } finally {
       setSincronizando(false);
     }
   };
+  const procesandoDrive = sincronizando || estadoTrabajo?.estado === "pendiente" || estadoTrabajo?.estado === "ejecutando";
+  const resultadoDrive = estadoTrabajo?.estado === "completado" ? estadoTrabajo.resultado : null;
+  const textoEstadoDrive = estadoTrabajo?.estado === "pendiente"
+    ? "Sincronización pendiente de ejecución…"
+    : estadoTrabajo?.estado === "ejecutando"
+      ? "Sincronización de Google Drive en curso…"
+      : estadoTrabajo?.estado === "fallido"
+        ? estadoTrabajo.error || "La sincronización falló. Revisá los logs del servidor."
+        : resultadoDrive
+          ? `Drive actualizado: ${resultadoDrive.planillas} planillas · ${resultadoDrive.filasNuevas} nuevos · ${resultadoDrive.filasRepetidas} repetidos omitidos.`
+          : estadoTrabajo?.estado === "completado"
+            ? "Sincronización finalizada. Actualizá el listado para verificar los registros."
+            : aviso;
   const guardar = async (estadoNuevo: EstadoProspecto, notas: string) => {
     if (!seleccionado) return;
     setGuardando(true);
@@ -476,15 +522,15 @@ export default function ProspectosDrive() {
           {esAdmin && (
             <button
               type="button"
-              disabled={sincronizando}
+              disabled={procesandoDrive}
               onClick={sincronizar}
               className="inline-flex items-center gap-2 rounded-xl bg-amber-400 px-4 py-3 text-sm font-bold text-slate-950 hover:bg-amber-300 disabled:opacity-60"
             >
               <RefreshCcw
                 size={17}
-                className={sincronizando ? "animate-spin" : ""}
+                className={procesandoDrive ? "animate-spin" : ""}
               />{" "}
-              {sincronizando ? "Sincronizando…" : "Sincronizar Drive"}
+              {procesandoDrive ? "Sincronizando…" : "Sincronizar Drive"}
             </button>
           )}
         </div>
@@ -539,12 +585,13 @@ export default function ProspectosDrive() {
                 <AlertCircle size={19} className="shrink-0" /> {error}
               </div>
             )}
-            {aviso && (
+            {textoEstadoDrive && (
               <div
                 role="status"
-                className="flex items-start gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-200"
+                className={`flex items-start gap-2 rounded-xl border p-4 text-sm ${estadoTrabajo?.estado === "fallido" ? "border-red-500/30 bg-red-500/10 text-red-200" : procesandoDrive ? "border-sky-500/30 bg-sky-500/10 text-sky-200" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-200"}`}
               >
-                <CheckCircle2 size={19} className="shrink-0" /> {aviso}
+                {procesandoDrive ? <Loader2 size={19} className="shrink-0 animate-spin" /> : estadoTrabajo?.estado === "fallido" ? <AlertCircle size={19} className="shrink-0" /> : <CheckCircle2 size={19} className="shrink-0" />}
+                {textoEstadoDrive}
               </div>
             )}
             {datos &&

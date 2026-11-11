@@ -30,6 +30,33 @@ import {
 
 type Filtro = "TODOS" | "EDITOR" | "LEGADO" | "PREDETERMINADO";
 type Orden = "TITULO" | "CODIGO";
+type Grupo = "TODOS" | "SOLICITUD" | "VENTAS" | "CLIENTES" | "MARKETPLACE" | "CREDITOS" | "SISTEMA";
+
+const grupos: { id: Grupo; nombre: string; detalle: string }[] = [
+  { id: "TODOS", nombre: "Todos", detalle: "Todas las plantillas" },
+  { id: "SOLICITUD", nombre: "Solicitudes", detalle: "Datos del titular y documentos" },
+  { id: "VENTAS", nombre: "Ventas de motos", detalle: "Modelos, precios y financiación" },
+  { id: "CLIENTES", nombre: "Atención al cliente", detalle: "Saludos, consultas y seguimiento" },
+  { id: "MARKETPLACE", nombre: "Marketplace", detalle: "Productos y publicaciones" },
+  { id: "CREDITOS", nombre: "Créditos", detalle: "Evaluación y condiciones" },
+  { id: "SISTEMA", nombre: "Sistema y otros", detalle: "Instrucciones generales y especiales" },
+];
+
+const grupoDe = (item: PromptCatalogo): Grupo => {
+  const c = item.codigo.toUpperCase();
+  const categoria = (item.categoria || "").toUpperCase();
+  if (c.startsWith("SOLICITUD_") || c.startsWith("DOMICILIO_") ||
+      c.startsWith("CEDULA_") || c.startsWith("LABORAL_") || c.startsWith("REF_FAMILIAR_") ||
+      c.startsWith("REF_AMIGO") || categoria.includes("SOLICITUD")) return "SOLICITUD";
+  if (c.startsWith("MOTO_") || c.startsWith("MOTOS_") || c.startsWith("CONTADO_") ||
+      categoria.includes("MOTO")) return "VENTAS";
+  if (c.startsWith("MARKETPLACE_") || categoria.includes("MARKETPLACE")) return "MARKETPLACE";
+  if (c.startsWith("CREDITO_") || c.startsWith("GARANTE_") || categoria.includes("CREDITO")) return "CREDITOS";
+  if (c.startsWith("RESPUESTA_") || c.startsWith("SALUDO_") || c.startsWith("DERIVACION_") ||
+      c.startsWith("PAUSA_") || c.startsWith("DESISTIMIENTO_") || c.startsWith("BAJA_") ||
+      c === "DICCIONARIO_SOCIAL" || categoria.includes("SOCIAL") || categoria.includes("ATENCION")) return "CLIENTES";
+  return "SISTEMA";
+};
 
 const ejemplos: Record<string, { cliente: string; aclaracion: string }> = {
   DICCIONARIO_SOCIAL: {
@@ -143,6 +170,7 @@ const PromptsPanambi: React.FC = () => {
   const [aviso, setAviso] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("TODOS");
+  const [grupo, setGrupo] = useState<Grupo>("TODOS");
   const [orden, setOrden] = useState<Orden>("TITULO");
   const dialogoRef = useRef<HTMLDivElement>(null);
   const enfoqueAnteriorRef = useRef<HTMLElement | null>(null);
@@ -169,6 +197,7 @@ const PromptsPanambi: React.FC = () => {
     return items
       .filter((item) => {
         if (filtro !== "TODOS" && item.origen !== filtro) return false;
+        if (grupo !== "TODOS" && grupoDe(item) !== grupo) return false;
         return (
           !criterio ||
           [item.titulo, item.codigo, item.descripcion].some((texto) =>
@@ -181,7 +210,7 @@ const PromptsPanambi: React.FC = () => {
           ? a.codigo.localeCompare(b.codigo, "es")
           : a.titulo.localeCompare(b.titulo, "es"),
       );
-  }, [items, busqueda, filtro, orden]);
+  }, [items, busqueda, filtro, grupo, orden]);
 
   const cargar = async (codigoActivo?: string | null) => {
     setCargando(true);
@@ -446,6 +475,22 @@ const PromptsPanambi: React.FC = () => {
         )}
 
         <section aria-label="Plantillas disponibles" className="space-y-4">
+          <nav aria-label="Grupos de prompts" className="flex gap-2 overflow-x-auto pb-2" role="tablist">
+            {grupos.map((opcion) => {
+              const cantidad = opcion.id === "TODOS" ? items.length : items.filter((i) => grupoDe(i) === opcion.id).length;
+              return (
+                <button key={opcion.id} type="button" role="tab"
+                  aria-selected={grupo === opcion.id} title={opcion.detalle}
+                  onClick={() => setGrupo(opcion.id)}
+                  className={`shrink-0 rounded-xl border px-4 py-3 text-left transition-colors ${grupo === opcion.id
+                    ? "border-yellow-400 bg-yellow-400/10 text-yellow-200"
+                    : "border-slate-700 bg-[#101c2e] text-slate-300 hover:border-slate-500"}`}>
+                  <span className="block text-sm font-semibold">{opcion.nombre} ({cantidad})</span>
+                  <span className="block text-[11px] opacity-70 mt-0.5">{opcion.detalle}</span>
+                </button>
+              );
+            })}
+          </nav>
           <div className="flex flex-col xl:flex-row xl:items-center gap-3 xl:justify-between">
             <label className="relative block w-full xl:max-w-[370px]">
               <Search
@@ -511,6 +556,7 @@ const PromptsPanambi: React.FC = () => {
                 onClick={() => {
                   setBusqueda("");
                   setFiltro("TODOS");
+                  setGrupo("TODOS");
                 }}
                 className="text-yellow-300 text-sm underline"
               >

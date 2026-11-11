@@ -4,6 +4,7 @@ export type PromptCatalogo = {
   codigo: string;
   titulo: string;
   descripcion: string;
+  categoria?: string;
   contenido: string;
   version: number;
   origen: "EDITOR" | "LEGADO" | "PREDETERMINADO";
